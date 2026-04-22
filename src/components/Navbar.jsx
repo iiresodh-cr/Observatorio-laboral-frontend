@@ -1,11 +1,30 @@
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import GavelIcon from '@mui/icons-material/Gavel'; // Un ícono de mazo legal
 
 export default function Navbar() {
   return (
-    <nav style={{ padding: '1rem', background: '#2c3e50', color: 'white', display: 'flex', gap: '1rem' }}>
-      <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>Inicio</Link>
-      <Link to="/denuncia" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>Orientación / Denuncia</Link>
-      <Link to="/admin" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>Admin</Link>
-    </nav>
+    <AppBar position="static" elevation={2}>
+      <Toolbar>
+        {/* Ícono y Título */}
+        <GavelIcon sx={{ mr: 2 }} />
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+          Observatorio Laboral CR
+        </Typography>
+
+        {/* Enlaces de navegación */}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button color="inherit" component={RouterLink} to="/">
+            Inicio
+          </Button>
+          <Button color="inherit" component={RouterLink} to="/denuncia">
+            Orientación
+          </Button>
+          <Button variant="outlined" color="inherit" component={RouterLink} to="/admin" sx={{ ml: 2 }}>
+            Admin
+          </Button>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 }
