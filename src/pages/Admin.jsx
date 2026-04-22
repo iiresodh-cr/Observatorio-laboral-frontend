@@ -81,7 +81,7 @@ export default function Admin() {
         <DialogContent>
           <Typography variant="body1">
             Has ingresado al panel de control del Observatorio. 
-            Cualquier carga de documentos o sincronización modificará la base de conocimientos de <strong>Gemini AI</strong>.
+            Cualquier carga de documentos o sincronización modificará la base de conocimientos del asistente de IA <strong>PIDA</strong>.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
