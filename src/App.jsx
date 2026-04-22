@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Denuncia from './pages/Denuncia';
 import Admin from './pages/Admin';
+import Repositorio from './pages/Repositorio';
 
 // Tema visual con los colores de la Unión Europea
 const theme = createTheme({
@@ -32,6 +33,7 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/repositorio" element={<Repositorio />} />
           <Route path="/denuncia" element={<Denuncia />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
