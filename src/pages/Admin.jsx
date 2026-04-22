@@ -25,21 +25,31 @@ const categorias = [
 
 // Datos estructurados para Recharts
 const dataDenuncias = [
-  { nombre: 'Impago de salario', casos: 112 },
-  { nombre: 'Despido injusto', casos: 62 },
-  { nombre: 'Acoso laboral', casos: 37 },
-  { nombre: 'Incumplimiento jornada', casos: 25 },
-  { nombre: 'Otros', casos: 12 },
+  { nombre: 'Impago de salario o extremos laborales', casos: 112 },
+  { nombre: 'Despido injustificado', casos: 62 },
+  { nombre: 'Acoso laboral (Mobbing)', casos: 37 },
+  { nombre: 'Incumplimiento de jornada u horas extra', casos: 25 },
+  { nombre: 'Discriminación', casos: 12 },
 ];
 
-// Colores institucionales para el gráfico de pastel (Azul UE, Dorado UE y variaciones)
+// Colores institucionales para el gráfico (Azul UE, Dorado UE y variaciones)
 const COLORS = ['#003399', '#FFCC00', '#1565c0', '#ffd54f', '#90caf9'];
 
 export default function Admin() {
   const [tabValue, setTabValue] = useState(0);
+  
   const [openWarning, setOpenWarning] = useState(true);
-  const [actionModal, setActionModal] = useState({ open: false, title: '', message: '' });
-  const [docData, setDocData] = useState({ titulo: '', categoria: '', anio: '', descripcion: '' });
+  
+  // ESTADO PARA EL MODAL DE RESULTADOS DE ACCIONES (Reemplaza a los alerts)
+  const [actionModal, setActionModal] = useState({ 
+    open: false, 
+    title: '', 
+    message: '' 
+  });
+
+  const [docData, setDocData] = useState({
+    titulo: '', categoria: '', anio: '', descripcion: ''
+  });
   const [archivo, setArchivo] = useState(null);
 
   const handleFormChange = (e) => setDocData({ ...docData, [e.target.name]: e.target.value });
@@ -70,26 +80,36 @@ export default function Admin() {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body1">
-            Cualquier modificación en esta área impactará directamente los modelos de lenguaje de IA y el repositorio público. Proceda con precaución.
+            Has ingresado al panel de control del Observatorio. 
+            Cualquier carga de documentos o sincronización modificará la base de conocimientos de <strong>Gemini AI</strong>.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenWarning(false)} variant="outlined" color="error">Entendido</Button>
+          <Button onClick={() => setOpenWarning(false)} variant="outlined" color="error">
+            Comprendo los riesgos
+          </Button>
         </DialogActions>
       </Dialog>
 
-      {/* MODAL DE RESULTADOS */}
+      {/* MODAL DE RESULTADOS DE ACCIONES (Éxito / Error) */}
       <Dialog open={actionModal.open} onClose={() => setActionModal({ ...actionModal, open: false })}>
-        <DialogTitle sx={{ color: 'primary.main', fontWeight: 'bold' }}>{actionModal.title}</DialogTitle>
-        <DialogContent><Typography variant="body1">{actionModal.message}</Typography></DialogContent>
+        <DialogTitle sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+          {actionModal.title}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">{actionModal.message}</Typography>
+        </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setActionModal({ ...actionModal, open: false })} variant="contained" color="primary">Aceptar</Button>
+          <Button onClick={() => setActionModal({ ...actionModal, open: false })} variant="contained" color="primary">
+            Aceptar
+          </Button>
         </DialogActions>
       </Dialog>
 
       <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>Panel de Administración</Typography>
 
       <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', mt: 3 }}>
+        
         <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f4f6f8' }}>
           <Tabs value={tabValue} onChange={(e, val) => setTabValue(val)} variant="scrollable" scrollButtons="auto" textColor="primary" indicatorColor="secondary">
             <Tab icon={<InsertChartIcon />} iconPosition="start" label="Estadísticas" />
@@ -98,7 +118,7 @@ export default function Admin() {
           </Tabs>
         </Box>
 
-        {/* --- VISTA 0: ESTADÍSTICAS PROFESIONALES --- */}
+        {/* --- VISTA 0: ESTADÍSTICAS PROFESIONALES (Solución image_3.png) --- */}
         {tabValue === 0 && (
           <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: '#fafafa' }}>
             <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Dashboard Analítico de Vulneraciones</Typography>
@@ -130,17 +150,25 @@ export default function Admin() {
               </Grid>
             </Grid>
 
-            {/* Gráficos Recharts */}
+            {/* Gráficos Recharts (Solución image_3.png) */}
             <Grid container spacing={3}>
               <Grid item xs={12} md={7}>
                 <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 400 }}>
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Volumen de Denuncias por Categoría</Typography>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dataDenuncias} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                    <BarChart data={dataDenuncias} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="nombre" tick={{ fontSize: 12 }} interval={0} angle={-25} textAnchor="end" />
+                      {/* Solución: Rotación de etiquetas en eje X */}
+                      <XAxis 
+                        dataKey="nombre" 
+                        tick={{ fontSize: 11 }} 
+                        interval={0} 
+                        angle={-45} 
+                        textAnchor="end" 
+                        height={80} 
+                      />
                       <YAxis />
-                      <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
+                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
                       <Bar dataKey="casos" fill="#003399" radius={[4, 4, 0, 0]} name="Cantidad de Casos" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -159,7 +187,14 @@ export default function Admin() {
                           ))}
                         </Pie>
                         <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                        <Legend verticalAlign="bottom" height={36} />
+                        {/* Solución: Leyenda vertical y alineada a la derecha */}
+                        <Legend 
+                          layout="vertical" 
+                          align="right" 
+                          verticalAlign="middle" 
+                          iconSize={10} 
+                          wrapperStyle={{ fontSize: 11 }} 
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                   </Box>
@@ -169,38 +204,66 @@ export default function Admin() {
           </Box>
         )}
 
-        {/* --- VISTA 1 Y 2 SE MANTIENEN IGUAL (Carga Manual y SINALEVI) --- */}
+        {/* --- VISTA 1: CARGA MANUAL (Solución image_0.png) --- */}
         {tabValue === 1 && (
           <Box component="form" onSubmit={handleUploadSubmit} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'white' }}>
             <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Subir Nuevo Documento</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <TextField fullWidth label="Título del Documento" name="titulo" value={docData.titulo} onChange={handleFormChange} variant="outlined" required />
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Asegúrate de que el PDF sea legible. El sistema extraerá el texto para entrenar a la IA.</Typography>
+
+            {/* Solución image_0.png: Uso de Grid para formulario robusto */}
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField fullWidth label="Título del Documento" name="titulo" value={docData.titulo} onChange={handleFormChange} variant="outlined" required />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
                 <TextField fullWidth select label="Categoría" name="categoria" value={docData.categoria} onChange={handleFormChange} variant="outlined" required>
                   <MenuItem value="" disabled><em>Seleccione...</em></MenuItem>
                   {categorias.map((cat) => (<MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>))}
                 </TextField>
-                <TextField fullWidth label="Año" name="anio" type="number" value={docData.anio} onChange={handleFormChange} variant="outlined" required />
-              </Box>
-              <TextField fullWidth label="Descripción" name="descripcion" value={docData.descripcion} onChange={handleFormChange} variant="outlined" multiline minRows={3} required />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, border: '1px dashed #ccc', borderRadius: 2, bgcolor: '#fafafa' }}>
-                <Button variant="outlined" component="label" startIcon={<PictureAsPdfIcon />}>
-                  Seleccionar PDF <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth label="Año de publicación" name="anio" type="number" value={docData.anio} onChange={handleFormChange} variant="outlined" required />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField fullWidth label="Descripción breve" name="descripcion" value={docData.descripcion} onChange={handleFormChange} variant="outlined" multiline minRows={3} required />
+              </Grid>
+
+              <Grid item xs={12}>
+                {/* Input de archivo estilizado */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, border: '1px dashed #ccc', borderRadius: 2, bgcolor: '#fafafa' }}>
+                  <Button variant="outlined" component="label" startIcon={<PictureAsPdfIcon />}>
+                    Seleccionar PDF
+                    <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
+                  </Button>
+                  <Typography variant="body2" color={archivo ? 'text.primary' : 'text.secondary'}>
+                    {archivo ? archivo.name : 'Ningún archivo seleccionado'}
+                  </Typography>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                <Button type="submit" variant="contained" color="primary" size="large" sx={{ fontWeight: 'bold', px: 4 }}>
+                  Guardar y Procesar
                 </Button>
-                <Typography variant="body2">{archivo ? archivo.name : 'Ningún archivo seleccionado'}</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                <Button type="submit" variant="contained" color="primary" size="large" sx={{ px: 4 }}>Procesar</Button>
-              </Box>
-            </Box>
+              </Grid>
+            </Grid>
           </Box>
         )}
 
+        {/* --- VISTA 2: SINALEVI --- */}
         {tabValue === 2 && (
           <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'white', textAlign: 'center' }}>
             <SyncIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Extracción Automática</Typography>
-            <Button variant="contained" color="secondary" size="large" onClick={handleSyncSinalevi} sx={{ color: '#000', px: 4, py: 1.5, mt: 2 }}>Ejecutar</Button>
+            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Motor de Extracción Automática</Typography>
+            <Typography variant="body1" color="text.secondary" paragraph sx={{ maxWidth: 600, mx: 'auto', mb: 4 }}>
+              Este proceso buscará actualizaciones directamente en el sistema nacional.
+            </Typography>
+            <Button variant="contained" color="secondary" size="large" onClick={handleSyncSinalevi} sx={{ color: '#000', fontWeight: 'bold', px: 4, py: 1.5, mt: 2, borderRadius: 2 }}>
+              Ejecutar
+            </Button>
           </Box>
         )}
       </Paper>
