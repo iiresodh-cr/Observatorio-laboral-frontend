@@ -150,22 +150,25 @@ export default function Admin() {
               </Grid>
             </Grid>
 
-            {/* Gráficos Recharts (Solución image_3.png) */}
+            {/* Gráficos Recharts (Solución definitiva para desbordamientos) */}
             <Grid container spacing={3}>
+              
+              {/* Gráfico de Barras */}
               <Grid item xs={12} md={7}>
-                <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 400 }}>
+                {/* Aumentamos la altura de la tarjeta a 450px para dar más espacio vertical */}
+                <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 450 }}>
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Volumen de Denuncias por Categoría</Typography>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dataDenuncias} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
+                    {/* Aumentamos dramáticamente el margen inferior (bottom: 120) para las etiquetas largas */}
+                    <BarChart data={dataDenuncias} margin={{ top: 20, right: 30, left: 0, bottom: 120 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      {/* Solución: Rotación de etiquetas en eje X */}
                       <XAxis 
                         dataKey="nombre" 
                         tick={{ fontSize: 11 }} 
                         interval={0} 
                         angle={-45} 
                         textAnchor="end" 
-                        height={80} 
+                        dx={-5} // Ajuste fino para acercar la etiqueta a la línea
                       />
                       <YAxis />
                       <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
@@ -175,25 +178,34 @@ export default function Admin() {
                 </Paper>
               </Grid>
 
+              {/* Gráfico de Anillo */}
               <Grid item xs={12} md={5}>
-                <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 400, display: 'flex', flexDirection: 'column' }}>
+                <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 450, display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Proporción de Afectaciones</Typography>
                   <Box sx={{ flexGrow: 1 }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={dataDenuncias} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={5} dataKey="casos">
+                      <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
+                        <Pie 
+                          data={dataDenuncias} 
+                          cx="50%" 
+                          cy="45%" // Subimos el centro ligeramente para dar espacio a la leyenda abajo
+                          innerRadius={60} // Reducimos el radio interior
+                          outerRadius={90} // Reducimos el radio exterior para que encaje perfectamente
+                          paddingAngle={5} 
+                          dataKey="casos"
+                          nameKey="nombre" // ¡CLAVE! Esto asegura que la leyenda muestre los nombres reales
+                        >
                           {dataDenuncias.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
                         <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                        {/* Solución: Leyenda vertical y alineada a la derecha */}
+                        {/* Movemos la leyenda abajo (horizontal) para manejar textos largos sin solaparse */}
                         <Legend 
-                          layout="vertical" 
-                          align="right" 
-                          verticalAlign="middle" 
-                          iconSize={10} 
-                          wrapperStyle={{ fontSize: 11 }} 
+                          layout="horizontal" 
+                          align="center" 
+                          verticalAlign="bottom" 
+                          wrapperStyle={{ fontSize: 11, paddingTop: '15px' }} 
                         />
                       </PieChart>
                     </ResponsiveContainer>
