@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   Container, Paper, Box, Typography, TextField, 
-  Button, MenuItem, Grid, Divider, Stack,
+  Button, MenuItem, Divider, Stack,
   Dialog, DialogTitle, DialogContent, DialogActions 
 } from '@mui/material';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -58,7 +58,7 @@ export default function Denuncia() {
         </DialogTitle>
         <DialogContent dividers>
           <Typography variant="body1" paragraph>
-            Este formulario es un instrumento oficial del <strong>Observatorio de Derechos Laborales</strong> para la recopilación de datos estadísticos.
+            Este formulario es un instrumento oficial del <strong>Observatorio de Derechos Laborales</strong>.
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Toda la información proporcionada es confidencial. Este reporte tiene fines de monitoreo apoyados por la Unión Europea, y no constituye un trámite legal ante el Ministerio de Trabajo.
@@ -82,7 +82,7 @@ export default function Denuncia() {
         </DialogActions>
       </Dialog>
 
-      {/* Encabezado de Página */}
+      {/* Encabezado */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" color="primary" fontWeight="800" gutterBottom>
           Registro de Vulneraciones Laborales
@@ -92,58 +92,51 @@ export default function Denuncia() {
         </Typography>
       </Box>
 
+      {/* Formulario */}
       <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', border: '1px solid #e0e0e0' }}>
         
-        {/* Banner Superior Institucional */}
         <Box sx={{ p: 3, bgcolor: '#003399', color: 'white', display: 'flex', alignItems: 'center', gap: 2 }}>
           <AssignmentIcon fontSize="large" />
           <Box>
             <Typography variant="h6" fontWeight="bold">Formulario Oficial de Reporte</Typography>
-            <Typography variant="body2" sx={{ opacity: 0.85 }}>
-              Los campos requeridos (*) son indispensables para la validez del registro.
-            </Typography>
           </Box>
         </Box>
 
         <Box component="form" onSubmit={handleFormSubmit} sx={{ p: { xs: 3, md: 5 }, bgcolor: '#ffffff' }}>
+          
           <Stack spacing={4}>
             
-            {/* SECCIÓN 1: DATOS PERSONALES */}
+            {/* SECCIÓN 1 */}
             <Box>
               <Typography variant="subtitle1" color="primary" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <PersonIcon /> 1. IDENTIFICACIÓN DE LA PERSONA
               </Typography>
               
-              <Grid container spacing={3}>
-                {/* Fila 1: Nombre (100% del ancho = 12 columnas) */}
-                <Grid item xs={12}>
-                  <TextField 
-                    fullWidth 
-                    label="Nombre completo" 
-                    name="nombre" 
-                    value={formData.nombre} 
-                    onChange={handleFormChange} 
-                    placeholder="Puede dejar este campo en blanco si desea mantener el anonimato" 
-                  />
-                </Grid>
+              <Stack spacing={3}>
+                {/* Nombre en su propia fila obligatoria */}
+                <TextField 
+                  fullWidth 
+                  label="Nombre completo" 
+                  name="nombre" 
+                  value={formData.nombre} 
+                  onChange={handleFormChange} 
+                />
                 
-                {/* Fila 2: Correo (50%), Género (25%), Edad (25%) */}
-                <Grid item xs={12} md={6}>
+                {/* Flexbox puro para repartir el espacio sin usar Grid */}
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
                   <TextField 
                     required 
-                    fullWidth 
+                    sx={{ flex: 2 }} /* 50% del espacio */
                     type="email" 
                     label="Correo Electrónico" 
                     name="email" 
                     value={formData.email} 
                     onChange={handleFormChange} 
                   />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
                   <TextField 
                     select 
                     required 
-                    fullWidth 
+                    sx={{ flex: 1 }} /* 25% del espacio */
                     label="Género" 
                     name="genero" 
                     value={formData.genero} 
@@ -153,11 +146,9 @@ export default function Denuncia() {
                       <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
                     ))}
                   </TextField>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
                   <TextField 
                     required 
-                    fullWidth 
+                    sx={{ flex: 1 }} /* 25% del espacio */
                     type="number" 
                     label="Edad" 
                     name="edad" 
@@ -165,13 +156,13 @@ export default function Denuncia() {
                     onChange={handleFormChange} 
                     inputProps={{ min: 15, max: 100 }}
                   />
-                </Grid>
-              </Grid>
+                </Box>
+              </Stack>
             </Box>
 
             <Divider />
 
-            {/* SECCIÓN 2: DETALLES LABORALES */}
+            {/* SECCIÓN 2 */}
             <Box>
               <Typography variant="subtitle1" color="primary" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <BusinessIcon /> 2. INFORMACIÓN DEL CASO
@@ -212,26 +203,17 @@ export default function Denuncia() {
                   name="descripcion" 
                   value={formData.descripcion} 
                   onChange={handleFormChange} 
-                  placeholder="Por favor, describa cronológicamente los hechos, incluyendo fechas, lugares y puestos involucrados." 
                 />
               </Stack>
             </Box>
 
-            {/* BOTÓN DE ENVÍO */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
               <Button 
                 type="submit" 
                 variant="contained" 
                 color="secondary" 
                 disableElevation
-                sx={{ 
-                  py: 1.5, 
-                  px: 5, 
-                  fontSize: '1rem', 
-                  fontWeight: 'bold', 
-                  borderRadius: 1, 
-                  color: '#000'
-                }}
+                sx={{ py: 1.5, px: 5, fontSize: '1rem', fontWeight: 'bold', borderRadius: 1, color: '#000' }}
               >
                 REGISTRAR REPORTE
               </Button>
