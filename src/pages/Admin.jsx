@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   Container, Paper, Box, Typography, TextField, Button, 
-  Tabs, Tab, MenuItem, Divider, Card, CardContent, Stack,
+  Tabs, Tab, MenuItem, Grid, Card, CardContent,
   Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress 
 } from '@mui/material';
 import { 
@@ -15,9 +15,8 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import GroupIcon from '@mui/icons-material/Group';
 import AssignmentLateIcon from '@mui/icons-material/AssignmentLate';
-import StorageIcon from '@mui/icons-material/Storage';
 
-// Servicios de Firebase
+// Importación de servicios reales de Firebase
 import { db, storage } from '../services/firebaseConfig';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -29,22 +28,27 @@ const categorias = [
   { value: 'articulos', label: 'Libros y Artículos' }
 ];
 
+// Datos estructurados para Recharts
 const dataDenuncias = [
-  { nombre: 'Impago de salario', casos: 112 },
+  { nombre: 'Impago de salario o extremos laborales', casos: 112 },
   { nombre: 'Despido injustificado', casos: 62 },
-  { nombre: 'Acoso laboral', casos: 37 },
-  { nombre: 'Horas extra', casos: 25 },
+  { nombre: 'Acoso laboral (Mobbing)', casos: 37 },
+  { nombre: 'Incumplimiento de jornada u horas extra', casos: 25 },
   { nombre: 'Discriminación', casos: 12 },
 ];
 
+// Colores institucionales para el gráfico (Azul UE, Dorado UE y variaciones)
 const COLORS = ['#003399', '#FFCC00', '#1565c0', '#ffd54f', '#90caf9'];
 
 export default function Admin() {
   const [tabValue, setTabValue] = useState(0);
   const [openWarning, setOpenWarning] = useState(true);
+  
+  // ESTADOS PARA FIREBASE
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   
+  // ESTADO PARA EL MODAL DE RESULTADOS DE ACCIONES (Reemplaza a los alerts)
   const [actionModal, setActionModal] = useState({ 
     open: false, 
     title: '', 
@@ -60,25 +64,21 @@ export default function Admin() {
   
   const handleFileChange = (e) => { 
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.type !== "application/pdf") {
-        setActionModal({ open: true, title: 'Formato inválido', message: 'Solo se permiten archivos PDF.' });
-        return;
-      }
-      setArchivo(file); 
+      setArchivo(e.target.files[0]); 
     }
   };
 
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!archivo) {
-      setActionModal({ open: true, title: 'Error de archivo', message: 'Por favor, adjunte el documento PDF oficial.' });
+      setActionModal({ open: true, title: 'Error de archivo', message: 'Por favor, selecciona un archivo PDF antes de continuar.' });
       return;
     }
 
     setUploading(true);
 
     try {
+      // 1. Subir a Storage
       const nombreArchivo = `${Date.now()}_${archivo.name}`;
       const storageRef = ref(storage, `documentos/${nombreArchivo}`);
       const uploadTask = uploadBytesResumable(storageRef, archivo);
@@ -89,230 +89,258 @@ export default function Admin() {
           setProgress(progressPercent);
         }, 
         (error) => {
+          console.error("Error al subir archivo:", error);
           setUploading(false);
-          setActionModal({ open: true, title: 'Fallo de Red', message: 'No se pudo establecer conexión con Firebase Storage.' });
+          setActionModal({ open: true, title: 'Error', message: 'No se pudo subir el documento al servidor.' });
         }, 
         async () => {
+          // 2. Obtener URL y guardar en Firestore
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
           await addDoc(collection(db, "documentos"), {
             titulo: docData.titulo,
             categoria: docData.categoria,
-            anio: parseInt(docData.anio),
+            anio: docData.anio,
             descripcion: docData.descripcion,
             fileUrl: downloadURL,
             fileName: nombreArchivo,
-            createdAt: serverTimestamp()
+            fechaCreacion: serverTimestamp()
           });
 
           setUploading(false);
           setProgress(0);
-          setActionModal({ open: true, title: 'Publicación Exitosa', message: `El recurso ha sido indexado correctamente en el Repositorio Digital.` });
+          setActionModal({ open: true, title: 'Carga Exitosa', message: `El documento "${docData.titulo}" se ha subido correctamente.` });
           setDocData({ titulo: '', categoria: '', anio: '', descripcion: '' });
           setArchivo(null);
         }
       );
     } catch (error) {
+      console.error("Error en Firebase:", error);
       setUploading(false);
-      setActionModal({ open: true, title: 'Error de Sistema', message: 'Fallo crítico al intentar registrar los metadatos en Firestore.' });
+      setActionModal({ open: true, title: 'Error', message: 'Ocurrió un error al registrar los datos.' });
     }
   };
 
+  const handleSyncSinalevi = () => {
+    setActionModal({ open: true, title: 'Sincronización Iniciada', message: 'Conectando con SINALEVI para extracción automática de documentos...' });
+  };
+
   return (
-    <Container maxWidth="lg" sx={{ mt: 5, mb: 8 }}>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       
-      {/* Modal de Advertencia Inicial */}
-      <Dialog open={openWarning} onClose={() => setOpenWarning(false)}>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: '#d32f2f', fontWeight: 'bold' }}>
-          <WarningAmberIcon /> Acceso Administrativo Restringido
+      {/* MODAL DE ADVERTENCIA */}
+      <Dialog open={openWarning} onClose={() => setOpenWarning(false)} disableEscapeKeyDown>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#d32f2f', fontWeight: 'bold' }}>
+          <WarningAmberIcon /> Área de Administración Restringida
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent>
           <Typography variant="body1">
-            Usted está ingresando al panel de control del <strong>Observatorio Laboral</strong>. 
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Las acciones realizadas aquí modifican la base de datos oficial y el repositorio documental público financiado por la Unión Europea.
+            Has ingresado al panel de control del Observatorio. 
+            Cualquier carga de documentos o sincronización modificará la base de conocimientos del asistente de IA <strong>PIDA</strong>.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenWarning(false)} variant="contained" color="error" disableElevation sx={{ borderRadius: 1, fontWeight: 'bold' }}>
-            CONFIRMAR IDENTIDAD
+          <Button onClick={() => setOpenWarning(false)} variant="outlined" color="error">
+            Comprendo los riesgos
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Modal de Feedback */}
+      {/* MODAL DE RESULTADOS DE ACCIONES (Éxito / Error) */}
       <Dialog open={actionModal.open} onClose={() => setActionModal({ ...actionModal, open: false })}>
-        <DialogTitle sx={{ fontWeight: 'bold', color: 'primary.main' }}>{actionModal.title}</DialogTitle>
-        <DialogContent dividers><Typography>{actionModal.message}</Typography></DialogContent>
+        <DialogTitle sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+          {actionModal.title}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">{actionModal.message}</Typography>
+        </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setActionModal({ ...actionModal, open: false })} variant="contained" disableElevation sx={{ borderRadius: 1 }}>
-            ACEPTAR
+          <Button onClick={() => setActionModal({ ...actionModal, open: false })} variant="contained" color="primary">
+            Aceptar
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" color="primary" fontWeight="900" gutterBottom>Panel de Control</Typography>
-        <Typography variant="h6" color="text.secondary">Gestión técnica y estadística del Observatorio de Derechos Laborales.</Typography>
-      </Box>
+      <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>Panel de Administración</Typography>
 
-      <Paper elevation={3} sx={{ borderRadius: 1, overflow: 'hidden', border: '1px solid #e0e0e0' }}>
+      <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', mt: 3 }}>
+        
         <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f4f6f8' }}>
-          <Tabs value={tabValue} onChange={(e, val) => setTabValue(val)} textColor="primary" indicatorColor="secondary">
-            <Tab icon={<InsertChartIcon />} iconPosition="start" label="ANÁLISIS ESTADÍSTICO" />
-            <Tab icon={<CloudUploadIcon />} iconPosition="start" label="REPOSITORIO DIGITAL" />
-            <Tab icon={<SyncIcon />} iconPosition="start" label="SINALEVI" />
+          <Tabs value={tabValue} onChange={(e, val) => setTabValue(val)} variant="scrollable" scrollButtons="auto" textColor="primary" indicatorColor="secondary">
+            <Tab icon={<InsertChartIcon />} iconPosition="start" label="Estadísticas" />
+            <Tab icon={<CloudUploadIcon />} iconPosition="start" label="Carga Manual" />
+            <Tab icon={<SyncIcon />} iconPosition="start" label="Sincronización SINALEVI" />
           </Tabs>
         </Box>
 
-        {/* PESTAÑA 0: ESTADÍSTICAS */}
+        {/* --- VISTA 0: ESTADÍSTICAS PROFESIONALES --- */}
         {tabValue === 0 && (
-          <Box sx={{ p: 4 }}>
-            <Stack spacing={4}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 2fr' }, gap: 3 }}>
-                <Card variant="outlined" sx={{ borderLeft: '6px solid #003399' }}>
-                  <CardContent>
-                    <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">TOTAL DE REPORTES</Typography>
-                    <Typography variant="h2" fontWeight="900" color="primary">248</Typography>
-                    <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <GroupIcon fontSize="small" color="disabled" />
-                      <Typography variant="caption" color="text.secondary">Datos captados desde el Centro de Denuncia</Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-                <Card variant="outlined" sx={{ borderLeft: '6px solid #FFCC00' }}>
-                  <CardContent>
-                    <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">TENDENCIA DE VULNERACIÓN PREDOMINANTE</Typography>
-                    <Typography variant="h4" fontWeight="bold" sx={{ mt: 1 }}>Impago de salario o extremos laborales</Typography>
-                    <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <AssignmentLateIcon fontSize="small" color="disabled" />
-                      <Typography variant="caption" color="text.secondary">Actualizado en tiempo real</Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Box>
+          <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: '#fafafa' }}>
+            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Dashboard Analítico de Vulneraciones</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Datos procesados a partir de los registros de la instancia de denuncia ciudadana.</Typography>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1.2fr 0.8fr' }, gap: 4 }}>
-                <Paper variant="outlined" sx={{ p: 3, height: 450, display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 3 }}>Distribución de Casos por Categoría</Typography>
+            {/* KPIs */}
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+              <Grid item xs={12} sm={4}>
+                <Card elevation={2} sx={{ borderTop: '4px solid', borderColor: 'primary.main', height: '100%' }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <GroupIcon color="primary" />
+                      <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">TOTAL DENUNCIAS</Typography>
+                    </Box>
+                    <Typography variant="h3" fontWeight="bold" color="primary.main">248</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={8}>
+                <Card elevation={2} sx={{ borderTop: '4px solid', borderColor: 'secondary.main', height: '100%' }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <AssignmentLateIcon color="secondary" />
+                      <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">TENDENCIA PRINCIPAL</Typography>
+                    </Box>
+                    <Typography variant="h5" fontWeight="bold" color="text.primary" sx={{ mt: 1 }}>Impago de salario o extremos laborales</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+
+            {/* Gráficos Recharts */}
+            <Grid container spacing={3}>
+              
+              {/* Gráfico de Barras */}
+              <Grid item xs={12} md={7}>
+                <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 450, display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Volumen de Denuncias por Categoría</Typography>
+                  {/* Contenedor flex para evitar el error de Recharts */}
                   <Box sx={{ flexGrow: 1, minHeight: 0 }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={dataDenuncias} margin={{ bottom: 20 }}>
+                      <BarChart data={dataDenuncias} margin={{ top: 20, right: 30, left: 0, bottom: 120 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="nombre" tick={{ fontSize: 11 }} />
-                        <YAxis tick={{ fontSize: 11 }} />
-                        <Tooltip cursor={{fill: '#f4f6f8'}} />
-                        <Bar dataKey="casos" fill="#003399" radius={[2, 2, 0, 0]} />
+                        <XAxis 
+                          dataKey="nombre" 
+                          tick={{ fontSize: 11 }} 
+                          interval={0} 
+                          angle={-45} 
+                          textAnchor="end" 
+                          dx={-5}
+                        />
+                        <YAxis />
+                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
+                        <Bar dataKey="casos" fill="#003399" radius={[4, 4, 0, 0]} name="Cantidad de Casos" />
                       </BarChart>
                     </ResponsiveContainer>
                   </Box>
                 </Paper>
+              </Grid>
 
-                <Paper variant="outlined" sx={{ p: 3, height: 450, display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 3 }}>Proporción de Afectaciones</Typography>
+              {/* Gráfico de Anillo */}
+              <Grid item xs={12} md={5}>
+                <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 450, display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Proporción de Afectaciones</Typography>
+                  {/* Contenedor flex para evitar el error de Recharts */}
                   <Box sx={{ flexGrow: 1, minHeight: 0 }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={dataDenuncias} innerRadius={70} outerRadius={100} paddingAngle={5} dataKey="casos" nameKey="nombre">
-                          {dataDenuncias.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                      <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
+                        <Pie 
+                          data={dataDenuncias} 
+                          cx="50%" 
+                          cy="45%" 
+                          innerRadius={60} 
+                          outerRadius={90} 
+                          paddingAngle={5} 
+                          dataKey="casos"
+                          nameKey="nombre" 
+                        >
+                          {dataDenuncias.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
                         </Pie>
-                        <Tooltip />
-                        <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '11px' }} />
+                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
+                        <Legend 
+                          layout="horizontal" 
+                          align="center" 
+                          verticalAlign="bottom" 
+                          wrapperStyle={{ fontSize: 11, paddingTop: '15px' }} 
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                   </Box>
                 </Paper>
-              </Box>
-            </Stack>
+              </Grid>
+            </Grid>
           </Box>
         )}
 
-        {/* PESTAÑA 1: CARGA DE DOCUMENTOS */}
+        {/* --- VISTA 1: CARGA MANUAL --- */}
         {tabValue === 1 && (
-          <Box component="form" onSubmit={handleUploadSubmit} sx={{ p: { xs: 3, md: 6 }, bgcolor: 'white' }}>
-            <Stack spacing={4}>
-              <Box>
-                <Typography variant="subtitle1" color="primary" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <StorageIcon /> INDEXACIÓN DE NUEVO RECURSO
-                </Typography>
-                <Divider />
-              </Box>
+          <Box component="form" onSubmit={handleUploadSubmit} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'white' }}>
+            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Subir Nuevo Documento</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Asegúrate de que el PDF sea legible. El sistema extraerá el texto para entrenar a la IA.</Typography>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' }, gap: 3 }}>
-                <Box sx={{ gridColumn: 'span 12' }}>
-                  <TextField fullWidth label="Título Oficial del Documento" name="titulo" value={docData.titulo} onChange={handleFormChange} required />
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField fullWidth label="Título del Documento" name="titulo" value={docData.titulo} onChange={handleFormChange} variant="outlined" required />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth select label="Categoría" name="categoria" value={docData.categoria} onChange={handleFormChange} variant="outlined" required>
+                  <MenuItem value="" disabled><em>Seleccione...</em></MenuItem>
+                  {categorias.map((cat) => (<MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>))}
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth label="Año de publicación" name="anio" type="number" value={docData.anio} onChange={handleFormChange} variant="outlined" required />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField fullWidth label="Descripción breve" name="descripcion" value={docData.descripcion} onChange={handleFormChange} variant="outlined" multiline minRows={3} required />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, border: '1px dashed #ccc', borderRadius: 2, bgcolor: '#fafafa' }}>
+                  <Button variant="outlined" component="label" startIcon={<PictureAsPdfIcon />}>
+                    Seleccionar PDF
+                    <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
+                  </Button>
+                  <Typography variant="body2" color={archivo ? 'text.primary' : 'text.secondary'}>
+                    {archivo ? archivo.name : 'Ningún archivo seleccionado'}
+                  </Typography>
                 </Box>
-
-                <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 8' } }}>
-                  <TextField select fullWidth label="Categoría Jurídica" name="categoria" value={docData.categoria} onChange={handleFormChange} required>
-                    {categorias.map((cat) => (<MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>))}
-                  </TextField>
-                </Box>
-
-                <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
-                  <TextField fullWidth label="Año de Publicación" name="anio" type="number" value={docData.anio} onChange={handleFormChange} required />
-                </Box>
-
-                <Box sx={{ gridColumn: 'span 12' }}>
-                  <TextField fullWidth label="Resumen Ejecutivo" name="descripcion" value={docData.descripcion} onChange={handleFormChange} multiline minRows={4} required placeholder="Describa brevemente el alcance de este documento para el buscador." />
-                </Box>
-
-                <Box sx={{ gridColumn: 'span 12' }}>
-                  <Box sx={{ p: 4, border: '2px dashed #003399', borderRadius: 1, bgcolor: '#f8faff', textAlign: 'center' }}>
-                    <Button variant="outlined" component="label" startIcon={<PictureAsPdfIcon />} sx={{ borderRadius: 1, fontWeight: 'bold' }}>
-                      SELECCIONAR ARCHIVO PDF
-                      <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
-                    </Button>
-                    <Typography variant="body2" sx={{ mt: 2, fontWeight: 'bold', color: archivo ? 'primary.main' : 'text.disabled' }}>
-                      {archivo ? `LISTO PARA SUBIR: ${archivo.name}` : 'FORMATO REQUERIDO: .PDF'}
-                    </Typography>
-                  </Box>
-                </Box>
-
+                
+                {/* Barra de progreso */}
                 {uploading && (
-                  <Box sx={{ gridColumn: 'span 12' }}>
-                    <Typography variant="caption" color="primary" fontWeight="bold">PROGRESO DE CARGA: {Math.round(progress)}%</Typography>
-                    <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4, mt: 1 }} />
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="caption" color="text.secondary">Subiendo archivo: {Math.round(progress)}%</Typography>
+                    <LinearProgress variant="determinate" value={progress} sx={{ mt: 1, mb: 1 }} />
                   </Box>
                 )}
+              </Grid>
 
-                <Box sx={{ gridColumn: 'span 12', display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                  <Button 
-                    type="submit" 
-                    variant="contained" 
-                    color="primary" 
-                    disabled={uploading}
-                    disableElevation
-                    sx={{ borderRadius: 1, px: 6, py: 1.5, fontWeight: 'bold' }}
-                  >
-                    PUBLICAR DOCUMENTO
-                  </Button>
-                </Box>
-              </Box>
-            </Stack>
+              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                <Button type="submit" variant="contained" color="primary" size="large" disabled={uploading} sx={{ fontWeight: 'bold', px: 4 }}>
+                  {uploading ? 'Procesando...' : 'Guardar y Procesar'}
+                </Button>
+              </Grid>
+            </Grid>
           </Box>
         )}
 
-        {/* PESTAÑA 2: SINALEVI */}
+        {/* --- VISTA 2: SINALEVI --- */}
         {tabValue === 2 && (
-          <Box sx={{ p: { xs: 4, md: 10 }, textAlign: 'center' }}>
-            <SyncIcon sx={{ fontSize: 100, color: 'primary.main', mb: 2, opacity: 0.1 }} />
-            <Typography variant="h5" fontWeight="bold" gutterBottom>Sincronización de Normativa Nacional</Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto', mb: 4 }}>
-              Este proceso conecta con el sistema nacional para descargar automáticamente las últimas actualizaciones en materia laboral.
+          <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'white', textAlign: 'center' }}>
+            <SyncIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Motor de Extracción Automática</Typography>
+            <Typography variant="body1" color="text.secondary" paragraph sx={{ maxWidth: 600, mx: 'auto', mb: 4 }}>
+              Este proceso buscará actualizaciones directamente en el sistema nacional.
             </Typography>
-            <Button variant="contained" color="secondary" onClick={handleSyncSinalevi} disableElevation sx={{ borderRadius: 1, px: 8, py: 2, color: '#000', fontWeight: 'bold' }}>
-              INICIAR EXTRACCIÓN AUTOMÁTICA
+            <Button variant="contained" color="secondary" size="large" onClick={handleSyncSinalevi} sx={{ color: '#000', fontWeight: 'bold', px: 4, py: 1.5, mt: 2, borderRadius: 2 }}>
+              Ejecutar
             </Button>
           </Box>
         )}
       </Paper>
-      
-      <Box sx={{ mt: 6, textAlign: 'center' }}>
-        <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 1.5 }}>
-          SISTEMA DE GESTIÓN | OBSERVATORIO DE DERECHOS LABORALES - UNIÓN EUROPEA
-        </Typography>
-      </Box>
     </Container>
   );
 }
