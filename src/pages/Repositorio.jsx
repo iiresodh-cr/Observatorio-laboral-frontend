@@ -19,9 +19,9 @@ export default function Repositorio() {
   const [tabValue, setTabValue] = useState('todos');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Efecto para obtener datos de Firestore en tiempo real
+  // Conexión real con Firestore
   useEffect(() => {
-    const q = query(collection(db, "documentos"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "documentos"), orderBy("fechaCreacion", "desc"));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({
@@ -42,8 +42,9 @@ export default function Repositorio() {
     setTabValue(newValue);
   };
 
+  // FILTRADO CORREGIDO CON CAMPOS EN ESPAÑOL
   const filteredDocs = documentos.filter(doc => {
-    const matchesCategory = tabValue === 'todos' || doc.category === tabValue;
+    const matchesCategory = tabValue === 'todos' || doc.categoria === tabValue;
     const matchesSearch = 
       doc.titulo?.toLowerCase().includes(searchQuery.toLowerCase()) || 
       doc.descripcion?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -66,17 +67,16 @@ export default function Repositorio() {
         <Typography variant="h3" color="primary" fontWeight="900" gutterBottom>
           Repositorio Documental
         </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 800 }}>
-          Buscador especializado de normativa, jurisprudencia y doctrina sobre Derechos Laborales en Costa Rica.
+        <Typography variant="h6" color="text.secondary">
+          Buscador de normativa, jurisprudencia y doctrina sobre Derechos Laborales.
         </Typography>
       </Box>
 
-      {/* Barra de Búsqueda Institucional */}
       <Box sx={{ mb: 6 }}>
         <TextField
           fullWidth
           variant="outlined"
-          placeholder="Buscar por palabra clave, número de ley o resolución..."
+          placeholder="Buscar por título, palabra clave o ley..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           InputProps={{
@@ -90,7 +90,6 @@ export default function Repositorio() {
         />
       </Box>
 
-      {/* Filtros de Categoría */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
         <Tabs 
           value={tabValue} 
@@ -100,9 +99,9 @@ export default function Repositorio() {
           textColor="primary"
           indicatorColor="secondary"
         >
-          <Tab label="Todos los Recursos" value="todos" />
+          <Tab label="Todos" value="todos" />
           <Tab label="Leyes Nacionales" value="leyes" icon={<PictureAsPdfIcon />} iconPosition="start" />
-          <Tab label="Tratados Internacionales" value="tratados" icon={<PublicIcon />} iconPosition="start" />
+          <Tab label="Tratados" value="tratados" icon={<PublicIcon />} iconPosition="start" />
           <Tab label="Jurisprudencia" value="jurisprudencia" icon={<GavelIcon />} iconPosition="start" />
           <Tab label="Libros y Artículos" value="articulos" icon={<MenuBookIcon />} iconPosition="start" />
         </Tabs>
@@ -122,9 +121,8 @@ export default function Repositorio() {
                   display: 'flex', 
                   flexDirection: 'column', 
                   borderRadius: 1,
-                  border: '1px solid #eee',
                   transition: '0.2s',
-                  '&:hover': { boxShadow: 4, transform: 'translateY(-2px)' }
+                  '&:hover': { boxShadow: 4 }
                 }}>
                   <CardContent sx={{ flexGrow: 1, p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -134,34 +132,30 @@ export default function Repositorio() {
                         size="small" 
                         color="primary" 
                         variant="outlined" 
-                        sx={{ fontWeight: 'bold', borderRadius: 0 }}
+                        sx={{ fontWeight: 'bold', borderRadius: 1 }}
                       />
-                      <Typography variant="caption" color="text.secondary" fontWeight="900">
+                      <Typography variant="caption" color="text.secondary" fontWeight="bold">
                         {doc.anio}
                       </Typography>
                     </Box>
-                    <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold', color: '#333' }}>
+                    <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
                       {doc.titulo}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ 
-                      display: '-webkit-box', 
-                      WebkitLineClamp: 3, 
-                      WebkitBoxOrient: 'vertical', 
-                      overflow: 'hidden' 
-                    }}>
+                    <Typography variant="body2" color="text.secondary">
                       {doc.descripcion}
                     </Typography>
                   </CardContent>
                   <CardActions sx={{ p: 2, pt: 0 }}>
                     <Button 
                       fullWidth
-                      variant="outlined"
+                      variant="contained"
                       color="primary"
+                      disableElevation
                       href={doc.fileUrl} 
                       target="_blank" 
-                      sx={{ fontWeight: 'bold', borderRadius: 0 }}
+                      sx={{ fontWeight: 'bold', borderRadius: 1 }}
                     >
-                      CONSULTAR DOCUMENTO
+                      VER DOCUMENTO
                     </Button>
                   </CardActions>
                 </Card>
@@ -171,19 +165,13 @@ export default function Repositorio() {
             <Grid item xs={12}>
               <Box sx={{ textAlign: 'center', py: 10, bgcolor: '#f9f9f9', borderRadius: 1 }}>
                 <Typography variant="h6" color="text.secondary">
-                  No se encontraron documentos para esta categoría o búsqueda.
+                  No se encontraron documentos en esta categoría.
                 </Typography>
               </Box>
             </Grid>
           )}
         </Grid>
       )}
-
-      <Box sx={{ mt: 8, textAlign: 'center' }}>
-        <Typography variant="caption" color="text.secondary">
-          Sistema de Repositorio Digital | Observatorio Laboral de Costa Rica - UE
-        </Typography>
-      </Box>
     </Container>
   );
 }
