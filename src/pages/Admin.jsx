@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { 
   Container, Paper, Box, Typography, TextField, Button, 
-  Tabs, Tab, MenuItem, Grid, Card, CardContent,
-  Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress 
+  Tabs, Tab, MenuItem, Grid, Card, CardContent, Stack,
+  Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress
 } from '@mui/material';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -16,7 +16,7 @@ import InsertChartIcon from '@mui/icons-material/InsertChart';
 import GroupIcon from '@mui/icons-material/Group';
 import AssignmentLateIcon from '@mui/icons-material/AssignmentLate';
 
-// Importación de servicios reales de Firebase
+// Servicios de Firebase
 import { db, storage } from '../services/firebaseConfig';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -42,13 +42,14 @@ const COLORS = ['#003399', '#FFCC00', '#1565c0', '#ffd54f', '#90caf9'];
 
 export default function Admin() {
   const [tabValue, setTabValue] = useState(0);
+  
   const [openWarning, setOpenWarning] = useState(true);
   
-  // ESTADOS PARA FIREBASE
+  // ESTADOS PARA LA CARGA A FIREBASE
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  
-  // ESTADO PARA EL MODAL DE RESULTADOS DE ACCIONES (Reemplaza a los alerts)
+
+  // ESTADO PARA EL MODAL DE RESULTADOS DE ACCIONES
   const [actionModal, setActionModal] = useState({ 
     open: false, 
     title: '', 
@@ -65,7 +66,7 @@ export default function Admin() {
   const handleFileChange = (e) => { 
     if (e.target.files && e.target.files[0]) {
       setArchivo(e.target.files[0]); 
-    }
+    } 
   };
 
   const handleUploadSubmit = async (e) => {
@@ -78,7 +79,7 @@ export default function Admin() {
     setUploading(true);
 
     try {
-      // 1. Subir a Storage
+      // 1. Subir archivo a Storage
       const nombreArchivo = `${Date.now()}_${archivo.name}`;
       const storageRef = ref(storage, `documentos/${nombreArchivo}`);
       const uploadTask = uploadBytesResumable(storageRef, archivo);
@@ -94,7 +95,7 @@ export default function Admin() {
           setActionModal({ open: true, title: 'Error', message: 'No se pudo subir el documento al servidor.' });
         }, 
         async () => {
-          // 2. Obtener URL y guardar en Firestore
+          // 2. Obtener URL de descarga y guardar en Firestore
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
           await addDoc(collection(db, "documentos"), {
@@ -205,17 +206,15 @@ export default function Admin() {
               </Grid>
             </Grid>
 
-            {/* Gráficos Recharts */}
+            {/* SOLUCIÓN ERROR RECHARTS: Se asigna una altura estricta a un Box envolvente */}
             <Grid container spacing={3}>
-              
               {/* Gráfico de Barras */}
               <Grid item xs={12} md={7}>
-                <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 450, display: 'flex', flexDirection: 'column' }}>
+                <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Volumen de Denuncias por Categoría</Typography>
-                  {/* Contenedor flex para evitar el error de Recharts */}
-                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                  <Box sx={{ width: '100%', height: 350 }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={dataDenuncias} margin={{ top: 20, right: 30, left: 0, bottom: 120 }}>
+                      <BarChart data={dataDenuncias} margin={{ top: 20, right: 30, left: 0, bottom: 80 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                         <XAxis 
                           dataKey="nombre" 
@@ -223,7 +222,7 @@ export default function Admin() {
                           interval={0} 
                           angle={-45} 
                           textAnchor="end" 
-                          dx={-5}
+                          dx={-5} 
                         />
                         <YAxis />
                         <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
@@ -236,10 +235,9 @@ export default function Admin() {
 
               {/* Gráfico de Anillo */}
               <Grid item xs={12} md={5}>
-                <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 450, display: 'flex', flexDirection: 'column' }}>
+                <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Proporción de Afectaciones</Typography>
-                  {/* Contenedor flex para evitar el error de Recharts */}
-                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                  <Box sx={{ width: '100%', height: 350 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
                         <Pie 
@@ -250,7 +248,7 @@ export default function Admin() {
                           outerRadius={90} 
                           paddingAngle={5} 
                           dataKey="casos"
-                          nameKey="nombre" 
+                          nameKey="nombre"
                         >
                           {dataDenuncias.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -274,32 +272,73 @@ export default function Admin() {
 
         {/* --- VISTA 1: CARGA MANUAL --- */}
         {tabValue === 1 && (
-          <Box component="form" onSubmit={handleUploadSubmit} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'white' }}>
+          <Box component="form" onSubmit={handleUploadSubmit} sx={{ p: { xs: 3, md: 5 }, bgcolor: 'white' }}>
             <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Subir Nuevo Documento</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Asegúrate de que el PDF sea legible. El sistema extraerá el texto para entrenar a la IA.</Typography>
 
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Título del Documento" name="titulo" value={docData.titulo} onChange={handleFormChange} variant="outlined" required />
-              </Grid>
+            {/* SOLUCIÓN UI: Stack fuerza la organización vertical. Box flex reparte 50% y 50% perfecto. */}
+            <Stack spacing={4}>
+              <TextField 
+                fullWidth 
+                label="Título del Documento" 
+                name="titulo" 
+                value={docData.titulo} 
+                onChange={handleFormChange} 
+                variant="outlined" 
+                required 
+              />
 
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth select label="Categoría" name="categoria" value={docData.categoria} onChange={handleFormChange} variant="outlined" required>
-                  <MenuItem value="" disabled><em>Seleccione...</em></MenuItem>
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
+                <TextField 
+                  sx={{ flex: 1 }} 
+                  select 
+                  label="Categoría" 
+                  name="categoria" 
+                  value={docData.categoria} 
+                  onChange={handleFormChange} 
+                  variant="outlined" 
+                  required
+                >
                   {categorias.map((cat) => (<MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>))}
                 </TextField>
-              </Grid>
+                
+                <TextField 
+                  sx={{ flex: 1 }} 
+                  label="Año de publicación" 
+                  name="anio" 
+                  type="number" 
+                  value={docData.anio} 
+                  onChange={handleFormChange} 
+                  variant="outlined" 
+                  required 
+                />
+              </Box>
 
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Año de publicación" name="anio" type="number" value={docData.anio} onChange={handleFormChange} variant="outlined" required />
-              </Grid>
+              <TextField 
+                fullWidth 
+                label="Descripción breve" 
+                name="descripcion" 
+                value={docData.descripcion} 
+                onChange={handleFormChange} 
+                variant="outlined" 
+                multiline 
+                minRows={4} 
+                required 
+              />
 
-              <Grid item xs={12}>
-                <TextField fullWidth label="Descripción breve" name="descripcion" value={docData.descripcion} onChange={handleFormChange} variant="outlined" multiline minRows={3} required />
-              </Grid>
-
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, border: '1px dashed #ccc', borderRadius: 2, bgcolor: '#fafafa' }}>
+              {/* Botón de Adjuntar PDF y Enviar alineados elegantemente */}
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: { xs: 'column', sm: 'row' }, 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                p: 2, 
+                border: '1px dashed #ccc', 
+                borderRadius: 1, 
+                bgcolor: '#fafafa', 
+                gap: 2 
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Button variant="outlined" component="label" startIcon={<PictureAsPdfIcon />}>
                     Seleccionar PDF
                     <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
@@ -309,21 +348,24 @@ export default function Admin() {
                   </Typography>
                 </Box>
                 
-                {/* Barra de progreso */}
-                {uploading && (
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="caption" color="text.secondary">Subiendo archivo: {Math.round(progress)}%</Typography>
-                    <LinearProgress variant="determinate" value={progress} sx={{ mt: 1, mb: 1 }} />
-                  </Box>
-                )}
-              </Grid>
-
-              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                <Button type="submit" variant="contained" color="primary" size="large" disabled={uploading} sx={{ fontWeight: 'bold', px: 4 }}>
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  color="primary" 
+                  disabled={uploading}
+                  sx={{ fontWeight: 'bold', px: 4, py: 1.5, borderRadius: 1 }}
+                >
                   {uploading ? 'Procesando...' : 'Guardar y Procesar'}
                 </Button>
-              </Grid>
-            </Grid>
+              </Box>
+
+              {uploading && (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="primary" fontWeight="bold">Subiendo archivo: {Math.round(progress)}%</Typography>
+                  <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4, mt: 1 }} />
+                </Box>
+              )}
+            </Stack>
           </Box>
         )}
 
@@ -335,7 +377,7 @@ export default function Admin() {
             <Typography variant="body1" color="text.secondary" paragraph sx={{ maxWidth: 600, mx: 'auto', mb: 4 }}>
               Este proceso buscará actualizaciones directamente en el sistema nacional.
             </Typography>
-            <Button variant="contained" color="secondary" size="large" onClick={handleSyncSinalevi} sx={{ color: '#000', fontWeight: 'bold', px: 4, py: 1.5, mt: 2, borderRadius: 2 }}>
+            <Button variant="contained" color="secondary" size="large" onClick={handleSyncSinalevi} sx={{ color: '#000', fontWeight: 'bold', px: 4, py: 1.5, mt: 2, borderRadius: 1 }}>
               Ejecutar
             </Button>
           </Box>
