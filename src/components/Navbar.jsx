@@ -15,7 +15,7 @@ export default function Navbar() {
           <Button color="inherit" component={RouterLink} to="/">Inicio</Button>
           {/* Nuevo enlace al Repositorio */}
           <Button color="inherit" component={RouterLink} to="/repositorio">Repositorio</Button>
-          <Button color="inherit" component={RouterLink} to="/denuncia">Orientación</Button>
+          <Button color="inherit" component={RouterLink} to="/denuncia">Denuncias</Button>
           <Button variant="outlined" color="inherit" component={RouterLink} to="/admin" sx={{ ml: 2, borderColor: 'white' }}>
             Admin
           </Button>
