@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Container, Typography, Box, TextField, InputAdornment, 
-  Tabs, Tab, Card, CardContent, CardActions, Button, Grid, Chip 
+  Tabs, Tab, Card, CardContent, CardActions, Button, Grid, Chip, CircularProgress
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
@@ -9,33 +9,47 @@ import PublicIcon from '@mui/icons-material/Public';
 import GavelIcon from '@mui/icons-material/Gavel';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 
-// Datos de prueba (Luego vendrán de Firebase Firestore)
-const mockDocuments = [
-  { id: 1, title: 'Código de Trabajo de Costa Rica', category: 'leyes', year: '1943 (Actualizado)', desc: 'Normativa principal que regula las relaciones laborales.' },
-  { id: 2, title: 'Convenio 87 OIT', category: 'tratados', year: '1948', desc: 'Libertad sindical y la protección del derecho de sindicación.' },
-  { id: 3, title: 'Resolución N° 2023-001234', category: 'jurisprudencia', year: '2023', desc: 'Sala Segunda: Criterio sobre el cálculo de horas extra.' },
-  { id: 4, title: 'El acoso laboral en la región', category: 'articulos', year: '2022', desc: 'Artículo académico sobre la evolución de los derechos laborales.' },
-  { id: 5, title: 'Ley de Protección al Trabajador', category: 'leyes', year: '2000', desc: 'Creación del sistema de pensiones complementarias.' },
-];
+// Importación de Firebase
+import { db } from '../services/firebaseConfig';
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 
 export default function Repositorio() {
+  const [documentos, setDocumentos] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState('todos');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Manejar cambio de pestañas
+  // Efecto para obtener datos de Firestore en tiempo real
+  useEffect(() => {
+    const q = query(collection(db, "documentos"), orderBy("createdAt", "desc"));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setDocumentos(docs);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error consultando Firestore:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  // Filtrar documentos por categoría y por texto de búsqueda
-  const filteredDocs = mockDocuments.filter(doc => {
+  const filteredDocs = documentos.filter(doc => {
     const matchesCategory = tabValue === 'todos' || doc.category === tabValue;
-    const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          doc.desc.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = 
+      doc.titulo?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      doc.descripcion?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  // Función para asignar un ícono según la categoría
   const getCategoryIcon = (category) => {
     switch(category) {
       case 'leyes': return <PictureAsPdfIcon fontSize="small" />;
@@ -47,20 +61,22 @@ export default function Repositorio() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>
-        Repositorio Documental
-      </Typography>
-      <Typography variant="body1" color="text.secondary" paragraph>
-        Consulta la legislación nacional, tratados internacionales, jurisprudencia y artículos académicos relacionados con los derechos laborales en Costa Rica.
-      </Typography>
+    <Container maxWidth="lg" sx={{ mt: 6, mb: 8 }}>
+      <Box sx={{ mb: 5 }}>
+        <Typography variant="h3" color="primary" fontWeight="900" gutterBottom>
+          Repositorio Documental
+        </Typography>
+        <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 800 }}>
+          Buscador especializado de normativa, jurisprudencia y doctrina sobre Derechos Laborales en Costa Rica.
+        </Typography>
+      </Box>
 
-      {/* Barra de Búsqueda */}
-      <Box sx={{ my: 4 }}>
+      {/* Barra de Búsqueda Institucional */}
+      <Box sx={{ mb: 6 }}>
         <TextField
           fullWidth
           variant="outlined"
-          placeholder="Buscar por título, palabra clave o ley..."
+          placeholder="Buscar por palabra clave, número de ley o resolución..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           InputProps={{
@@ -70,70 +86,104 @@ export default function Repositorio() {
               </InputAdornment>
             ),
           }}
-          sx={{ bgcolor: 'white', borderRadius: 1 }}
+          sx={{ bgcolor: 'white', borderRadius: 1, boxShadow: 1 }}
         />
       </Box>
 
-      {/* Pestañas de Categorías */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+      {/* Filtros de Categoría */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
         <Tabs 
           value={tabValue} 
           onChange={handleTabChange} 
           variant="scrollable"
           scrollButtons="auto"
           textColor="primary"
-          indicatorColor="secondary" // Usa el amarillo de la UE
+          indicatorColor="secondary"
         >
-          <Tab label="Todos" value="todos" />
+          <Tab label="Todos los Recursos" value="todos" />
           <Tab label="Leyes Nacionales" value="leyes" icon={<PictureAsPdfIcon />} iconPosition="start" />
-          <Tab label="Tratados (OIT / UE)" value="tratados" icon={<PublicIcon />} iconPosition="start" />
+          <Tab label="Tratados Internacionales" value="tratados" icon={<PublicIcon />} iconPosition="start" />
           <Tab label="Jurisprudencia" value="jurisprudencia" icon={<GavelIcon />} iconPosition="start" />
           <Tab label="Libros y Artículos" value="articulos" icon={<MenuBookIcon />} iconPosition="start" />
         </Tabs>
       </Box>
 
-      {/* Grid de Documentos */}
-      <Grid container spacing={3}>
-        {filteredDocs.length > 0 ? (
-          filteredDocs.map((doc) => (
-            <Grid item xs={12} sm={6} md={4} key={doc.id}>
-              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                    <Chip 
-                      icon={getCategoryIcon(doc.category)} 
-                      label={doc.category.toUpperCase()} 
-                      size="small" 
-                      color="primary" 
-                      variant="outlined" 
-                    />
-                    <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                      {doc.year}
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+          <CircularProgress color="primary" />
+        </Box>
+      ) : (
+        <Grid container spacing={4}>
+          {filteredDocs.length > 0 ? (
+            filteredDocs.map((doc) => (
+              <Grid item xs={12} sm={6} md={4} key={doc.id}>
+                <Card elevation={2} sx={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  borderRadius: 1,
+                  border: '1px solid #eee',
+                  transition: '0.2s',
+                  '&:hover': { boxShadow: 4, transform: 'translateY(-2px)' }
+                }}>
+                  <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                      <Chip 
+                        icon={getCategoryIcon(doc.categoria)} 
+                        label={doc.categoria?.toUpperCase()} 
+                        size="small" 
+                        color="primary" 
+                        variant="outlined" 
+                        sx={{ fontWeight: 'bold', borderRadius: 0 }}
+                      />
+                      <Typography variant="caption" color="text.secondary" fontWeight="900">
+                        {doc.anio}
+                      </Typography>
+                    </Box>
+                    <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold', color: '#333' }}>
+                      {doc.titulo}
                     </Typography>
-                  </Box>
-                  <Typography variant="h6" component="div" sx={{ mt: 1, mb: 1, fontWeight: 'bold', lineHeight: 1.2 }}>
-                    {doc.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {doc.desc}
-                  </Typography>
-                </CardContent>
-                <CardActions>
-                  <Button size="small" color="secondary" sx={{ fontWeight: 'bold' }}>
-                    Ver Documento
-                  </Button>
-                </CardActions>
-              </Card>
+                    <Typography variant="body2" color="text.secondary" sx={{ 
+                      display: '-webkit-box', 
+                      WebkitLineClamp: 3, 
+                      WebkitBoxOrient: 'vertical', 
+                      overflow: 'hidden' 
+                    }}>
+                      {doc.descripcion}
+                    </Typography>
+                  </CardContent>
+                  <CardActions sx={{ p: 2, pt: 0 }}>
+                    <Button 
+                      fullWidth
+                      variant="outlined"
+                      color="primary"
+                      href={doc.fileUrl} 
+                      target="_blank" 
+                      sx={{ fontWeight: 'bold', borderRadius: 0 }}
+                    >
+                      CONSULTAR DOCUMENTO
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))
+          ) : (
+            <Grid item xs={12}>
+              <Box sx={{ textAlign: 'center', py: 10, bgcolor: '#f9f9f9', borderRadius: 1 }}>
+                <Typography variant="h6" color="text.secondary">
+                  No se encontraron documentos para esta categoría o búsqueda.
+                </Typography>
+              </Box>
             </Grid>
-          ))
-        ) : (
-          <Grid item xs={12}>
-            <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ mt: 5 }}>
-              No se encontraron documentos que coincidan con tu búsqueda.
-            </Typography>
-          </Grid>
-        )}
-      </Grid>
+          )}
+        </Grid>
+      )}
+
+      <Box sx={{ mt: 8, textAlign: 'center' }}>
+        <Typography variant="caption" color="text.secondary">
+          Sistema de Repositorio Digital | Observatorio Laboral de Costa Rica - UE
+        </Typography>
+      </Box>
     </Container>
   );
 }
