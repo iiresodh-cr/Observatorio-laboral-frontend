@@ -1,17 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { 
-  Container, Paper, Box, Typography, TextField, IconButton, 
-  Avatar, Tabs, Tab, Button, MenuItem, 
+  Container, Paper, Box, Typography, TextField, 
+  Button, MenuItem, Grid, Divider, Stack,
   Dialog, DialogTitle, DialogContent, DialogActions 
 } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
-import PersonIcon from '@mui/icons-material/Person';
-import ForumIcon from '@mui/icons-material/Forum';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import InfoIcon from '@mui/icons-material/Info';
+import BusinessIcon from '@mui/icons-material/Business';
+import PersonIcon from '@mui/icons-material/Person';
 
-// Opciones para el tipo de denuncia laboral
 const tiposDenuncia = [
   'Despido injustificado',
   'Impago de salario o extremos laborales',
@@ -23,57 +20,19 @@ const tiposDenuncia = [
   'Otro'
 ];
 
+const opcionesGenero = [
+  { value: 'femenino', label: 'Femenino' },
+  { value: 'masculino', label: 'Masculino' },
+  { value: 'no_binario', label: 'No binario' },
+  { value: 'prefiero_no_decir', label: 'Prefiero no decirlo' }
+];
+
 export default function Denuncia() {
-  const [tabValue, setTabValue] = useState(0);
-
-  // 1. ESTADO PARA EL MODAL LEGAL (Inicia abierto por defecto)
   const [openModal, setOpenModal] = useState(true);
+  const [resultModal, setResultModal] = useState({ open: false, title: '', message: '' });
 
-  // 2. ESTADO PARA EL MODAL DE RESULTADOS DEL FORMULARIO
-  const [resultModal, setResultModal] = useState({ 
-    open: false, 
-    title: '', 
-    message: '' 
-  });
-
-  // --- ESTADOS PARA EL CHAT DE IA ---
-  const [messages, setMessages] = useState([
-    { id: 1, sender: 'bot', text: 'Hola. Soy el asistente de orientación del Observatorio. Cuéntame tu situación y buscaré en la legislación para darte una guía preliminar.' }
-  ]);
-  const [inputChat, setInputChat] = useState('');
-  const messagesEndRef = useRef(null);
-
-  useEffect(() => {
-    if (tabValue === 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages, tabValue]);
-
-  const handleSendChat = () => {
-    if (inputChat.trim() === '') return;
-    const newUserMessage = { id: Date.now(), sender: 'user', text: inputChat };
-    setMessages((prev) => [...prev, newUserMessage]);
-    setInputChat('');
-
-    setTimeout(() => {
-      const botResponse = { id: Date.now() + 1, sender: 'bot', text: 'He recibido tu consulta. Estoy analizando la legislación...' };
-      setMessages((prev) => [...prev, botResponse]);
-    }, 1000);
-  };
-
-  const handleKeyPressChat = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendChat();
-    }
-  };
-
-  // --- ESTADOS PARA EL FORMULARIO DE DENUNCIA ---
   const [formData, setFormData] = useState({
-    nombre: '', 
-    empresa: '',
-    tipoDenuncia: '',
-    descripcion: '',
+    nombre: '', empresa: '', email: '', edad: '', genero: '', tipoDenuncia: '', descripcion: ''
   });
 
   const handleFormChange = (e) => {
@@ -82,132 +41,204 @@ export default function Denuncia() {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    
-    // Abrir modal de éxito en lugar de alert()
     setResultModal({
       open: true,
-      title: 'Denuncia Registrada',
-      message: 'Tu caso ha sido registrado con éxito en el Observatorio. Gracias por tu reporte. (Simulación)'
+      title: 'Reporte Registrado Exitosamente',
+      message: 'Su información ha sido procesada de manera segura por el sistema del Observatorio.'
     });
-    
-    // Limpiar el formulario
-    setFormData({ nombre: '', empresa: '', tipoDenuncia: '', descripcion: '' });
+    setFormData({ nombre: '', empresa: '', email: '', edad: '', genero: '', tipoDenuncia: '', descripcion: '' });
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      
-      {/* --- MODAL DE AVISO LEGAL --- */}
-      <Dialog open={openModal} onClose={() => setOpenModal(false)} disableEscapeKeyDown>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', fontWeight: 'bold' }}>
-          <InfoIcon /> Aviso Importante
+    <Container maxWidth="md" sx={{ mt: 5, mb: 8 }}>
+      {/* Modal Informativo */}
+      <Dialog open={openModal} onClose={() => setOpenModal(false)} PaperProps={{ sx: { borderRadius: 2 } }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: 'primary.main', fontWeight: 'bold' }}>
+          <InfoIcon /> Marco de Confidencialidad
         </DialogTitle>
-        <DialogContent>
+        <DialogContent dividers>
           <Typography variant="body1" paragraph>
-            Esta es una herramienta de Inteligencia Artificial diseñada para brindar orientación preliminar basada en la legislación de Costa Rica.
+            Este formulario es un instrumento oficial del <strong>Observatorio de Derechos Laborales</strong> para la recopilación de datos estadísticos.
           </Typography>
-          <Typography variant="body1" fontWeight="bold" color="error">
-            No constituye asesoría legal oficial ni reemplaza el criterio de un abogado.
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            El Observatorio recopila la información ingresada en los formularios con fines puramente estadísticos. Tus datos personales serán tratados de forma confidencial.
+          <Typography variant="body2" color="text.secondary">
+            Toda la información proporcionada es confidencial. Este reporte tiene fines de monitoreo apoyados por la Unión Europea, y no constituye un trámite legal ante el Ministerio de Trabajo.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenModal(false)} variant="contained" color="primary">
-            Entendido, continuar
+        <DialogActions sx={{ p: 2, bgcolor: '#f8f9fa' }}>
+          <Button onClick={() => setOpenModal(false)} variant="contained" color="primary" disableElevation sx={{ fontWeight: 'bold' }}>
+            ACEPTAR Y CONTINUAR
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* --- MODAL DE RESULTADO DE FORMULARIO --- */}
+      {/* Modal de Éxito */}
       <Dialog open={resultModal.open} onClose={() => setResultModal({ ...resultModal, open: false })}>
-        <DialogTitle sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-          {resultModal.title}
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1">{resultModal.message}</Typography>
-        </DialogContent>
+        <DialogTitle sx={{ fontWeight: 'bold', color: 'primary.main' }}>{resultModal.title}</DialogTitle>
+        <DialogContent><Typography>{resultModal.message}</Typography></DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setResultModal({ ...resultModal, open: false })} variant="contained" color="primary">
-            Aceptar
+          <Button onClick={() => setResultModal({ ...resultModal, open: false })} variant="contained" disableElevation>
+            CERRAR
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>
-        Centro de Orientación y Denuncia
-      </Typography>
+      {/* Encabezado de Página */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" color="primary" fontWeight="800" gutterBottom>
+          Registro de Vulneraciones Laborales
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Plataforma segura para el reporte y análisis de las condiciones de trabajo.
+        </Typography>
+      </Box>
 
-      <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', mt: 3 }}>
+      <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', border: '1px solid #e0e0e0' }}>
         
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f4f6f8' }}>
-          <Tabs value={tabValue} onChange={(e, val) => setTabValue(val)} variant="fullWidth" textColor="primary" indicatorColor="secondary">
-            <Tab icon={<ForumIcon />} iconPosition="start" label="1. Asistente de Orientación (IA)" />
-            <Tab icon={<AssignmentIcon />} iconPosition="start" label="2. Registro Formal de Denuncia" />
-          </Tabs>
+        {/* Banner Superior Institucional */}
+        <Box sx={{ p: 3, bgcolor: '#003399', color: 'white', display: 'flex', alignItems: 'center', gap: 2 }}>
+          <AssignmentIcon fontSize="large" />
+          <Box>
+            <Typography variant="h6" fontWeight="bold">Formulario Oficial de Reporte</Typography>
+            <Typography variant="body2" sx={{ opacity: 0.85 }}>
+              Los campos requeridos (*) son indispensables para la validez del registro.
+            </Typography>
+          </Box>
         </Box>
 
-        {/* --- VISTA 1: CHAT DE IA --- */}
-        {tabValue === 0 && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', height: '60vh' }}>
-            <Box sx={{ flexGrow: 1, p: 2, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2, bgcolor: '#fafafa' }}>
-              {messages.map((msg) => (
-                <Box key={msg.id} sx={{ display: 'flex', flexDirection: msg.sender === 'user' ? 'row-reverse' : 'row', gap: 1.5 }}>
-                  <Avatar sx={{ bgcolor: msg.sender === 'user' ? 'secondary.main' : 'primary.main' }}>
-                    {msg.sender === 'user' ? <PersonIcon sx={{ color: '#000' }}/> : <SmartToyIcon />}
-                  </Avatar>
-                  <Box sx={{ maxWidth: '75%', p: 2, borderRadius: 2, bgcolor: msg.sender === 'user' ? 'white' : '#e3f2fd', border: '1px solid', borderColor: msg.sender === 'user' ? 'grey.300' : 'primary.light', boxShadow: 1 }}>
-                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{msg.text}</Typography>
-                  </Box>
-                </Box>
-              ))}
-              <div ref={messagesEndRef} />
-            </Box>
-            <Box sx={{ p: 2, bgcolor: 'white', borderTop: '1px solid #e0e0e0', display: 'flex', gap: 1 }}>
-              <TextField fullWidth variant="outlined" placeholder="Describe tu situación aquí..." value={inputChat} onChange={(e) => setInputChat(e.target.value)} onKeyDown={handleKeyPressChat} multiline maxRows={3} />
-              <IconButton color="primary" onClick={handleSendChat} disabled={inputChat.trim() === ''} sx={{ alignSelf: 'flex-end', mb: 0.5 }}>
-                <SendIcon fontSize="large" />
-              </IconButton>
-            </Box>
-          </Box>
-        )}
-
-        {/* --- VISTA 2: FORMULARIO DE DENUNCIA --- */}
-        {tabValue === 1 && (
-          <Box component="form" onSubmit={handleFormSubmit} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'white' }}>
-            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">
-              Formulario de Registro para el Observatorio
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-              Completa este formulario para que tu caso quede registrado en nuestra base de datos. Puedes dejar el nombre en blanco si deseas que el registro sea completamente anónimo.
-            </Typography>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Box component="form" onSubmit={handleFormSubmit} sx={{ p: { xs: 3, md: 5 }, bgcolor: '#ffffff' }}>
+          <Stack spacing={4}>
+            
+            {/* SECCIÓN 1: DATOS PERSONALES */}
+            <Box>
+              <Typography variant="subtitle1" color="primary" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <PersonIcon /> 1. IDENTIFICACIÓN DE LA PERSONA
+              </Typography>
               
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3 }}>
-                <TextField fullWidth label="Nombre completo (Opcional)" name="nombre" value={formData.nombre} onChange={handleFormChange} variant="outlined" />
-                <TextField fullWidth label="Empresa o Patrono" name="empresa" value={formData.empresa} onChange={handleFormChange} variant="outlined" required />
-              </Box>
-
-              <TextField fullWidth select label="Tipo de Afectación / Denuncia" name="tipoDenuncia" value={formData.tipoDenuncia} onChange={handleFormChange} variant="outlined" required>
-                <MenuItem value="" disabled><em>Seleccione una opción...</em></MenuItem>
-                {tiposDenuncia.map((tipo) => (
-                  <MenuItem key={tipo} value={tipo}>{tipo}</MenuItem>
-                ))}
-              </TextField>
-
-              <TextField fullWidth label="Descripción detallada de los hechos" name="descripcion" value={formData.descripcion} onChange={handleFormChange} variant="outlined" multiline minRows={5} required placeholder="Menciona fechas, lugares y detalles relevantes..." />
-
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                <Button type="submit" variant="contained" color="secondary" size="large" sx={{ fontWeight: 'bold', color: '#000', px: 4, py: 1.5, borderRadius: 2 }}>
-                  Registrar Denuncia
-                </Button>
-              </Box>
-
+              <Grid container spacing={3}>
+                {/* Fila 1: Nombre (100% del ancho = 12 columnas) */}
+                <Grid item xs={12}>
+                  <TextField 
+                    fullWidth 
+                    label="Nombre completo" 
+                    name="nombre" 
+                    value={formData.nombre} 
+                    onChange={handleFormChange} 
+                    placeholder="Puede dejar este campo en blanco si desea mantener el anonimato" 
+                  />
+                </Grid>
+                
+                {/* Fila 2: Correo (50%), Género (25%), Edad (25%) */}
+                <Grid item xs={12} md={6}>
+                  <TextField 
+                    required 
+                    fullWidth 
+                    type="email" 
+                    label="Correo Electrónico" 
+                    name="email" 
+                    value={formData.email} 
+                    onChange={handleFormChange} 
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField 
+                    select 
+                    required 
+                    fullWidth 
+                    label="Género" 
+                    name="genero" 
+                    value={formData.genero} 
+                    onChange={handleFormChange}
+                  >
+                    {opcionesGenero.map((opt) => (
+                      <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField 
+                    required 
+                    fullWidth 
+                    type="number" 
+                    label="Edad" 
+                    name="edad" 
+                    value={formData.edad} 
+                    onChange={handleFormChange} 
+                    inputProps={{ min: 15, max: 100 }}
+                  />
+                </Grid>
+              </Grid>
             </Box>
-          </Box>
-        )}
+
+            <Divider />
+
+            {/* SECCIÓN 2: DETALLES LABORALES */}
+            <Box>
+              <Typography variant="subtitle1" color="primary" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <BusinessIcon /> 2. INFORMACIÓN DEL CASO
+              </Typography>
+              
+              <Stack spacing={3}>
+                <TextField 
+                  required 
+                  fullWidth 
+                  label="Nombre de la Empresa, Institución o Patrono" 
+                  name="empresa" 
+                  value={formData.empresa} 
+                  onChange={handleFormChange} 
+                />
+
+                <TextField 
+                  select 
+                  required 
+                  fullWidth 
+                  label="Naturaleza principal de la vulneración" 
+                  name="tipoDenuncia" 
+                  value={formData.tipoDenuncia} 
+                  onChange={handleFormChange}
+                >
+                  {tiposDenuncia.map((tipo) => (
+                    <MenuItem key={tipo} value={tipo} sx={{ py: 1.2 }}>
+                      {tipo}
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                <TextField 
+                  required 
+                  fullWidth 
+                  multiline 
+                  minRows={6} 
+                  label="Relación de los hechos" 
+                  name="descripcion" 
+                  value={formData.descripcion} 
+                  onChange={handleFormChange} 
+                  placeholder="Por favor, describa cronológicamente los hechos, incluyendo fechas, lugares y puestos involucrados." 
+                />
+              </Stack>
+            </Box>
+
+            {/* BOTÓN DE ENVÍO */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="secondary" 
+                disableElevation
+                sx={{ 
+                  py: 1.5, 
+                  px: 5, 
+                  fontSize: '1rem', 
+                  fontWeight: 'bold', 
+                  borderRadius: 1, 
+                  color: '#000'
+                }}
+              >
+                REGISTRAR REPORTE
+              </Button>
+            </Box>
+            
+          </Stack>
+        </Box>
       </Paper>
     </Container>
   );
