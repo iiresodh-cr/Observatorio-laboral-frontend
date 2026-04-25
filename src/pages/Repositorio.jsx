@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Container, Typography, Box, TextField, InputAdornment, 
-  Tabs, Tab, Card, CardContent, CardActions, Button, Grid, Chip, CircularProgress
+  Tabs, Tab, Card, CardContent, CardActions, Button, Grid, Chip, CircularProgress, MenuItem
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
@@ -18,9 +18,13 @@ export default function Repositorio() {
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState('todos');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Nuevo estado para controlar el ordenamiento
+  const [sortOrder, setSortOrder] = useState('fecha_desc');
 
   // Conexión real con Firestore
   useEffect(() => {
+    // Obtenemos los documentos base ordenados por fecha de creación descendente por defecto
     const q = query(collection(db, "documentos"), orderBy("fechaCreacion", "desc"));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -42,13 +46,31 @@ export default function Repositorio() {
     setTabValue(newValue);
   };
 
-  // FILTRADO CORREGIDO CON CAMPOS EN ESPAÑOL
+  // 1. Filtrado de documentos por categoría y búsqueda de texto
   const filteredDocs = documentos.filter(doc => {
     const matchesCategory = tabValue === 'todos' || doc.categoria === tabValue;
     const matchesSearch = 
       doc.titulo?.toLowerCase().includes(searchQuery.toLowerCase()) || 
       doc.descripcion?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
+  });
+
+  // 2. Ordenamiento en memoria de los documentos ya filtrados
+  const sortedDocs = [...filteredDocs].sort((a, b) => {
+    if (sortOrder === 'alfabetico') {
+      // Orden alfabético (A-Z) basado en el título
+      return (a.titulo || '').localeCompare(b.titulo || '');
+    } else if (sortOrder === 'fecha_asc') {
+      // Fecha ascendente (Más antiguos primero)
+      const timeA = a.fechaCreacion?.toMillis ? a.fechaCreacion.toMillis() : 0;
+      const timeB = b.fechaCreacion?.toMillis ? b.fechaCreacion.toMillis() : 0;
+      return timeA - timeB;
+    } else {
+      // Fecha descendente (Más recientes primero) - Default
+      const timeA = a.fechaCreacion?.toMillis ? a.fechaCreacion.toMillis() : 0;
+      const timeB = b.fechaCreacion?.toMillis ? b.fechaCreacion.toMillis() : 0;
+      return timeB - timeA;
+    }
   });
 
   const getCategoryIcon = (category) => {
@@ -72,9 +94,10 @@ export default function Repositorio() {
         </Typography>
       </Box>
 
-      <Box sx={{ mb: 6 }}>
+      {/* Contenedor flexible para Búsqueda y Ordenamiento */}
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, mb: 6 }}>
         <TextField
-          fullWidth
+          sx={{ flex: 3, bgcolor: 'white', borderRadius: 1, boxShadow: 1 }}
           variant="outlined"
           placeholder="Buscar por título, palabra clave o ley..."
           value={searchQuery}
@@ -86,8 +109,21 @@ export default function Repositorio() {
               </InputAdornment>
             ),
           }}
-          sx={{ bgcolor: 'white', borderRadius: 1, boxShadow: 1 }}
         />
+        
+        {/* Nuevo campo de selección de ordenamiento */}
+        <TextField
+          select
+          sx={{ flex: 1, bgcolor: 'white', borderRadius: 1, boxShadow: 1 }}
+          variant="outlined"
+          label="Ordenar resultados"
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+        >
+          <MenuItem value="fecha_desc">Fecha (Más recientes primero)</MenuItem>
+          <MenuItem value="fecha_asc">Fecha (Más antiguos primero)</MenuItem>
+          <MenuItem value="alfabetico">Orden alfabético (A-Z)</MenuItem>
+        </TextField>
       </Box>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
@@ -113,8 +149,8 @@ export default function Repositorio() {
         </Box>
       ) : (
         <Grid container spacing={4}>
-          {filteredDocs.length > 0 ? (
-            filteredDocs.map((doc) => (
+          {sortedDocs.length > 0 ? (
+            sortedDocs.map((doc) => (
               <Grid item xs={12} sm={6} md={4} key={doc.id}>
                 <Card elevation={2} sx={{ 
                   height: '100%', 
