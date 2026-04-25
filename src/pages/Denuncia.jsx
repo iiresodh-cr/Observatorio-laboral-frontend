@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { 
   Container, Paper, Box, Typography, TextField, 
   Button, MenuItem, Divider, Stack,
-  Dialog, DialogTitle, DialogContent, DialogActions 
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  FormControlLabel, Checkbox
 } from '@mui/material';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import InfoIcon from '@mui/icons-material/Info';
 import BusinessIcon from '@mui/icons-material/Business';
 import PersonIcon from '@mui/icons-material/Person';
+import PublicIcon from '@mui/icons-material/Public';
 
 const tiposDenuncia = [
   'Despido injustificado',
@@ -27,23 +29,33 @@ const opcionesGenero = [
   { value: 'prefiero_no_decir', label: 'Prefiero no decirlo' }
 ];
 
+const provincias = ['San José', 'Alajuela', 'Cartago', 'Heredia', 'Guanacaste', 'Puntarenas', 'Limón'];
+
+const estadosCiviles = ['Soltero/a', 'Casado/a', 'Divorciado/a', 'Viudo/a', 'Unión Libre'];
+
+const nivelesEducativos = [
+  'Sin estudios', 'Primaria incompleta', 'Primaria completa', 
+  'Secundaria incompleta', 'Secundaria completa', 
+  'Técnico / Parauniversitario', 'Universitario', 'Postgrado'
+];
+
 export default function Denuncia() {
   const [openModal, setOpenModal] = useState(true);
   const [resultModal, setResultModal] = useState({ open: false, title: '', message: '' });
 
   const [formData, setFormData] = useState({
-    nombres: '', 
-    apellidos: '', 
-    empresa: '', 
-    email: '', 
-    edad: '', 
-    genero: '', 
-    tipoDenuncia: '', 
-    descripcion: ''
+    nombres: '', apellidos: '', email: '', edad: '', genero: '',
+    nacionalidad: '', provincia: '', estadoCivil: '', nivelEducativo: '',
+    ingresosMensuales: '', isDefensorDDHH: false,
+    empresa: '', tipoDenuncia: '', descripcion: ''
   });
 
   const handleFormChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, checked, type } = e.target;
+    setFormData({ 
+      ...formData, 
+      [name]: type === 'checkbox' ? checked : value 
+    });
   };
 
   const handleFormSubmit = (e) => {
@@ -53,7 +65,13 @@ export default function Denuncia() {
       title: 'Reporte Registrado Exitosamente',
       message: 'Su información ha sido procesada de manera segura para el análisis estadístico del Observatorio.'
     });
-    setFormData({ nombres: '', apellidos: '', empresa: '', email: '', edad: '', genero: '', tipoDenuncia: '', descripcion: '' });
+    // Reset form
+    setFormData({
+      nombres: '', apellidos: '', email: '', edad: '', genero: '',
+      nacionalidad: '', provincia: '', estadoCivil: '', nivelEducativo: '',
+      ingresosMensuales: '', isDefensorDDHH: false,
+      empresa: '', tipoDenuncia: '', descripcion: ''
+    });
   };
 
   return (
@@ -68,7 +86,7 @@ export default function Denuncia() {
             Este formulario es un instrumento oficial del <strong>Observatorio de Derechos Laborales</strong>.
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Toda la información es confidencial y se utilizará para fines estadísticos. Este reporte es parte de una iniciativa apoyada por la Unión Europea.
+            Toda la información es confidencial y se utilizará estrictamente para fines de análisis de derechos humanos y laborales en Costa Rica, bajo el apoyo de la Unión Europea.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2, bgcolor: '#f8f9fa' }}>
@@ -94,7 +112,7 @@ export default function Denuncia() {
           Registro de Vulneraciones Laborales
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Plataforma de análisis de condiciones de trabajo de Costa Rica.
+          Sistema de captación de datos para el Observatorio Laboral de Costa Rica.
         </Typography>
       </Box>
 
@@ -107,14 +125,13 @@ export default function Denuncia() {
         <Box component="form" onSubmit={handleFormSubmit} sx={{ p: { xs: 3, md: 5 }, bgcolor: '#ffffff' }}>
           <Stack spacing={4}>
             
-            {/* SECCIÓN 1: IDENTIFICACIÓN */}
+            {/* SECCIÓN 1: IDENTIFICACIÓN Y DATOS DEMOGRÁFICOS */}
             <Box>
               <Typography variant="subtitle1" color="primary" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <PersonIcon /> 1. IDENTIFICACIÓN DE LA PERSONA
+                <PersonIcon /> 1. IDENTIFICACIÓN Y DATOS DEMOGRÁFICOS
               </Typography>
               
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' }, gap: 3 }}>
-                {/* DIVISIÓN: Nombres y Apellidos en la misma fila (50% cada uno) */}
                 <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 6' } }}>
                   <TextField fullWidth label="Nombres" name="nombres" value={formData.nombres} onChange={handleFormChange} required />
                 </Box>
@@ -122,21 +139,48 @@ export default function Denuncia() {
                   <TextField fullWidth label="Apellidos" name="apellidos" value={formData.apellidos} onChange={handleFormChange} required />
                 </Box>
                 
-                {/* Correo Electrónico ocupa toda la fila */}
                 <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 12' } }}>
                   <TextField required fullWidth type="email" label="Correo Electrónico de contacto" name="email" value={formData.email} onChange={handleFormChange} />
                 </Box>
 
-                {/* Edad y Género repartidos 50/50 */}
-                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 6' } }}>
-                  <TextField required fullWidth type="number" label="Edad" name="edad" value={formData.edad} onChange={handleFormChange} inputProps={{ min: 15, max: 100 }} />
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 4' } }}>
+                  <TextField required fullWidth label="Nacionalidad" name="nacionalidad" value={formData.nacionalidad} onChange={handleFormChange} />
                 </Box>
-                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 6' } }}>
-                  <TextField select required fullWidth label="Género" name="genero" value={formData.genero} onChange={handleFormChange}>
-                    {opcionesGenero.map((opt) => (
-                      <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                    ))}
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 4' } }}>
+                  <TextField select required fullWidth label="Provincia de residencia" name="provincia" value={formData.provincia} onChange={handleFormChange}>
+                    {provincias.map((p) => <MenuItem key={p} value={p}>{p}</MenuItem>)}
                   </TextField>
+                </Box>
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 4' } }}>
+                  <TextField required fullWidth type="number" label="Edad" name="edad" value={formData.edad} onChange={handleFormChange} inputProps={{ min: 15 }} />
+                </Box>
+
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 4' } }}>
+                  <TextField select required fullWidth label="Género" name="genero" value={formData.genero} onChange={handleFormChange}>
+                    {opcionesGenero.map((opt) => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
+                  </TextField>
+                </Box>
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 4' } }}>
+                  <TextField select required fullWidth label="Estado Civil" name="estadoCivil" value={formData.estadoCivil} onChange={handleFormChange}>
+                    {estadosCiviles.map((e) => <MenuItem key={e} value={e}>{e}</MenuItem>)}
+                  </TextField>
+                </Box>
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 4' } }}>
+                  <TextField select required fullWidth label="Nivel Educativo" name="nivelEducativo" value={formData.nivelEducativo} onChange={handleFormChange}>
+                    {nivelesEducativos.map((n) => <MenuItem key={n} value={n}>{n}</MenuItem>)}
+                  </TextField>
+                </Box>
+
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 6' } }}>
+                  <TextField required fullWidth type="number" label="Ingresos Mensuales Aproximados (CRC)" name="ingresosMensuales" value={formData.ingresosMensuales} onChange={handleFormChange} />
+                </Box>
+                
+                {/* Casilla Defensor DDHH */}
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 6' }, display: 'flex', alignItems: 'center' }}>
+                  <FormControlLabel
+                    control={<Checkbox name="isDefensorDDHH" checked={formData.isDefensorDDHH} onChange={handleFormChange} color="primary" />}
+                    label={<Typography sx={{ fontWeight: 500 }}>¿Es defensor(a) de Derechos Humanos?</Typography>}
+                  />
                 </Box>
               </Box>
             </Box>
@@ -152,7 +196,7 @@ export default function Denuncia() {
               <Stack spacing={3}>
                 <TextField required fullWidth label="Nombre de la Empresa o Patrono" name="empresa" value={formData.empresa} onChange={handleFormChange} />
 
-                <TextField select required fullWidth label="Naturaleza de la vulneración" name="tipoDenuncia" value={formData.tipoDenuncia} onChange={handleFormChange}>
+                <TextField select required fullWidth label="Naturaleza de la vulneración laboral" name="tipoDenuncia" value={formData.tipoDenuncia} onChange={handleFormChange}>
                   {tiposDenuncia.map((tipo) => (
                     <MenuItem key={tipo} value={tipo} sx={{ py: 1.2, whiteSpace: 'normal' }}>
                       {tipo}
@@ -164,7 +208,6 @@ export default function Denuncia() {
               </Stack>
             </Box>
 
-            {/* BOTÓN ALINEADO A LA DERECHA Y CUADRADO */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
               <Button 
                 type="submit" 
