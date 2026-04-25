@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Container, Typography, Box, TextField, InputAdornment, 
-  Tabs, Tab, Card, CardContent, CardActions, Button, Grid, Chip, CircularProgress, MenuItem
+  Tabs, Tab, Card, CardContent, CardActions, Button, Grid, Chip, CircularProgress, MenuItem, Pagination
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
@@ -18,13 +18,14 @@ export default function Repositorio() {
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState('todos');
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Nuevo estado para controlar el ordenamiento
   const [sortOrder, setSortOrder] = useState('fecha_desc');
+  
+  // Estados para Paginación
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 6; // 2 filas de 3 tarjetas en escritorio
 
   // Conexión real con Firestore
   useEffect(() => {
-    // Obtenemos los documentos base ordenados por fecha de creación descendente por defecto
     const q = query(collection(db, "documentos"), orderBy("fechaCreacion", "desc"));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -42,6 +43,11 @@ export default function Repositorio() {
     return () => unsubscribe();
   }, []);
 
+  // Reiniciar a la primera página cuando cambian los filtros o el orden
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, tabValue, sortOrder]);
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
@@ -58,20 +64,21 @@ export default function Repositorio() {
   // 2. Ordenamiento en memoria de los documentos ya filtrados
   const sortedDocs = [...filteredDocs].sort((a, b) => {
     if (sortOrder === 'alfabetico') {
-      // Orden alfabético (A-Z) basado en el título
       return (a.titulo || '').localeCompare(b.titulo || '');
     } else if (sortOrder === 'fecha_asc') {
-      // Fecha ascendente (Más antiguos primero)
       const timeA = a.fechaCreacion?.toMillis ? a.fechaCreacion.toMillis() : 0;
       const timeB = b.fechaCreacion?.toMillis ? b.fechaCreacion.toMillis() : 0;
       return timeA - timeB;
     } else {
-      // Fecha descendente (Más recientes primero) - Default
       const timeA = a.fechaCreacion?.toMillis ? a.fechaCreacion.toMillis() : 0;
       const timeB = b.fechaCreacion?.toMillis ? b.fechaCreacion.toMillis() : 0;
       return timeB - timeA;
     }
   });
+
+  // 3. Paginación
+  const totalPages = Math.ceil(sortedDocs.length / itemsPerPage);
+  const paginatedDocs = sortedDocs.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const getCategoryIcon = (category) => {
     switch(category) {
@@ -111,7 +118,6 @@ export default function Repositorio() {
           }}
         />
         
-        {/* Nuevo campo de selección de ordenamiento */}
         <TextField
           select
           sx={{ flex: 1, bgcolor: 'white', borderRadius: 1, boxShadow: 1 }}
@@ -148,65 +154,85 @@ export default function Repositorio() {
           <CircularProgress color="primary" />
         </Box>
       ) : (
-        <Grid container spacing={4}>
-          {sortedDocs.length > 0 ? (
-            sortedDocs.map((doc) => (
-              <Grid item xs={12} sm={6} md={4} key={doc.id}>
-                <Card elevation={2} sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  borderRadius: 1,
-                  transition: '0.2s',
-                  '&:hover': { boxShadow: 4 }
-                }}>
-                  <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                      <Chip 
-                        icon={getCategoryIcon(doc.categoria)} 
-                        label={doc.categoria?.toUpperCase()} 
-                        size="small" 
-                        color="primary" 
-                        variant="outlined" 
-                        sx={{ fontWeight: 'bold', borderRadius: 1 }}
-                      />
-                      <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                        {doc.anio}
+        <>
+          <Grid container spacing={4}>
+            {paginatedDocs.length > 0 ? (
+              paginatedDocs.map((doc) => (
+                <Grid item xs={12} sm={6} md={4} key={doc.id}>
+                  <Card elevation={2} sx={{ 
+                    height: '100%', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    borderRadius: 1,
+                    transition: '0.2s',
+                    '&:hover': { boxShadow: 4 }
+                  }}>
+                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                        <Chip 
+                          icon={getCategoryIcon(doc.categoria)} 
+                          label={doc.categoria?.toUpperCase()} 
+                          size="small" 
+                          color="primary" 
+                          variant="outlined" 
+                          sx={{ fontWeight: 'bold', borderRadius: 1 }}
+                        />
+                        <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                          {doc.anio}
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
+                        {doc.titulo}
                       </Typography>
-                    </Box>
-                    <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
-                      {doc.titulo}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {doc.descripcion}
-                    </Typography>
-                  </CardContent>
-                  <CardActions sx={{ p: 2, pt: 0 }}>
-                    <Button 
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      disableElevation
-                      href={doc.fileUrl} 
-                      target="_blank" 
-                      sx={{ fontWeight: 'bold', borderRadius: 1 }}
-                    >
-                      VER DOCUMENTO
-                    </Button>
-                  </CardActions>
-                </Card>
+                      <Typography variant="body2" color="text.secondary" sx={{
+                        display: '-webkit-box', 
+                        WebkitLineClamp: 3, 
+                        WebkitBoxOrient: 'vertical', 
+                        overflow: 'hidden'
+                      }}>
+                        {doc.descripcion}
+                      </Typography>
+                    </CardContent>
+                    <CardActions sx={{ p: 2, pt: 0 }}>
+                      <Button 
+                        fullWidth
+                        variant="contained"
+                        color="primary"
+                        disableElevation
+                        href={doc.fileUrl} 
+                        target="_blank" 
+                        sx={{ fontWeight: 'bold', borderRadius: 1 }}
+                      >
+                        VER DOCUMENTO
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))
+            ) : (
+              <Grid item xs={12}>
+                <Box sx={{ textAlign: 'center', py: 10, bgcolor: '#f9f9f9', borderRadius: 1 }}>
+                  <Typography variant="h6" color="text.secondary">
+                    No se encontraron documentos en esta categoría.
+                  </Typography>
+                </Box>
               </Grid>
-            ))
-          ) : (
-            <Grid item xs={12}>
-              <Box sx={{ textAlign: 'center', py: 10, bgcolor: '#f9f9f9', borderRadius: 1 }}>
-                <Typography variant="h6" color="text.secondary">
-                  No se encontraron documentos en esta categoría.
-                </Typography>
-              </Box>
-            </Grid>
+            )}
+          </Grid>
+
+          {/* Controles de Paginación */}
+          {totalPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+              <Pagination 
+                count={totalPages} 
+                page={page} 
+                onChange={(e, value) => setPage(value)} 
+                color="primary" 
+                size="large"
+              />
+            </Box>
           )}
-        </Grid>
+        </>
       )}
     </Container>
   );
