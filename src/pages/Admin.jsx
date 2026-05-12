@@ -3,17 +3,18 @@ import {
   Container, Paper, Box, Typography, TextField, Button, 
   Tabs, Tab, MenuItem, Grid, Card, CardContent, Stack,
   Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress,
-  Alert, List, ListItem, ListItemText, IconButton, Divider
+  Alert, List, ListItem, ListItemText, IconButton, Divider, CircularProgress
 } from '@mui/material';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
-  PieChart, Pie, Cell 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell, Legend 
 } from 'recharts';
 import { 
   CloudUpload as CloudUploadIcon, Sync as SyncIcon, PictureAsPdf as PictureAsPdfIcon,
   InsertChart as InsertChartIcon, Group as GroupIcon, Logout as LogoutIcon,
   Lock as LockIcon, PersonAdd as PersonAddIcon, Delete as DeleteIcon,
-  Google as GoogleIcon, AssignmentLate as AssignmentLateIcon
+  Google as GoogleIcon, AssignmentLate as AssignmentLateIcon,
+  AutoAwesome as AutoAwesomeIcon
 } from '@mui/icons-material';
 
 // Firebase Services
@@ -24,14 +25,15 @@ import { signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged, signOu
 
 const SUPER_ADMIN_EMAIL = 'webmaster@iiresodh.org';
 
+// Categorías actualizadas según solicitud
 const categorias = [
-  { value: 'leyes', label: 'Leyes Nacionales' },
+  { value: 'leyes', label: 'Leyes' },
+  { value: 'reglamentos', label: 'Reglamentos' },
   { value: 'tratados', label: 'Tratados Internacionales' },
   { value: 'jurisprudencia', label: 'Jurisprudencia' },
   { value: 'articulos', label: 'Libros y Artículos' }
 ];
 
-// Datos para los gráficos
 const dataDenuncias = [
   { nombre: 'Impago de salario', casos: 112 },
   { nombre: 'Despido injustificado', casos: 62 },
@@ -47,22 +49,22 @@ export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loadingAuth, setLoadingAuth] = useState(true);
   
-  // Estados para Login Manual
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Estados del Panel
   const [tabValue, setTabValue] = useState(0);
   const [adminList, setAdminList] = useState([]);
   const [newAdminEmail, setNewAdminEmail] = useState('');
+  
+  // Estados para Carga e IA
   const [uploading, setUploading] = useState(false);
+  const [loadingAI, setLoadingAI] = useState(false);
   const [progress, setProgress] = useState(0);
   const [docData, setDocData] = useState({ titulo: '', categoria: '', anio: '', descripcion: '' });
   const [archivo, setArchivo] = useState(null);
   const [actionModal, setActionModal] = useState({ open: false, title: '', message: '' });
 
-  // 1. Lógica de Verificación de Permisos
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -71,7 +73,6 @@ export default function Admin() {
           setIsAdmin(true);
           setUser(currentUser);
         } else {
-          // Verificar si el email está en la colección de 'admins'
           const q = query(collection(db, "admins"), where("email", "==", userEmail));
           const querySnapshot = await getDocs(q);
           if (!querySnapshot.empty) {
@@ -91,7 +92,6 @@ export default function Admin() {
     return () => unsubscribe();
   }, []);
 
-  // 2. Cargar lista de admins autorizados en tiempo real
   useEffect(() => {
     if (isAdmin) {
       return onSnapshot(collection(db, "admins"), (snapshot) => {
@@ -110,7 +110,7 @@ export default function Admin() {
     e.preventDefault();
     setLoginError('');
     try { await signInWithEmailAndPassword(auth, email, password); } 
-    catch (e) { setLoginError('Credenciales incorrectas o usuario no registrado.'); }
+    catch (e) { setLoginError('Credenciales incorrectas.'); }
   };
 
   const handleAddAdmin = async () => {
@@ -123,13 +123,46 @@ export default function Admin() {
         date: serverTimestamp()
       });
       setNewAdminEmail('');
-      setActionModal({ open: true, title: 'Acceso Concedido', message: `Ahora ${cleanEmail} puede entrar al panel.` });
-    } catch (e) { setActionModal({ open: true, title: 'Error', message: 'No se pudo guardar en la base de datos.' }); }
+      setActionModal({ open: true, title: 'Acceso Concedido', message: `Nuevo admin: ${cleanEmail}` });
+    } catch (e) { setActionModal({ open: true, title: 'Error', message: 'No se pudo guardar.' }); }
   };
 
   const handleRemoveAdmin = async (id) => {
     try { await deleteDoc(doc(db, "admins", id)); } 
     catch (e) { console.error(e); }
+  };
+
+  // FUNCIÓN ACTUALIZADA: ANALIZAR PDF CON GEMINI (Ahora extrae la descripción)
+  const handleAnalyzeWithAI = async () => {
+    if (!archivo) return;
+    setLoadingAI(true);
+    
+    const formData = new FormData();
+    formData.append('file', archivo);
+
+    try {
+      // Reemplaza con la URL de tu Cloud Run una vez desplegado
+      const response = await fetch('https://TU-URL-DE-CLOUDRUN.a.run.app/extract-metadata', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) throw new Error('Error en el servicio de IA');
+
+      const data = await response.json();
+      
+      setDocData({
+        titulo: data.titulo || '',
+        categoria: data.categoria || '',
+        anio: data.anio || '',
+        descripcion: data.descripcion || docData.descripcion // Si la IA devuelve descripción, la usamos.
+      });
+    } catch (error) {
+      console.error(error);
+      setActionModal({ open: true, title: 'Error de IA', message: 'No se pudo analizar el documento automáticamente.' });
+    } finally {
+      setLoadingAI(false);
+    }
   };
 
   const handleFormChange = (e) => setDocData({ ...docData, [e.target.name]: e.target.value });
@@ -151,10 +184,7 @@ export default function Admin() {
 
       uploadTask.on('state_changed', 
         (snapshot) => setProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100),
-        (error) => { 
-          setUploading(false); 
-          setActionModal({ open: true, title: 'Error', message: 'Falla al subir PDF.' }); 
-        },
+        (error) => { setUploading(false); setActionModal({ open: true, title: 'Error', message: 'Falla al subir PDF.' }); },
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
           await addDoc(collection(db, "documentos"), {
@@ -166,7 +196,7 @@ export default function Admin() {
           });
           setUploading(false);
           setProgress(0);
-          setActionModal({ open: true, title: 'Éxito', message: 'Documento cargado al repositorio.' });
+          setActionModal({ open: true, title: 'Éxito', message: 'Cargado correctamente.' });
           setDocData({ titulo: '', categoria: '', anio: '', descripcion: '' });
           setArchivo(null);
         }
@@ -176,23 +206,17 @@ export default function Admin() {
 
   if (loadingAuth) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><LinearProgress sx={{ width: '40%' }} /></Box>;
 
-  // --- VISTA DE ACCESO (HÍBRIDA) ---
   if (!user || !isAdmin) {
     return (
       <Container maxWidth="xs" sx={{ mt: 8 }}>
         <Paper elevation={4} sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
           <LockIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
           <Typography variant="h5" fontWeight="bold">Administración</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Observatorio de Derechos Laborales</Typography>
-          
           {loginError && <Alert severity="error" sx={{ mb: 2, fontSize: '0.8rem' }}>{loginError}</Alert>}
-          
           <Button fullWidth variant="contained" startIcon={<GoogleIcon />} onClick={handleLoginGoogle} sx={{ mb: 3, py: 1.2, fontWeight: 'bold' }}>
             Entrar con Google
           </Button>
-
           <Divider sx={{ mb: 3 }}><Typography variant="caption" color="text.disabled">O CORREO EXTERNO</Typography></Divider>
-
           <Box component="form" onSubmit={handleLoginManual}>
             <TextField fullWidth size="small" label="Email" margin="dense" value={email} onChange={(e) => setEmail(e.target.value)} required />
             <TextField fullWidth size="small" label="Contraseña" type="password" margin="dense" value={password} onChange={(e) => setPassword(e.target.value)} required />
@@ -203,12 +227,11 @@ export default function Admin() {
     );
   }
 
-  // --- VISTA DEL PANEL ---
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant="h4" color="primary" fontWeight="bold">Panel de Control</Typography>
+          <Typography variant="h4" color="primary" fontWeight="bold">Panel Administrativo</Typography>
           <Typography variant="body2" color="text.secondary">Sesión: <strong>{user.email}</strong></Typography>
         </Box>
         <Button variant="outlined" color="error" startIcon={<LogoutIcon />} onClick={() => signOut(auth)}>Cerrar Sesión</Button>
@@ -223,7 +246,6 @@ export default function Admin() {
           </Tabs>
         </Box>
 
-        {/* PESTAÑA 0: ESTADÍSTICAS */}
         {tabValue === 0 && (
           <Box sx={{ p: 4, bgcolor: '#fafafa' }}>
             <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -247,45 +269,37 @@ export default function Admin() {
                 </Card>
               </Grid>
             </Grid>
-
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={7}>
-                <Paper sx={{ p: 3, height: 400 }}>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Casos por Categoría</Typography>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dataDenuncias}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="nombre" tick={{ fontSize: 10 }} />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="casos" fill="#003399" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={5}>
-                <Paper sx={{ p: 3, height: 400 }}>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Proporción</Typography>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={dataDenuncias} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="casos" nameKey="nombre">
-                        {dataDenuncias.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </Paper>
-              </Grid>
-            </Grid>
           </Box>
         )}
 
-        {/* PESTAÑA 1: CARGA MANUAL */}
         {tabValue === 1 && (
           <Box component="form" onSubmit={handleUploadSubmit} sx={{ p: 4 }}>
             <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Subir Nuevo Documento</Typography>
-            <Stack spacing={3} sx={{ mt: 2 }}>
+            
+            {/* ÁREA DE SELECCIÓN DE ARCHIVO E IA */}
+            <Box sx={{ p: 3, border: '1px dashed #ccc', borderRadius: 2, textAlign: 'center', bgcolor: '#fafafa', mb: 3 }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="center">
+                <Button variant="outlined" component="label" startIcon={<PictureAsPdfIcon />}>
+                  Seleccionar PDF
+                  <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
+                </Button>
+                
+                <Button 
+                  variant="contained" 
+                  color="secondary" 
+                  startIcon={loadingAI ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
+                  onClick={handleAnalyzeWithAI}
+                  disabled={!archivo || loadingAI}
+                >
+                  {loadingAI ? 'Analizando...' : 'Autocompletar con IA'}
+                </Button>
+              </Stack>
+              <Typography sx={{ mt: 2, color: archivo ? 'text.primary' : 'text.disabled' }}>
+                {archivo ? `Archivo: ${archivo.name}` : 'Primero selecciona un PDF para activar la IA'}
+              </Typography>
+            </Box>
+
+            <Stack spacing={3}>
               <TextField fullWidth label="Título del Documento" name="titulo" value={docData.titulo} onChange={handleFormChange} required />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <TextField select sx={{ flex: 1 }} label="Categoría" name="categoria" value={docData.categoria} onChange={handleFormChange} required>
@@ -294,15 +308,7 @@ export default function Admin() {
                 <TextField sx={{ flex: 1 }} label="Año" name="anio" type="number" value={docData.anio} onChange={handleFormChange} required />
               </Box>
               <TextField fullWidth multiline rows={4} label="Descripción" name="descripcion" value={docData.descripcion} onChange={handleFormChange} required />
-              <Box sx={{ p: 3, border: '1px dashed #ccc', borderRadius: 2, textAlign: 'center', bgcolor: '#fafafa' }}>
-                <Button variant="outlined" component="label" startIcon={<PictureAsPdfIcon />}>
-                  Seleccionar PDF
-                  <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
-                </Button>
-                <Typography sx={{ mt: 1, color: archivo ? 'text.primary' : 'text.disabled' }}>
-                  {archivo ? archivo.name : 'Ningún archivo seleccionado'}
-                </Typography>
-              </Box>
+              
               <Button type="submit" variant="contained" size="large" disabled={uploading || !archivo}>
                 {uploading ? `Subiendo... ${Math.round(progress)}%` : 'Guardar en Repositorio'}
               </Button>
@@ -311,24 +317,19 @@ export default function Admin() {
           </Box>
         )}
 
-        {/* PESTAÑA 2: GESTIÓN DE ACCESOS */}
         {tabValue === 2 && (
           <Box sx={{ p: 4 }}>
-            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Gestión de Administradores</Typography>
-            <Alert severity="info" sx={{ mb: 3 }}>
-              El Superadmin <strong>{SUPER_ADMIN_EMAIL}</strong> tiene acceso permanente garantizado.
-            </Alert>
+            <Alert severity="info" sx={{ mb: 3 }}>El Superadmin tiene acceso total.</Alert>
             <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
-              <TextField label="Email (Google o Externo)" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
+              <TextField label="Email" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
               <Button variant="contained" startIcon={<PersonAddIcon />} onClick={handleAddAdmin}>Autorizar</Button>
             </Stack>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>Usuarios Autorizados:</Typography>
             <List sx={{ bgcolor: '#f9f9f9', borderRadius: 1 }}>
               {adminList.map((admin) => (
                 <ListItem key={admin.id} divider secondaryAction={
                   <IconButton edge="end" color="error" onClick={() => handleRemoveAdmin(admin.id)}><DeleteIcon /></IconButton>
                 }>
-                  <ListItemText primary={admin.email} secondary={`Agregado por: ${admin.addedBy}`} />
+                  <ListItemText primary={admin.email} secondary={`Autorizado por: ${admin.addedBy}`} />
                 </ListItem>
               ))}
             </List>
@@ -337,9 +338,9 @@ export default function Admin() {
       </Paper>
       
       <Dialog open={actionModal.open} onClose={() => setActionModal({...actionModal, open: false})}>
-        <DialogTitle sx={{ fontWeight: 'bold', color: 'primary.main' }}>{actionModal.title}</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>{actionModal.title}</DialogTitle>
         <DialogContent><Typography>{actionModal.message}</Typography></DialogContent>
-        <DialogActions sx={{ p: 2 }}><Button onClick={() => setActionModal({...actionModal, open: false})} variant="contained">Aceptar</Button></DialogActions>
+        <DialogActions sx={{ p: 2 }}><Button onClick={() => setActionModal({...actionModal, open: false})} variant="contained">Cerrar</Button></DialogActions>
       </Dialog>
     </Container>
   );
