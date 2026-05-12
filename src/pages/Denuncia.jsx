@@ -3,13 +3,16 @@ import {
   Container, Paper, Box, Typography, TextField, 
   Button, MenuItem, Divider, Stack,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  FormControlLabel, Checkbox
+  FormControlLabel, Checkbox, CircularProgress, Alert
 } from '@mui/material';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import InfoIcon from '@mui/icons-material/Info';
 import BusinessIcon from '@mui/icons-material/Business';
 import PersonIcon from '@mui/icons-material/Person';
-import PublicIcon from '@mui/icons-material/Public';
+
+// Importación de servicios de Firebase
+import { db } from '../services/firebaseConfig';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const tiposDenuncia = [
   'Despido injustificado',
@@ -41,7 +44,8 @@ const nivelesEducativos = [
 
 export default function Denuncia() {
   const [openModal, setOpenModal] = useState(true);
-  const [resultModal, setResultModal] = useState({ open: false, title: '', message: '' });
+  const [resultModal, setResultModal] = useState({ open: false, title: '', message: '', severity: 'success' });
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     nombres: '', apellidos: '', email: '', edad: '', genero: '',
@@ -58,20 +62,43 @@ export default function Denuncia() {
     });
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setResultModal({
-      open: true,
-      title: 'Reporte Registrado Exitosamente',
-      message: 'Su información ha sido procesada de manera segura para el análisis estadístico del Observatorio.'
-    });
-    // Reset form
-    setFormData({
-      nombres: '', apellidos: '', email: '', edad: '', genero: '',
-      nacionalidad: '', provincia: '', estadoCivil: '', nivelEducativo: '',
-      ingresosMensuales: '', isDefensorDDHH: false,
-      empresa: '', tipoDenuncia: '', descripcion: ''
-    });
+    setLoading(true);
+
+    try {
+      // Guardar en la colección "denuncias" de Firestore
+      await addDoc(collection(db, "denuncias"), {
+        ...formData,
+        fechaRegistro: serverTimestamp(), // Marca de tiempo del servidor para análisis cronológico
+        estado: 'pendiente' // Estado inicial para gestión administrativa
+      });
+
+      setResultModal({
+        open: true,
+        title: 'Reporte Registrado Exitosamente',
+        message: 'Su información ha sido procesada de manera segura para el análisis estadístico del Observatorio.',
+        severity: 'success'
+      });
+
+      // Reiniciar formulario
+      setFormData({
+        nombres: '', apellidos: '', email: '', edad: '', genero: '',
+        nacionalidad: '', provincia: '', estadoCivil: '', nivelEducativo: '',
+        ingresosMensuales: '', isDefensorDDHH: false,
+        empresa: '', tipoDenuncia: '', descripcion: ''
+      });
+    } catch (error) {
+      console.error("Error al registrar denuncia:", error);
+      setResultModal({
+        open: true,
+        title: 'Error de Registro',
+        message: 'No se pudo procesar su reporte en este momento. Por favor, intente más tarde.',
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -96,10 +123,14 @@ export default function Denuncia() {
         </DialogActions>
       </Dialog>
 
-      {/* Modal de Éxito */}
+      {/* Modal de Resultado (Éxito o Error) */}
       <Dialog open={resultModal.open} onClose={() => setResultModal({ ...resultModal, open: false })}>
-        <DialogTitle sx={{ fontWeight: 'bold', color: 'primary.main' }}>{resultModal.title}</DialogTitle>
-        <DialogContent><Typography>{resultModal.message}</Typography></DialogContent>
+        <DialogTitle sx={{ fontWeight: 'bold', color: resultModal.severity === 'error' ? 'error.main' : 'primary.main' }}>
+          {resultModal.title}
+        </DialogTitle>
+        <DialogContent>
+          <Typography>{resultModal.message}</Typography>
+        </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setResultModal({ ...resultModal, open: false })} variant="contained" disableElevation sx={{ borderRadius: 1 }}>
             CERRAR
@@ -175,7 +206,6 @@ export default function Denuncia() {
                   <TextField required fullWidth type="number" label="Ingresos Mensuales Aproximados (CRC)" name="ingresosMensuales" value={formData.ingresosMensuales} onChange={handleFormChange} />
                 </Box>
                 
-                {/* Casilla Defensor DDHH */}
                 <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 6' }, display: 'flex', alignItems: 'center' }}>
                   <FormControlLabel
                     control={<Checkbox name="isDefensorDDHH" checked={formData.isDefensorDDHH} onChange={handleFormChange} color="primary" />}
@@ -208,15 +238,17 @@ export default function Denuncia() {
               </Stack>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2, alignItems: 'center', gap: 2 }}>
+              {loading && <CircularProgress size={24} />}
               <Button 
                 type="submit" 
                 variant="contained" 
                 color="secondary" 
                 disableElevation
+                disabled={loading}
                 sx={{ py: 1.5, px: 6, fontSize: '1rem', fontWeight: 'bold', borderRadius: 1, color: '#000' }}
               >
-                REGISTRAR REPORTE
+                {loading ? 'REGISTRANDO...' : 'REGISTRAR REPORTE'}
               </Button>
             </Box>
           </Stack>
