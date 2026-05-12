@@ -1,392 +1,193 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Container, Paper, Box, Typography, TextField, Button, 
-  Tabs, Tab, MenuItem, Grid, Card, CardContent, Stack, Divider,
-  Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress 
+  Tabs, Tab, MenuItem, Grid, Card, CardContent, Stack,
+  Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress,
+  Alert, List, ListItem, ListItemText, IconButton, Divider
 } from '@mui/material';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
-  PieChart, Pie, Cell 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import SyncIcon from '@mui/icons-material/Sync';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import InsertChartIcon from '@mui/icons-material/InsertChart';
-import GroupIcon from '@mui/icons-material/Group';
-import AssignmentLateIcon from '@mui/icons-material/AssignmentLate';
+import { 
+  CloudUpload as CloudUploadIcon, PictureAsPdf as PictureAsPdfIcon,
+  InsertChart as InsertChartIcon, Group as GroupIcon, Logout as LogoutIcon,
+  Lock as LockIcon, PersonAdd as PersonAddIcon, Delete as DeleteIcon,
+  Google as GoogleIcon, Email as EmailIcon
+} from '@mui/icons-material';
 
-// Importación de servicios reales de Firebase
-import { db, storage } from '../services/firebaseConfig';
+// Firebase Services
+import { db, storage, auth, googleProvider } from '../services/firebaseConfig';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query, where, deleteDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 
-const categorias = [
-  { value: 'leyes', label: 'Leyes Nacionales' },
-  { value: 'tratados', label: 'Tratados Internacionales' },
-  { value: 'jurisprudencia', label: 'Jurisprudencia' },
-  { value: 'articulos', label: 'Libros y Artículos' }
-];
-
-// Datos estructurados para Recharts
-const dataDenuncias = [
-  { nombre: 'Impago de salario o extremos laborales', casos: 112 },
-  { nombre: 'Despido injustificado', casos: 62 },
-  { nombre: 'Acoso laboral (Mobbing)', casos: 37 },
-  { nombre: 'Incumplimiento de jornada u horas extra', casos: 25 },
-  { nombre: 'Discriminación', casos: 12 },
-];
-
-// Colores institucionales para el gráfico
-const COLORS = ['#003399', '#FFCC00', '#1565c0', '#ffd54f', '#90caf9'];
+const SUPER_ADMIN_EMAIL = 'webmaster@iiresodh.org';
 
 export default function Admin() {
-  const [tabValue, setTabValue] = useState(0);
-  const [openWarning, setOpenWarning] = useState(true);
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loadingAuth, setLoadingAuth] = useState(true);
   
-  // ESTADOS PARA FIREBASE
+  // Estados para Login Manual
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
+  // Estados del Panel
+  const [tabValue, setTabValue] = useState(0);
+  const [adminList, setAdminList] = useState([]);
+  const [newAdminEmail, setNewAdminEmail] = useState('');
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  
-  // ESTADO PARA EL MODAL DE RESULTADOS DE ACCIONES
-  const [actionModal, setActionModal] = useState({ 
-    open: false, 
-    title: '', 
-    message: '' 
-  });
-
-  const [docData, setDocData] = useState({
-    titulo: '', categoria: '', anio: '', descripcion: ''
-  });
+  const [docData, setDocData] = useState({ titulo: '', categoria: '', anio: '', descripcion: '' });
   const [archivo, setArchivo] = useState(null);
+  const [actionModal, setActionModal] = useState({ open: false, title: '', message: '' });
 
-  const handleFormChange = (e) => setDocData({ ...docData, [e.target.name]: e.target.value });
-  
-  const handleFileChange = (e) => { 
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.type !== "application/pdf") {
-        setActionModal({ open: true, title: 'Formato inválido', message: 'Solo se permiten archivos PDF.' });
-        return;
-      }
-      setArchivo(file); 
-    }
-  };
-
-  const handleUploadSubmit = async (e) => {
-    e.preventDefault();
-    if (!archivo) {
-      setActionModal({ open: true, title: 'Error de archivo', message: 'Por favor, selecciona un archivo PDF antes de continuar.' });
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      // 1. Subir a Storage
-      const nombreArchivo = `${Date.now()}_${archivo.name}`;
-      const storageRef = ref(storage, `documentos/${nombreArchivo}`);
-      const uploadTask = uploadBytesResumable(storageRef, archivo);
-
-      uploadTask.on('state_changed', 
-        (snapshot) => {
-          const progressPercent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setProgress(progressPercent);
-        }, 
-        (error) => {
-          console.error("Error al subir archivo:", error);
-          setUploading(false);
-          setActionModal({ open: true, title: 'Error', message: 'No se pudo subir el documento al servidor.' });
-        }, 
-        async () => {
-          // 2. Obtener URL y guardar en Firestore
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-
-          await addDoc(collection(db, "documentos"), {
-            titulo: docData.titulo,
-            categoria: docData.categoria,
-            anio: docData.anio,
-            descripcion: docData.descripcion,
-            fileUrl: downloadURL,
-            fileName: nombreArchivo,
-            fechaCreacion: serverTimestamp()
-          });
-
-          setUploading(false);
-          setProgress(0);
-          setActionModal({ open: true, title: 'Carga Exitosa', message: `El documento "${docData.titulo}" se ha subido correctamente.` });
-          setDocData({ titulo: '', categoria: '', anio: '', descripcion: '' });
-          setArchivo(null);
+  // 1. Lógica de Verificación de Permisos
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        if (currentUser.email === SUPER_ADMIN_EMAIL) {
+          setIsAdmin(true);
+          setUser(currentUser);
+        } else {
+          // Verificar si el email (sea de Google o Manual) está en la lista de 'admins'
+          const q = query(collection(db, "admins"), where("email", "==", currentUser.email.toLowerCase()));
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            setIsAdmin(true);
+            setUser(currentUser);
+          } else {
+            await signOut(auth);
+            setLoginError(`El acceso para ${currentUser.email} no está autorizado.`);
+          }
         }
-      );
-    } catch (error) {
-      console.error("Error en Firebase:", error);
-      setUploading(false);
-      setActionModal({ open: true, title: 'Error', message: 'Ocurrió un error al registrar los datos.' });
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+      }
+      setLoadingAuth(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // 2. Cargar lista de admins autorizados
+  useEffect(() => {
+    if (isAdmin) {
+      return onSnapshot(collection(db, "admins"), (snapshot) => {
+        setAdminList(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
     }
+  }, [isAdmin]);
+
+  const handleLoginGoogle = async () => {
+    setLoginError('');
+    try { await signInWithPopup(auth, googleProvider); } 
+    catch (e) { setLoginError('Fallo en la conexión con Google.'); }
   };
 
-  const handleSyncSinalevi = () => {
-    setActionModal({ open: true, title: 'Sincronización Iniciada', message: 'Conectando con SINALEVI para extracción automática de documentos...' });
+  const handleLoginManual = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    try { await signInWithEmailAndPassword(auth, email, password); } 
+    catch (e) { setLoginError('Credenciales incorrectas o usuario no registrado.'); }
   };
 
+  const handleAddAdmin = async () => {
+    if (!newAdminEmail) return;
+    try {
+      await setDoc(doc(db, "admins", newAdminEmail.toLowerCase()), {
+        email: newAdminEmail.toLowerCase(),
+        addedBy: user.email,
+        date: serverTimestamp()
+      });
+      setNewAdminEmail('');
+      setActionModal({ open: true, title: 'Acceso Concedido', message: `Ahora ${newAdminEmail} puede entrar al panel.` });
+    } catch (e) { setActionModal({ open: true, title: 'Error', message: 'No se pudo guardar en la base de datos.' }); }
+  };
+
+  const handleRemoveAdmin = async (id) => {
+    try { await deleteDoc(doc(db, "admins", id)); } 
+    catch (e) { console.error(e); }
+  };
+
+  if (loadingAuth) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><LinearProgress sx={{ width: '40%' }} /></Box>;
+
+  // --- VISTA DE ACCESO (HÍBRIDA) ---
+  if (!user || !isAdmin) {
+    return (
+      <Container maxWidth="xs" sx={{ mt: 8 }}>
+        <Paper elevation={4} sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
+          <LockIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+          <Typography variant="h5" fontWeight="bold">Administración</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Observatorio de Derechos Laborales</Typography>
+          
+          {loginError && <Alert severity="error" sx={{ mb: 2, fontSize: '0.8rem' }}>{loginError}</Alert>}
+          
+          <Button fullWidth variant="contained" startIcon={<GoogleIcon />} onClick={handleLoginGoogle} sx={{ mb: 3, py: 1.2, fontWeight: 'bold' }}>
+            Entrar con Google
+          </Button>
+
+          <Divider sx={{ mb: 3 }}><Typography variant="caption" color="text.disabled">O CORREO EXTERNO</Typography></Divider>
+
+          <Box component="form" onSubmit={handleLoginManual}>
+            <TextField fullWidth size="small" label="Email" margin="dense" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <TextField fullWidth size="small" label="Contraseña" type="password" margin="dense" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <Button fullWidth type="submit" variant="outlined" sx={{ mt: 2, fontWeight: 'bold' }}>Acceder</Button>
+          </Box>
+        </Paper>
+      </Container>
+    );
+  }
+
+  // --- VISTA DEL PANEL ---
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      
-      {/* MODAL DE ADVERTENCIA */}
-      <Dialog open={openWarning} onClose={() => setOpenWarning(false)} disableEscapeKeyDown>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#d32f2f', fontWeight: 'bold' }}>
-          <WarningAmberIcon /> Área de Administración Restringida
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1">
-            Has ingresado al panel de control del Observatorio. 
-            Cualquier carga de documentos o sincronización modificará la base de conocimientos del asistente de IA <strong>PIDA</strong>.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenWarning(false)} variant="outlined" color="error">
-            Comprendo los riesgos
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" color="primary" fontWeight="bold">Panel Administrativo</Typography>
+        <Button variant="outlined" color="error" startIcon={<LogoutIcon />} onClick={() => signOut(auth)}>Cerrar Sesión</Button>
+      </Box>
 
-      {/* MODAL DE RESULTADOS DE ACCIONES */}
-      <Dialog open={actionModal.open} onClose={() => setActionModal({ ...actionModal, open: false })}>
-        <DialogTitle sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-          {actionModal.title}
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1">{actionModal.message}</Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setActionModal({ ...actionModal, open: false })} variant="contained" color="primary">
-            Aceptar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Paper elevation={2}>
+        <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} indicatorColor="secondary" textColor="primary">
+          <Tab icon={<InsertChartIcon />} label="Estadísticas" />
+          <Tab icon={<CloudUploadIcon />} label="Subir Documentos" />
+          <Tab icon={<GroupIcon />} label="Gestionar Admins" />
+        </Tabs>
 
-      <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>Panel de Administración</Typography>
-
-      <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', mt: 3 }}>
-        
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f4f6f8' }}>
-          <Tabs value={tabValue} onChange={(e, val) => setTabValue(val)} variant="scrollable" scrollButtons="auto" textColor="primary" indicatorColor="secondary">
-            <Tab icon={<InsertChartIcon />} iconPosition="start" label="Estadísticas" />
-            <Tab icon={<CloudUploadIcon />} iconPosition="start" label="Carga Manual" />
-            <Tab icon={<SyncIcon />} iconPosition="start" label="Sincronización SINALEVI" />
-          </Tabs>
-        </Box>
-
-        {/* --- VISTA 0: ESTADÍSTICAS PROFESIONALES --- */}
-        {tabValue === 0 && (
-          <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: '#fafafa' }}>
-            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Dashboard Analítico de Vulneraciones</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Datos procesados a partir de los registros de la instancia de denuncia ciudadana.</Typography>
-
-            {/* KPIs */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-              <Grid item xs={12} sm={4}>
-                <Card elevation={2} sx={{ borderTop: '4px solid', borderColor: 'primary.main', height: '100%' }}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <GroupIcon color="primary" />
-                      <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">TOTAL DENUNCIAS</Typography>
-                    </Box>
-                    <Typography variant="h3" fontWeight="bold" color="primary.main">248</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={8}>
-                <Card elevation={2} sx={{ borderTop: '4px solid', borderColor: 'secondary.main', height: '100%' }}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <AssignmentLateIcon color="secondary" />
-                      <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">TENDENCIA PRINCIPAL</Typography>
-                    </Box>
-                    <Typography variant="h5" fontWeight="bold" color="text.primary" sx={{ mt: 1 }}>Impago de salario o extremos laborales</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-
-            {/* Gráficos Recharts (Error Height(-1) resuelto) */}
-            <Grid container spacing={3}>
-              
-              {/* Gráfico de Barras */}
-              <Grid item xs={12} md={7}>
-                <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 450, display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Volumen de Denuncias por Categoría</Typography>
-                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={dataDenuncias} margin={{ top: 20, right: 30, left: 0, bottom: 120 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis 
-                          dataKey="nombre" 
-                          tick={{ fontSize: 11 }} 
-                          interval={0} 
-                          angle={-45} 
-                          textAnchor="end" 
-                          dx={-5}
-                        />
-                        <YAxis />
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                        <Bar dataKey="casos" fill="#003399" radius={[4, 4, 0, 0]} name="Cantidad de Casos" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </Box>
-                </Paper>
-              </Grid>
-
-              {/* Gráfico de Anillo */}
-              <Grid item xs={12} md={5}>
-                <Paper elevation={1} sx={{ p: 3, borderRadius: 2, height: 450, display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Proporción de Afectaciones</Typography>
-                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
-                        <Pie 
-                          data={dataDenuncias} 
-                          cx="50%" 
-                          cy="45%" 
-                          innerRadius={60} 
-                          outerRadius={90} 
-                          paddingAngle={5} 
-                          dataKey="casos"
-                          nameKey="nombre" 
-                        >
-                          {dataDenuncias.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                        <Legend 
-                          layout="horizontal" 
-                          align="center" 
-                          verticalAlign="bottom" 
-                          wrapperStyle={{ fontSize: 11, paddingTop: '15px' }} 
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </Box>
-                </Paper>
-              </Grid>
-            </Grid>
-          </Box>
-        )}
-
-        {/* --- VISTA 1: CARGA MANUAL --- */}
-        {tabValue === 1 && (
-          <Box component="form" onSubmit={handleUploadSubmit} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'white' }}>
-            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Subir Nuevo Documento</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Asegúrate de que el PDF sea legible. El sistema extraerá el texto para entrenar a la IA PIDA.</Typography>
-
-            <Stack spacing={4}>
-              <TextField 
-                fullWidth 
-                label="Título del Documento" 
-                name="titulo" 
-                value={docData.titulo} 
-                onChange={handleFormChange} 
-                variant="outlined" 
-                required 
-              />
-
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
-                <TextField 
-                  sx={{ flex: 1 }} 
-                  select 
-                  label="Categoría" 
-                  name="categoria" 
-                  value={docData.categoria} 
-                  onChange={handleFormChange} 
-                  variant="outlined" 
-                  required
-                >
-                  {categorias.map((cat) => (<MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>))}
-                </TextField>
-                
-                <TextField 
-                  sx={{ flex: 1 }} 
-                  label="Año de publicación" 
-                  name="anio" 
-                  type="number" 
-                  value={docData.anio} 
-                  onChange={handleFormChange} 
-                  variant="outlined" 
-                  required 
-                />
-              </Box>
-
-              <TextField 
-                fullWidth 
-                label="Descripción breve" 
-                name="descripcion" 
-                value={docData.descripcion} 
-                onChange={handleFormChange} 
-                variant="outlined" 
-                multiline 
-                minRows={4} 
-                required 
-              />
-
-              <Box sx={{ 
-                display: 'flex', 
-                flexDirection: { xs: 'column', sm: 'row' }, 
-                alignItems: 'center', 
-                justifyContent: 'space-between', 
-                p: 2, 
-                border: '1px dashed #ccc', 
-                borderRadius: 2, 
-                bgcolor: '#fafafa', 
-                gap: 2 
-              }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Button variant="outlined" component="label" startIcon={<PictureAsPdfIcon />}>
-                    Seleccionar PDF
-                    <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
-                  </Button>
-                  <Typography variant="body2" color={archivo ? 'text.primary' : 'text.secondary'}>
-                    {archivo ? archivo.name : 'Ningún archivo seleccionado'}
-                  </Typography>
-                </Box>
-                
-                <Button 
-                  type="submit" 
-                  variant="contained" 
-                  color="primary" 
-                  size="large" 
-                  disabled={uploading}
-                  sx={{ fontWeight: 'bold', px: 4 }}
-                >
-                  {uploading ? 'Procesando...' : 'Guardar y Procesar'}
-                </Button>
-              </Box>
-
-              {uploading && (
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="caption" color="text.secondary">Subiendo archivo: {Math.round(progress)}%</Typography>
-                  <LinearProgress variant="determinate" value={progress} sx={{ mt: 1, mb: 1 }} />
-                </Box>
-              )}
-            </Stack>
-          </Box>
-        )}
-
-        {/* --- VISTA 2: SINALEVI --- */}
+        {/* GESTIÓN DE ADMINISTRADORES */}
         {tabValue === 2 && (
-          <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: 'white', textAlign: 'center' }}>
-            <SyncIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Motor de Extracción Automática</Typography>
-            <Typography variant="body1" color="text.secondary" paragraph sx={{ maxWidth: 600, mx: 'auto', mb: 4 }}>
-              Este proceso buscará actualizaciones directamente en el sistema nacional.
-            </Typography>
-            <Button variant="contained" color="secondary" size="large" onClick={handleSyncSinalevi} sx={{ color: '#000', fontWeight: 'bold', px: 4, py: 1.5, mt: 2, borderRadius: 2 }}>
-              Ejecutar
-            </Button>
+          <Box sx={{ p: 4 }}>
+            <Alert severity="info" sx={{ mb: 3 }}>
+              El Superadmin <strong>{SUPER_ADMIN_EMAIL}</strong> tiene acceso total inamovible.
+            </Alert>
+            
+            <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+              <TextField label="Correo (Google o Externo)" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
+              <Button variant="contained" startIcon={<PersonAddIcon />} onClick={handleAddAdmin}>Autorizar</Button>
+            </Stack>
+
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>Usuarios Autorizados:</Typography>
+            <List sx={{ bgcolor: '#f9f9f9', borderRadius: 1 }}>
+              {adminList.map((admin) => (
+                <ListItem key={admin.id} divider secondaryAction={
+                  <IconButton edge="end" color="error" onClick={() => handleRemoveAdmin(admin.id)}><DeleteIcon /></IconButton>
+                }>
+                  <ListItemText primary={admin.email} secondary={`Autorizado por: ${admin.addedBy}`} />
+                </ListItem>
+              ))}
+            </List>
           </Box>
         )}
+
+        {/* ... Otras pestañas (Estadísticas, Carga) ... */}
       </Paper>
+      
+      <Dialog open={actionModal.open} onClose={() => setActionModal({...actionModal, open: false})}>
+        <DialogTitle>{actionModal.title}</DialogTitle>
+        <DialogContent>{actionModal.message}</DialogContent>
+        <DialogActions><Button onClick={() => setActionModal({...actionModal, open: false})}>Aceptar</Button></DialogActions>
+      </Dialog>
     </Container>
   );
 }

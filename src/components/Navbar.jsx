@@ -1,6 +1,6 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import GavelIcon from '@mui/icons-material/Gavel'; // Un ícono de mazo legal
+import GavelIcon from '@mui/icons-material/Gavel'; 
 
 export default function Navbar() {
   return (
@@ -13,12 +13,9 @@ export default function Navbar() {
 
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button color="inherit" component={RouterLink} to="/">Inicio</Button>
-          {/* Nuevo enlace al Repositorio */}
           <Button color="inherit" component={RouterLink} to="/repositorio">Repositorio</Button>
           <Button color="inherit" component={RouterLink} to="/denuncia">Denuncias</Button>
-          <Button variant="outlined" color="inherit" component={RouterLink} to="/admin" sx={{ ml: 2, borderColor: 'white' }}>
-            Admin
-          </Button>
+          {/* El botón de Admin ha sido eliminado de aquí para ocultarlo al público */}
         </Box>
       </Toolbar>
     </AppBar>
