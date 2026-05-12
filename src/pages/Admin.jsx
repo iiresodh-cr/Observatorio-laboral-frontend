@@ -25,7 +25,6 @@ import { signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged, signOu
 
 const SUPER_ADMIN_EMAIL = 'webmaster@iiresodh.org';
 
-// Categorías actualizadas según solicitud
 const categorias = [
   { value: 'leyes', label: 'Leyes' },
   { value: 'reglamentos', label: 'Reglamentos' },
@@ -57,7 +56,6 @@ export default function Admin() {
   const [adminList, setAdminList] = useState([]);
   const [newAdminEmail, setNewAdminEmail] = useState('');
   
-  // Estados para Carga e IA
   const [uploading, setUploading] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -132,44 +130,43 @@ export default function Admin() {
     catch (e) { console.error(e); }
   };
 
-  // FUNCIÓN ACTUALIZADA: ANALIZAR PDF CON GEMINI (Ahora extrae la descripción)
-  const handleAnalyzeWithAI = async () => {
-    if (!archivo) return;
-    setLoadingAI(true);
-    
-    const formData = new FormData();
-    formData.append('file', archivo);
-
-    try {
-      // Reemplaza con la URL de tu Cloud Run una vez desplegado
-      const response = await fetch('https://TU-URL-DE-CLOUDRUN.a.run.app/extract-metadata', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) throw new Error('Error en el servicio de IA');
-
-      const data = await response.json();
-      
-      setDocData({
-        titulo: data.titulo || '',
-        categoria: data.categoria || '',
-        anio: data.anio || '',
-        descripcion: data.descripcion || docData.descripcion // Si la IA devuelve descripción, la usamos.
-      });
-    } catch (error) {
-      console.error(error);
-      setActionModal({ open: true, title: 'Error de IA', message: 'No se pudo analizar el documento automáticamente.' });
-    } finally {
-      setLoadingAI(false);
-    }
-  };
-
   const handleFormChange = (e) => setDocData({ ...docData, [e.target.name]: e.target.value });
   
-  const handleFileChange = (e) => { 
+  // Lógica unificada: Detectar archivo y mandarlo a la IA inmediatamente
+  const handleFileChange = async (e) => { 
     if (e.target.files && e.target.files[0]) {
-      setArchivo(e.target.files[0]); 
+      const selectedFile = e.target.files[0];
+      setArchivo(selectedFile); 
+      
+      // Iniciamos el análisis automáticamente
+      setLoadingAI(true);
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        // Se reemplazó el marcador con la URL real de Cloud Run
+        const response = await fetch('https://observatorio-backend-extracci-n-75047069496.us-central1.run.app/extract-metadata', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) throw new Error('Error en el servicio de IA');
+
+        const data = await response.json();
+        
+        // Autocompletar el formulario con la respuesta de la IA
+        setDocData(prevData => ({
+          titulo: data.titulo || prevData.titulo,
+          categoria: data.categoria || prevData.categoria,
+          anio: data.anio || prevData.anio,
+          descripcion: data.descripcion || prevData.descripcion
+        }));
+      } catch (error) {
+        console.error(error);
+        setActionModal({ open: true, title: 'Análisis IA fallido', message: 'No se pudo extraer la información automáticamente. Por favor, llena los campos a mano.' });
+      } finally {
+        setLoadingAI(false);
+      }
     }
   };
 
@@ -276,40 +273,43 @@ export default function Admin() {
           <Box component="form" onSubmit={handleUploadSubmit} sx={{ p: 4 }}>
             <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Subir Nuevo Documento</Typography>
             
-            {/* ÁREA DE SELECCIÓN DE ARCHIVO E IA */}
-            <Box sx={{ p: 3, border: '1px dashed #ccc', borderRadius: 2, textAlign: 'center', bgcolor: '#fafafa', mb: 3 }}>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="center">
-                <Button variant="outlined" component="label" startIcon={<PictureAsPdfIcon />}>
-                  Seleccionar PDF
-                  <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
-                </Button>
-                
-                <Button 
-                  variant="contained" 
-                  color="secondary" 
-                  startIcon={loadingAI ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
-                  onClick={handleAnalyzeWithAI}
-                  disabled={!archivo || loadingAI}
-                >
-                  {loadingAI ? 'Analizando...' : 'Autocompletar con IA'}
-                </Button>
-              </Stack>
-              <Typography sx={{ mt: 2, color: archivo ? 'text.primary' : 'text.disabled' }}>
-                {archivo ? `Archivo: ${archivo.name}` : 'Primero selecciona un PDF para activar la IA'}
-              </Typography>
+            {/* ÁREA DE SELECCIÓN DE ARCHIVO (Ahora dispara la IA automáticamente) */}
+            <Box sx={{ p: 4, border: '2px dashed #ccc', borderRadius: 2, textAlign: 'center', bgcolor: loadingAI ? '#f0f7ff' : '#fafafa', mb: 4, transition: '0.3s' }}>
+              {loadingAI ? (
+                <Stack alignItems="center" spacing={2}>
+                  <CircularProgress size={40} color="secondary" />
+                  <Typography variant="h6" color="secondary.main" fontWeight="bold">
+                    La Inteligencia Artificial está leyendo el documento...
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Extrayendo título, categoría, año y generando un resumen.
+                  </Typography>
+                </Stack>
+              ) : (
+                <Stack alignItems="center" spacing={2}>
+                  <AutoAwesomeIcon color="secondary" sx={{ fontSize: 40 }} />
+                  <Typography variant="h6" color="text.primary">
+                    {archivo ? `Archivo listo: ${archivo.name}` : 'Sube un PDF para autocompletar la información'}
+                  </Typography>
+                  <Button variant="contained" component="label" size="large" startIcon={<PictureAsPdfIcon />}>
+                    Elegir Archivo PDF
+                    <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
+                  </Button>
+                </Stack>
+              )}
             </Box>
 
             <Stack spacing={3}>
-              <TextField fullWidth label="Título del Documento" name="titulo" value={docData.titulo} onChange={handleFormChange} required />
+              <TextField fullWidth label="Título del Documento" name="titulo" value={docData.titulo} onChange={handleFormChange} required InputLabelProps={{ shrink: docData.titulo ? true : undefined }} />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <TextField select sx={{ flex: 1 }} label="Categoría" name="categoria" value={docData.categoria} onChange={handleFormChange} required>
                   {categorias.map((cat) => (<MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>))}
                 </TextField>
-                <TextField sx={{ flex: 1 }} label="Año" name="anio" type="number" value={docData.anio} onChange={handleFormChange} required />
+                <TextField sx={{ flex: 1 }} label="Año" name="anio" type="number" value={docData.anio} onChange={handleFormChange} required InputLabelProps={{ shrink: docData.anio ? true : undefined }} />
               </Box>
-              <TextField fullWidth multiline rows={4} label="Descripción" name="descripcion" value={docData.descripcion} onChange={handleFormChange} required />
+              <TextField fullWidth multiline rows={4} label="Descripción" name="descripcion" value={docData.descripcion} onChange={handleFormChange} required InputLabelProps={{ shrink: docData.descripcion ? true : undefined }} />
               
-              <Button type="submit" variant="contained" size="large" disabled={uploading || !archivo}>
+              <Button type="submit" variant="contained" size="large" disabled={uploading || !archivo || loadingAI} color="primary" sx={{ py: 1.5, fontWeight: 'bold' }}>
                 {uploading ? `Subiendo... ${Math.round(progress)}%` : 'Guardar en Repositorio'}
               </Button>
               {uploading && <LinearProgress variant="determinate" value={progress} />}
