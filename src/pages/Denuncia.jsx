@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Container, Paper, Box, Typography, TextField, 
   Button, MenuItem, Divider, Stack,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  FormControlLabel, Checkbox, CircularProgress, Alert
+  FormControlLabel, Checkbox, CircularProgress
 } from '@mui/material';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import InfoIcon from '@mui/icons-material/Info';
@@ -32,7 +32,14 @@ const opcionesGenero = [
   { value: 'prefiero_no_decir', label: 'Prefiero no decirlo' }
 ];
 
-const provincias = ['San José', 'Alajuela', 'Cartago', 'Heredia', 'Guanacaste', 'Puntarenas', 'Limón'];
+// Configuración de países y sus provincias/estados
+const paisesDisponibles = [
+  { value: 'Costa Rica', label: 'Costa Rica' }
+];
+
+const regionesPorPais = {
+  'Costa Rica': ['San José', 'Alajuela', 'Cartago', 'Heredia', 'Guanacaste', 'Puntarenas', 'Limón']
+};
 
 const estadosCiviles = ['Soltero/a', 'Casado/a', 'Divorciado/a', 'Viudo/a', 'Unión Libre'];
 
@@ -49,10 +56,17 @@ export default function Denuncia() {
 
   const [formData, setFormData] = useState({
     nombres: '', apellidos: '', email: '', edad: '', genero: '',
-    nacionalidad: '', provincia: '', estadoCivil: '', nivelEducativo: '',
-    ingresosMensuales: '', isDefensorDDHH: false,
+    paisResidencia: 'Costa Rica', // Valor por defecto
+    provincia: '', estadoCivil: '', nivelEducativo: '',
+    ingresosMensuales: '', moneda: 'CRC', // Nueva información de moneda
+    isDefensorDDHH: false,
     empresa: '', tipoDenuncia: '', descripcion: ''
   });
+
+  // Reiniciar provincia si el país cambia (para futura escalabilidad)
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, provincia: '' }));
+  }, [formData.paisResidencia]);
 
   const handleFormChange = (e) => {
     const { name, value, checked, type } = e.target;
@@ -67,11 +81,11 @@ export default function Denuncia() {
     setLoading(true);
 
     try {
-      // Guardar en la colección "denuncias" de Firestore
+      // Guardar en la colección "denuncias" de Firestore incluyendo país, provincia y moneda
       await addDoc(collection(db, "denuncias"), {
         ...formData,
-        fechaRegistro: serverTimestamp(), // Marca de tiempo del servidor para análisis cronológico
-        estado: 'pendiente' // Estado inicial para gestión administrativa
+        fechaRegistro: serverTimestamp(),
+        estado: 'pendiente'
       });
 
       setResultModal({
@@ -81,11 +95,13 @@ export default function Denuncia() {
         severity: 'success'
       });
 
-      // Reiniciar formulario
+      // Reiniciar formulario manteniendo los valores por defecto de país y moneda
       setFormData({
         nombres: '', apellidos: '', email: '', edad: '', genero: '',
-        nacionalidad: '', provincia: '', estadoCivil: '', nivelEducativo: '',
-        ingresosMensuales: '', isDefensorDDHH: false,
+        paisResidencia: 'Costa Rica',
+        provincia: '', estadoCivil: '', nivelEducativo: '',
+        ingresosMensuales: '', moneda: 'CRC',
+        isDefensorDDHH: false,
         empresa: '', tipoDenuncia: '', descripcion: ''
       });
     } catch (error) {
@@ -123,7 +139,7 @@ export default function Denuncia() {
         </DialogActions>
       </Dialog>
 
-      {/* Modal de Resultado (Éxito o Error) */}
+      {/* Modal de Resultado */}
       <Dialog open={resultModal.open} onClose={() => setResultModal({ ...resultModal, open: false })}>
         <DialogTitle sx={{ fontWeight: 'bold', color: resultModal.severity === 'error' ? 'error.main' : 'primary.main' }}>
           {resultModal.title}
@@ -175,11 +191,15 @@ export default function Denuncia() {
                 </Box>
 
                 <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 4' } }}>
-                  <TextField required fullWidth label="Nacionalidad" name="nacionalidad" value={formData.nacionalidad} onChange={handleFormChange} />
+                  <TextField select required fullWidth label="País de residencia" name="paisResidencia" value={formData.paisResidencia} onChange={handleFormChange}>
+                    {paisesDisponibles.map((p) => <MenuItem key={p.value} value={p.value}>{p.label}</MenuItem>)}
+                  </TextField>
                 </Box>
                 <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 4' } }}>
-                  <TextField select required fullWidth label="Provincia de residencia" name="provincia" value={formData.provincia} onChange={handleFormChange}>
-                    {provincias.map((p) => <MenuItem key={p} value={p}>{p}</MenuItem>)}
+                  <TextField select required fullWidth label="Provincia/Región" name="provincia" value={formData.provincia} onChange={handleFormChange} disabled={!formData.paisResidencia}>
+                    {(regionesPorPais[formData.paisResidencia] || []).map((r) => (
+                      <MenuItem key={r} value={r}>{r}</MenuItem>
+                    ))}
                   </TextField>
                 </Box>
                 <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 4' } }}>
@@ -202,11 +222,17 @@ export default function Denuncia() {
                   </TextField>
                 </Box>
 
-                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 6' } }}>
-                  <TextField required fullWidth type="number" label="Ingresos Mensuales Aproximados (CRC)" name="ingresosMensuales" value={formData.ingresosMensuales} onChange={handleFormChange} />
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 8' } }}>
+                  <TextField required fullWidth type="number" label="Ingresos Mensuales Aproximados" name="ingresosMensuales" value={formData.ingresosMensuales} onChange={handleFormChange} />
+                </Box>
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 4' } }}>
+                  <TextField select required fullWidth label="Moneda" name="moneda" value={formData.moneda} onChange={handleFormChange}>
+                    <MenuItem value="CRC">CRC (Colones)</MenuItem>
+                    <MenuItem value="USD">USD (Dólares)</MenuItem>
+                  </TextField>
                 </Box>
                 
-                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 6' }, display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 12' }, display: 'flex', alignItems: 'center' }}>
                   <FormControlLabel
                     control={<Checkbox name="isDefensorDDHH" checked={formData.isDefensorDDHH} onChange={handleFormChange} color="primary" />}
                     label={<Typography sx={{ fontWeight: 500 }}>¿Es defensor(a) de Derechos Humanos?</Typography>}
