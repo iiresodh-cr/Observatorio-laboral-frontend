@@ -65,7 +65,7 @@ export default function Denuncia() {
       // 1. Solicitar análisis a Gemini en el Backend
       let borradorIA = '';
       try {
-        // REEMPLAZA ESTA URL POR LA DE TU CLOUD RUN ACTUAL
+        // URL ACTUALIZADA AL PROYECTO CORRECTO
         const response = await fetch('https://observatorio-backend-extraccion-86857815411.us-central1.run.app/analyze-denuncia', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -80,7 +80,6 @@ export default function Denuncia() {
           const data = await response.json();
           borradorIA = data.draft;
         } else {
-          // Mejoramos el log de errores para atrapar fallos del servidor 500 o 403
           const errorData = await response.text();
           console.error("Error del servidor al generar IA:", response.status, errorData);
         }
