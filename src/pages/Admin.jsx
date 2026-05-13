@@ -88,6 +88,7 @@ export default function Admin() {
       const unsubAdmins = onSnapshot(collection(db, "admins"), (snapshot) => {
         setAdminList(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       });
+      // Escuchar denuncias en tiempo real
       const unsubDenuncias = onSnapshot(query(collection(db, "denuncias"), orderBy("fechaRegistro", "desc")), (snapshot) => {
         setListaDenuncias(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       });
@@ -117,7 +118,7 @@ export default function Admin() {
       setLoadingAI(true);
       const formData = new FormData(); formData.append('file', selectedFile);
       try {
-        // URL ACTUALIZADA AL PROYECTO CORRECTO
+        // URL CORRECTA
         const response = await fetch('https://observatorio-backend-extraccion-86857815411.us-central1.run.app/extract-metadata', { method: 'POST', body: formData });
         if (response.ok) {
           const data = await response.json();
@@ -153,6 +154,7 @@ export default function Admin() {
     } catch (error) { setUploading(false); }
   };
 
+  // FUNCIONES PARA ASESORÍAS
   const handleOpenReview = (denuncia) => {
     setSelectedDenuncia(denuncia);
     setDraftReview(denuncia.borradorAsesoria || 'La IA no pudo generar un borrador para este caso.');
@@ -163,7 +165,7 @@ export default function Admin() {
     setIsSendingEmail(true);
 
     try {
-      // URL ACTUALIZADA AL PROYECTO CORRECTO
+      // URL CORRECTA
       const response = await fetch('https://observatorio-backend-extraccion-86857815411.us-central1.run.app/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -179,6 +181,7 @@ export default function Admin() {
         throw new Error(`Error al conectar con servidor de correos: ${errorText}`);
       }
 
+      // Actualizar documento en Firestore
       await updateDoc(doc(db, "denuncias", selectedDenuncia.id), {
         estado: 'completada',
         respuestaFinal: draftReview,
@@ -278,6 +281,7 @@ export default function Admin() {
           </Box>
         )}
 
+        {/* PESTAÑA: ASESORÍAS */}
         {tabValue === 2 && (
           <Box sx={{ p: 4, bgcolor: '#fafafa', minHeight: '60vh' }}>
             <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Solicitudes Pendientes de Asesoría</Typography>
@@ -330,6 +334,7 @@ export default function Admin() {
         )}
       </Paper>
       
+      {/* MODAL PARA REVISAR ASESORÍA */}
       <Dialog open={Boolean(selectedDenuncia)} onClose={() => setSelectedDenuncia(null)} maxWidth="md" fullWidth>
         {selectedDenuncia && (
           <>
