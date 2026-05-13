@@ -145,7 +145,7 @@ export default function Admin() {
 
       try {
         // Se reemplazó el marcador con la URL real de Cloud Run
-        const response = await fetch('https://observatorio-backend-extracci-n-75047069496.us-central1.run.app/extract-metadata', {
+        const response = await fetch('https://observatorio-backend-extraccion-86857815411.us-central1.run.app/extract-metadata', {
           method: 'POST',
           body: formData
         });
