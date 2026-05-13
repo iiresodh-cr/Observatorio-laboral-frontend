@@ -81,31 +81,27 @@ export default function Home() {
         </Paper>
       </Container>
 
-      {/* --- SECCIÓN: CONTADORES DINÁMICOS --- */}
-      <Container maxWidth="md" sx={{ mt: 10, mb: 8 }}>
-        <Grid container spacing={4} justifyContent="center">
-          <Grid item xs={12} sm={5}>
-            <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#f0f4ff', borderRadius: 4, border: '1px solid #e0eaff' }}>
-              <GavelIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-              {stats.loading ? <CircularProgress size={30} sx={{ display: 'block', mx: 'auto', my: 1 }} /> : (
-                <Typography variant="h3" fontWeight="900" color="primary">{stats.docs}</Typography>
-              )}
-              <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">Documentos Legales</Typography>
-              <Typography variant="caption" color="text.disabled">Leyes, Tratados y Jurisprudencia</Typography>
-            </Paper>
-          </Grid>
+      {/* --- SECCIÓN: CONTADORES DINÁMICOS (ALINEACIÓN CORREGIDA) --- */}
+      <Container maxWidth="lg" sx={{ mt: 10, mb: 8 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'center', alignItems: 'center', gap: 4 }}>
+          <Paper elevation={0} sx={{ width: '100%', maxWidth: 350, p: 4, textAlign: 'center', bgcolor: '#f0f4ff', borderRadius: 4, border: '1px solid #e0eaff' }}>
+            <GavelIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
+            {stats.loading ? <CircularProgress size={30} sx={{ display: 'block', mx: 'auto', my: 1 }} /> : (
+              <Typography variant="h3" fontWeight="900" color="primary">{stats.docs}</Typography>
+            )}
+            <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">Documentos Legales</Typography>
+            <Typography variant="caption" color="text.disabled">Leyes, Tratados y Jurisprudencia</Typography>
+          </Paper>
           
-          <Grid item xs={12} sm={5}>
-            <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#fff9e6', borderRadius: 4, border: '1px solid #ffecb3' }}>
-              <SupportAgentIcon sx={{ fontSize: 40, mb: 1, color: '#b28900' }} />
-              {stats.loading ? <CircularProgress size={30} sx={{ display: 'block', mx: 'auto', my: 1, color: '#b28900' }} /> : (
-                <Typography variant="h3" fontWeight="900" sx={{ color: '#b28900' }}>{stats.cases}</Typography>
-              )}
-              <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">Asesorías Finalizadas</Typography>
-              <Typography variant="caption" color="text.disabled">Casos con orientación brindada</Typography>
-            </Paper>
-          </Grid>
-        </Grid>
+          <Paper elevation={0} sx={{ width: '100%', maxWidth: 350, p: 4, textAlign: 'center', bgcolor: '#fff9e6', borderRadius: 4, border: '1px solid #ffecb3' }}>
+            <SupportAgentIcon sx={{ fontSize: 40, mb: 1, color: '#b28900' }} />
+            {stats.loading ? <CircularProgress size={30} sx={{ display: 'block', mx: 'auto', my: 1, color: '#b28900' }} /> : (
+              <Typography variant="h3" fontWeight="900" sx={{ color: '#b28900' }}>{stats.cases}</Typography>
+            )}
+            <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">Asesorías Finalizadas</Typography>
+            <Typography variant="caption" color="text.disabled">Casos con orientación brindada</Typography>
+          </Paper>
+        </Box>
       </Container>
 
       <Container maxWidth="lg" sx={{ mt: 2 }}>
