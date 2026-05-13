@@ -19,7 +19,7 @@ import {
   History as HistoryIcon, PendingActions as PendingActionsIcon,
   Assessment as AssessmentIcon
 } from '@mui/icons-material';
-import ReactMarkdown from 'react-markdown'; // NUEVO: Importación para renderizar Markdown
+import ReactMarkdown from 'react-markdown'; // Importación para renderizar Markdown
 
 // Firebase Services
 import { db, storage, auth, googleProvider } from '../services/firebaseConfig';
@@ -51,7 +51,7 @@ export default function Admin() {
 
   const [tabValue, setTabValue] = useState(0);
   const [adminList, setAdminList] = useState([]);
-  const [newAdminName, setNewAdminName] = useState(''); // NUEVO: Estado para el nombre del admin
+  const [newAdminName, setNewAdminName] = useState('');
   const [newAdminEmail, setNewAdminEmail] = useState('');
   
   // Carga Documentos
@@ -114,7 +114,7 @@ export default function Admin() {
     }
     try {
       await setDoc(doc(db, "admins", newAdminEmail.toLowerCase().trim()), { 
-        nombre: newAdminName.trim(), // NUEVO: Guardando el nombre
+        nombre: newAdminName.trim(), 
         email: newAdminEmail.toLowerCase().trim(), 
         addedBy: user.email, 
         date: serverTimestamp() 
@@ -506,9 +506,6 @@ export default function Admin() {
         {/* PESTAÑA: ADMINISTRADORES */}
         {tabValue === 3 && (
           <Box sx={{ p: 4 }}>
-            <Alert severity="info" sx={{ mb: 3 }}>El Superadmin {SUPER_ADMIN_EMAIL} tiene acceso total.</Alert>
-            
-            {/* NUEVO: Formulario adaptado para recibir Nombre y Correo */}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 4 }}>
               <TextField label="Nombre Completo" size="small" sx={{ flexGrow: 1 }} value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} />
               <TextField label="Correo Electrónico" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
@@ -516,6 +513,19 @@ export default function Admin() {
             </Stack>
             
             <List sx={{ bgcolor: '#f9f9f9', borderRadius: 1 }}>
+              
+              {/* NUEVO: Superadmin integrado en la lista con etiqueta Inamovible */}
+              <ListItem divider secondaryAction={<Chip label="Inamovible" size="small" color="primary" sx={{ fontWeight: 'bold' }} />}>
+                <ListItemText 
+                  primary={
+                    <Typography variant="body1">
+                      <strong>Super Administrador</strong> ({SUPER_ADMIN_EMAIL})
+                    </Typography>
+                  } 
+                  secondary="Acceso total al sistema (Predeterminado)" 
+                />
+              </ListItem>
+
               {adminList.map((admin) => (
                 <ListItem key={admin.id} divider secondaryAction={<IconButton edge="end" color="error" onClick={() => handleRemoveAdmin(admin.id)}><DeleteIcon /></IconButton>}>
                   <ListItemText 
