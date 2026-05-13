@@ -112,7 +112,7 @@ export default function Admin() {
   };
   const handleRemoveAdmin = async (id) => { try { await deleteDoc(doc(db, "admins", id)); } catch (e) {} };
 
-  // NUEVO: Función exclusiva del Superadministrador para borrar
+  // Función exclusiva del Superadministrador para borrar
   const handleDeleteDenuncia = async (id) => {
     if (window.confirm("¿Está seguro de borrar esta denuncia permanentemente? Esta acción solo la puede realizar el Superadministrador.")) {
       try {
@@ -169,7 +169,7 @@ export default function Admin() {
     } catch (error) { setUploading(false); }
   };
 
-  // FUNCIONES PARA ASESORÍAS ACTUALIZADAS
+  // FUNCIONES PARA ASESORÍAS
   const handleOpenReview = (denuncia) => {
     setSelectedDenuncia(denuncia);
     if (denuncia.estado === 'completada') {
@@ -300,7 +300,7 @@ export default function Admin() {
           </Box>
         )}
 
-        {/* PESTAÑA: ASESORÍAS ACTUALIZADA */}
+        {/* PESTAÑA: ASESORÍAS */}
         {tabValue === 2 && (
           <Box sx={{ p: 4, bgcolor: '#fafafa', minHeight: '60vh' }}>
             <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 4 }} spacing={2}>
@@ -383,7 +383,7 @@ export default function Admin() {
         )}
       </Paper>
       
-      {/* MODAL PARA REVISAR ASESORÍA ACTUALIZADO */}
+      {/* MODAL PARA REVISAR ASESORÍA - ALINEACIÓN CORREGIDA */}
       <Dialog open={Boolean(selectedDenuncia)} onClose={() => setSelectedDenuncia(null)} maxWidth="md" fullWidth>
         {selectedDenuncia && (
           <>
@@ -391,38 +391,61 @@ export default function Admin() {
               <EmailIcon /> {subTabDenuncias === 'pendiente' ? 'Revisión de Asesoría Legal' : 'Detalle de Asesoría Enviada'}
             </DialogTitle>
             <DialogContent dividers sx={{ bgcolor: '#f4f6f8' }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={5}>
-                  <Paper sx={{ p: 2 }}>
+              
+              {/* Uso de alignItems="stretch" para que ambas cajas tengan la misma altura siempre */}
+              <Grid container spacing={3} alignItems="stretch">
+                
+                {/* LADO IZQUIERDO: Datos del ciudadano */}
+                <Grid item xs={12} md={5} sx={{ display: 'flex' }}>
+                  <Paper sx={{ p: 2, width: '100%', display: 'flex', flexDirection: 'column' }}>
                     <Typography variant="subtitle2" color="primary" fontWeight="bold">Datos del Ciudadano</Typography>
                     <Typography variant="body2"><strong>Nombre:</strong> {selectedDenuncia.nombres}</Typography>
                     <Typography variant="body2"><strong>Correo:</strong> {selectedDenuncia.email}</Typography>
                     <Typography variant="body2"><strong>Empresa:</strong> {selectedDenuncia.empresa}</Typography>
                     <Divider sx={{ my: 1 }} />
-                    <Typography variant="subtitle2" color="primary" fontWeight="bold">Hechos reportados</Typography>
-                    <Typography variant="body2" sx={{ maxHeight: 250, overflowY: 'auto', pr: 1 }}>{selectedDenuncia.descripcion}</Typography>
+                    <Typography variant="subtitle2" color="primary" fontWeight="bold" gutterBottom>Hechos reportados</Typography>
+                    {/* Caja scrolleable para evitar que un texto muy largo rompa el diseño */}
+                    <Box sx={{ flexGrow: 1, overflowY: 'auto', maxHeight: { xs: 150, md: 350 }, pr: 1 }}>
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                        {selectedDenuncia.descripcion}
+                      </Typography>
+                    </Box>
                   </Paper>
                 </Grid>
-                <Grid item xs={12} md={7}>
+
+                {/* LADO DERECHO: Respuesta de IA / Respuesta Enviada */}
+                <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="subtitle2" color="secondary.main" fontWeight="bold" gutterBottom>
                     {subTabDenuncias === 'pendiente' ? 'Borrador propuesto por IA (Editable)' : 'Respuesta Final Enviada'}
                   </Typography>
-                  <TextField 
-                    fullWidth multiline rows={12} 
-                    value={draftReview} 
-                    onChange={(e) => setDraftReview(e.target.value)}
-                    variant="outlined"
-                    sx={{ bgcolor: 'white' }}
-                    disabled={subTabDenuncias === 'completada'}
-                  />
-                  {subTabDenuncias === 'pendiente' && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                      Modifique el texto si es necesario. Al aprobar, este mensaje exacto se enviará por correo.
-                    </Typography>
+                  
+                  {subTabDenuncias === 'pendiente' ? (
+                    <>
+                      {/* Campo editable normal para casos pendientes */}
+                      <TextField 
+                        fullWidth multiline minRows={12} maxRows={16}
+                        value={draftReview} 
+                        onChange={(e) => setDraftReview(e.target.value)}
+                        variant="outlined"
+                        sx={{ bgcolor: 'white', flexGrow: 1 }}
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                        Modifique el texto si es necesario. Al aprobar, este mensaje exacto se enviará por correo.
+                      </Typography>
+                    </>
+                  ) : (
+                    /* Papel estático en lugar de TextField deshabilitado para mejorar legibilidad de casos completados */
+                    <Paper variant="outlined" sx={{ p: 2, bgcolor: 'white', flexGrow: 1, overflowY: 'auto', maxHeight: { xs: 200, md: 400 } }}>
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: 'text.primary', wordBreak: 'break-word' }}>
+                        {draftReview}
+                      </Typography>
+                    </Paper>
                   )}
                 </Grid>
+
               </Grid>
             </DialogContent>
+            
             <DialogActions sx={{ p: 2 }}>
               <Button onClick={() => setSelectedDenuncia(null)} color="inherit" disabled={isSendingEmail}>Cerrar</Button>
               {subTabDenuncias === 'pendiente' && (
