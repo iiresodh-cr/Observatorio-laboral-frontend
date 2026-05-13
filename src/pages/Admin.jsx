@@ -16,7 +16,8 @@ import {
   Lock as LockIcon, PersonAdd as PersonAddIcon, Delete as DeleteIcon,
   Google as GoogleIcon, AssignmentLate as AssignmentLateIcon,
   AutoAwesome as AutoAwesomeIcon, Email as EmailIcon, CheckCircle as CheckCircleIcon,
-  History as HistoryIcon, PendingActions as PendingActionsIcon
+  History as HistoryIcon, PendingActions as PendingActionsIcon,
+  Assessment as AssessmentIcon
 } from '@mui/icons-material';
 
 // Firebase Services
@@ -33,12 +34,10 @@ const categorias = [
   { value: 'articulos', label: 'Libros y Artículos' }
 ];
 
-const dataDenuncias = [
-  { nombre: 'Impago de salario', casos: 112 }, { nombre: 'Despido injustificado', casos: 62 },
-  { nombre: 'Acoso laboral', casos: 37 }, { nombre: 'Incumplimiento jornada', casos: 25 },
-  { nombre: 'Discriminación', casos: 12 },
-];
-const COLORS = ['#003399', '#FFCC00', '#1565c0', '#ffd54f', '#90caf9'];
+// Colores institucionales para los gráficos
+const COLORS = ['#003399', '#FFCC00', '#1565c0', '#ffd54f', '#001f5c', '#ffb300', '#90caf9'];
+
+const BACKEND_URL = 'https://observatorio-backend-86857815411.us-central1.run.app';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
@@ -53,7 +52,7 @@ export default function Admin() {
   const [adminList, setAdminList] = useState([]);
   const [newAdminEmail, setNewAdminEmail] = useState('');
   
-  // Estados Carga Documentos
+  // Carga Documentos
   const [uploading, setUploading] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -61,12 +60,16 @@ export default function Admin() {
   const [archivo, setArchivo] = useState(null);
   const [actionModal, setActionModal] = useState({ open: false, title: '', message: '' });
 
-  // Estados Asesorías
+  // Asesorías
   const [listaDenuncias, setListaDenuncias] = useState([]);
   const [selectedDenuncia, setSelectedDenuncia] = useState(null);
   const [draftReview, setDraftReview] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [subTabDenuncias, setSubTabDenuncias] = useState('pendiente');
+
+  // Informes e Inteligencia Artificial
+  const [aiReport, setAiReport] = useState('');
+  const [generatingReport, setGeneratingReport] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -91,7 +94,6 @@ export default function Admin() {
       const unsubAdmins = onSnapshot(collection(db, "admins"), (snapshot) => {
         setAdminList(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       });
-      // Escuchar denuncias en tiempo real
       const unsubDenuncias = onSnapshot(query(collection(db, "denuncias"), orderBy("fechaRegistro", "desc")), (snapshot) => {
         setListaDenuncias(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       });
@@ -112,7 +114,6 @@ export default function Admin() {
   };
   const handleRemoveAdmin = async (id) => { try { await deleteDoc(doc(db, "admins", id)); } catch (e) {} };
 
-  // Función exclusiva del Superadministrador para borrar
   const handleDeleteDenuncia = async (id) => {
     if (window.confirm("¿Está seguro de borrar esta denuncia permanentemente? Esta acción solo la puede realizar el Superadministrador.")) {
       try {
@@ -133,17 +134,14 @@ export default function Admin() {
       setLoadingAI(true);
       const formData = new FormData(); formData.append('file', selectedFile);
       try {
-        // URL CORRECTA
-        const response = await fetch('https://observatorio-backend-86857815411.us-central1.run.app/extract-metadata', { method: 'POST', body: formData });
+        const response = await fetch(`${BACKEND_URL}/extract-metadata`, { method: 'POST', body: formData });
         if (response.ok) {
           const data = await response.json();
           setDocData(prevData => ({ titulo: data.titulo || prevData.titulo, categoria: data.categoria || prevData.categoria, anio: data.anio || prevData.anio, descripcion: data.descripcion || prevData.descripcion }));
         } else {
-          console.error("Error del servidor IA:", await response.text());
           setActionModal({ open: true, title: 'IA falló', message: 'No se pudo analizar. Llena manualmente.' });
         }
       } catch (error) { 
-        console.error("Error de red", error);
         setActionModal({ open: true, title: 'IA falló', message: 'Error de red. Llena manualmente.' }); 
       } finally { setLoadingAI(false); }
     }
@@ -169,7 +167,6 @@ export default function Admin() {
     } catch (error) { setUploading(false); }
   };
 
-  // FUNCIONES PARA ASESORÍAS
   const handleOpenReview = (denuncia) => {
     setSelectedDenuncia(denuncia);
     if (denuncia.estado === 'completada') {
@@ -182,10 +179,8 @@ export default function Admin() {
   const handleSendAdvice = async () => {
     if (!selectedDenuncia) return;
     setIsSendingEmail(true);
-
     try {
-      // URL CORRECTA
-      const response = await fetch('https://observatorio-backend-86857815411.us-central1.run.app/send-email', {
+      const response = await fetch(`${BACKEND_URL}/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -196,11 +191,9 @@ export default function Admin() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error al conectar con servidor de correos: ${errorText}`);
+        throw new Error(`Error al conectar con servidor de correos`);
       }
 
-      // Actualizar documento en Firestore
       await updateDoc(doc(db, "denuncias", selectedDenuncia.id), {
         estado: 'completada',
         respuestaFinal: draftReview,
@@ -211,10 +204,55 @@ export default function Admin() {
       setActionModal({ open: true, title: 'Asesoría Enviada', message: 'El ciudadano ha recibido el correo exitosamente.' });
       setSelectedDenuncia(null);
     } catch (error) {
-      console.error(error);
       setActionModal({ open: true, title: 'Error', message: 'No se pudo enviar el correo.' });
     } finally {
       setIsSendingEmail(false);
+    }
+  };
+
+  // --- CÁLCULO DE ESTADÍSTICAS EN TIEMPO REAL ---
+  const totalDenuncias = listaDenuncias.length;
+  const pendientes = listaDenuncias.filter(d => d.estado === 'pendiente').length;
+  const completadas = listaDenuncias.filter(d => d.estado === 'completada').length;
+
+  const tipoCounts = {};
+  listaDenuncias.forEach(d => {
+    if (d.tipoDenuncia) {
+      tipoCounts[d.tipoDenuncia] = (tipoCounts[d.tipoDenuncia] || 0) + 1;
+    }
+  });
+
+  const chartData = Object.keys(tipoCounts).map((key) => ({
+    nombre: key,
+    casos: tipoCounts[key],
+  })).sort((a, b) => b.casos - a.casos);
+
+  // NUEVO: Función para generar informe con PIDA (Gemini 2.5 Pro)
+  const handleGeneratePidaReport = async () => {
+    setGeneratingReport(true);
+    setAiReport('');
+    try {
+      const response = await fetch(`${BACKEND_URL}/generate-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          total_denuncias: totalDenuncias,
+          pendientes: pendientes,
+          completadas: completadas,
+          desglose_tipos: tipoCounts
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAiReport(data.report);
+      } else {
+        setActionModal({ open: true, title: 'Error PIDA', message: 'No se pudo generar el informe analítico.' });
+      }
+    } catch (error) {
+      setActionModal({ open: true, title: 'Error de Conexión', message: 'PIDA no responde.' });
+    } finally {
+      setGeneratingReport(false);
     }
   };
 
@@ -252,23 +290,100 @@ export default function Admin() {
       <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f4f6f8' }}>
           <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} indicatorColor="secondary" textColor="primary" variant="scrollable" scrollButtons="auto">
-            <Tab icon={<InsertChartIcon />} label="Estadísticas" />
+            <Tab icon={<AssessmentIcon />} label="Informes y Gráficos" />
             <Tab icon={<CloudUploadIcon />} label="Carga Manual" />
             <Tab icon={<EmailIcon />} label="Asesorías" />
             <Tab icon={<GroupIcon />} label="Administradores" />
           </Tabs>
         </Box>
 
+        {/* PESTAÑA: INFORMES Y ESTADÍSTICAS (Totalmente Dinámica) */}
         {tabValue === 0 && (
           <Box sx={{ p: 4, bgcolor: '#fafafa' }}>
+            
             <Grid container spacing={3} sx={{ mb: 4 }}>
               <Grid item xs={12} sm={4}>
-                <Card sx={{ borderTop: '4px solid #003399' }}><CardContent><Typography variant="subtitle2" color="text.secondary" fontWeight="bold">TOTAL DENUNCIAS</Typography><Typography variant="h3" fontWeight="bold" color="primary">{listaDenuncias.length || 248}</Typography></CardContent></Card>
+                <Card sx={{ borderTop: '4px solid #003399', height: '100%' }}>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">CASOS TOTALES</Typography>
+                    <Typography variant="h3" fontWeight="bold" color="primary">{totalDenuncias}</Typography>
+                  </CardContent>
+                </Card>
               </Grid>
-              <Grid item xs={12} sm={8}>
-                <Card sx={{ borderTop: '4px solid #FFCC00' }}><CardContent><Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><AssignmentLateIcon color="warning" /><Typography variant="subtitle2" color="text.secondary" fontWeight="bold">TENDENCIA</Typography></Box><Typography variant="h5" fontWeight="bold" sx={{ mt: 1 }}>Impago de salario o extremos laborales</Typography></CardContent></Card>
+              <Grid item xs={12} sm={4}>
+                <Card sx={{ borderTop: '4px solid #f44336', height: '100%' }}>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">PENDIENTES DE ATENCIÓN</Typography>
+                    <Typography variant="h3" fontWeight="bold" color="error">{pendientes}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Card sx={{ borderTop: '4px solid #4caf50', height: '100%' }}>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">ASESORÍAS FINALIZADAS</Typography>
+                    <Typography variant="h3" fontWeight="bold" color="success.main">{completadas}</Typography>
+                  </CardContent>
+                </Card>
               </Grid>
             </Grid>
+
+            <Typography variant="h6" color="primary" fontWeight="bold" sx={{ mb: 2 }}>Gráfico: Casos por tipo de vulneración</Typography>
+            <Paper elevation={1} sx={{ p: 3, mb: 4, height: 350, bgcolor: 'white' }}>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="nombre" angle={-15} textAnchor="end" height={80} interval={0} tick={{ fontSize: 12 }} />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip cursor={{ fill: '#f5f5f5' }} />
+                    <Bar dataKey="casos" radius={[4, 4, 0, 0]}>
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                  <Typography color="text.secondary">No hay datos suficientes para graficar.</Typography>
+                </Box>
+              )}
+            </Paper>
+
+            {/* GENERACIÓN DE INFORME CON IA (PIDA) */}
+            <Box sx={{ mt: 6, p: 4, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: 'white' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box>
+                  <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AutoAwesomeIcon color="secondary" /> Informe Ejecutivo (PIDA)
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Utiliza Gemini 2.5 Pro para analizar los datos mostrados arriba y sugerir estrategias.
+                  </Typography>
+                </Box>
+                <Button 
+                  variant="contained" 
+                  color="secondary" 
+                  onClick={handleGeneratePidaReport}
+                  disabled={generatingReport || totalDenuncias === 0}
+                  sx={{ color: '#000', fontWeight: 'bold' }}
+                >
+                  {generatingReport ? 'Analizando datos...' : 'Generar Informe Analítico'}
+                </Button>
+              </Box>
+              
+              {generatingReport && <LinearProgress color="secondary" sx={{ mb: 2 }} />}
+              
+              {aiReport && (
+                <Paper variant="outlined" sx={{ p: 3, bgcolor: '#fafafa', maxHeight: 500, overflowY: 'auto' }}>
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>
+                    {aiReport}
+                  </Typography>
+                </Paper>
+              )}
+            </Box>
+
           </Box>
         )}
 
@@ -383,7 +498,7 @@ export default function Admin() {
         )}
       </Paper>
       
-      {/* MODAL PARA REVISAR ASESORÍA - ALINEACIÓN CORREGIDA */}
+      {/* MODAL PARA REVISAR ASESORÍA */}
       <Dialog open={Boolean(selectedDenuncia)} onClose={() => setSelectedDenuncia(null)} maxWidth="md" fullWidth>
         {selectedDenuncia && (
           <>
@@ -391,11 +506,7 @@ export default function Admin() {
               <EmailIcon /> {subTabDenuncias === 'pendiente' ? 'Revisión de Asesoría Legal' : 'Detalle de Asesoría Enviada'}
             </DialogTitle>
             <DialogContent dividers sx={{ bgcolor: '#f4f6f8' }}>
-              
-              {/* Uso de alignItems="stretch" para que ambas cajas tengan la misma altura siempre */}
               <Grid container spacing={3} alignItems="stretch">
-                
-                {/* LADO IZQUIERDO: Datos del ciudadano */}
                 <Grid item xs={12} md={5} sx={{ display: 'flex' }}>
                   <Paper sx={{ p: 2, width: '100%', display: 'flex', flexDirection: 'column' }}>
                     <Typography variant="subtitle2" color="primary" fontWeight="bold">Datos del Ciudadano</Typography>
@@ -404,7 +515,6 @@ export default function Admin() {
                     <Typography variant="body2"><strong>Empresa:</strong> {selectedDenuncia.empresa}</Typography>
                     <Divider sx={{ my: 1 }} />
                     <Typography variant="subtitle2" color="primary" fontWeight="bold" gutterBottom>Hechos reportados</Typography>
-                    {/* Caja scrolleable para evitar que un texto muy largo rompa el diseño */}
                     <Box sx={{ flexGrow: 1, overflowY: 'auto', maxHeight: { xs: 150, md: 350 }, pr: 1 }}>
                       <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                         {selectedDenuncia.descripcion}
@@ -412,16 +522,12 @@ export default function Admin() {
                     </Box>
                   </Paper>
                 </Grid>
-
-                {/* LADO DERECHO: Respuesta de IA / Respuesta Enviada */}
                 <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="subtitle2" color="secondary.main" fontWeight="bold" gutterBottom>
                     {subTabDenuncias === 'pendiente' ? 'Borrador propuesto por IA (Editable)' : 'Respuesta Final Enviada'}
                   </Typography>
-                  
                   {subTabDenuncias === 'pendiente' ? (
                     <>
-                      {/* Campo editable normal para casos pendientes */}
                       <TextField 
                         fullWidth multiline minRows={12} maxRows={16}
                         value={draftReview} 
@@ -434,7 +540,6 @@ export default function Admin() {
                       </Typography>
                     </>
                   ) : (
-                    /* Papel estático en lugar de TextField deshabilitado para mejorar legibilidad de casos completados */
                     <Paper variant="outlined" sx={{ p: 2, bgcolor: 'white', flexGrow: 1, overflowY: 'auto', maxHeight: { xs: 200, md: 400 } }}>
                       <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: 'text.primary', wordBreak: 'break-word' }}>
                         {draftReview}
@@ -442,10 +547,8 @@ export default function Admin() {
                     </Paper>
                   )}
                 </Grid>
-
               </Grid>
             </DialogContent>
-            
             <DialogActions sx={{ p: 2 }}>
               <Button onClick={() => setSelectedDenuncia(null)} color="inherit" disabled={isSendingEmail}>Cerrar</Button>
               {subTabDenuncias === 'pendiente' && (
