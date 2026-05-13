@@ -3,7 +3,8 @@ import {
   Container, Paper, Box, Typography, TextField, Button, 
   Tabs, Tab, MenuItem, Grid, Card, CardContent, Stack,
   Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress,
-  Alert, List, ListItem, ListItemText, IconButton, Divider, CircularProgress, Chip
+  Alert, List, ListItem, ListItemText, IconButton, Divider, CircularProgress, Chip,
+  ToggleButton, ToggleButtonGroup
 } from '@mui/material';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -14,7 +15,8 @@ import {
   InsertChart as InsertChartIcon, Group as GroupIcon, Logout as LogoutIcon,
   Lock as LockIcon, PersonAdd as PersonAddIcon, Delete as DeleteIcon,
   Google as GoogleIcon, AssignmentLate as AssignmentLateIcon,
-  AutoAwesome as AutoAwesomeIcon, Email as EmailIcon, CheckCircle as CheckCircleIcon
+  AutoAwesome as AutoAwesomeIcon, Email as EmailIcon, CheckCircle as CheckCircleIcon,
+  History as HistoryIcon, PendingActions as PendingActionsIcon
 } from '@mui/icons-material';
 
 // Firebase Services
@@ -64,6 +66,7 @@ export default function Admin() {
   const [selectedDenuncia, setSelectedDenuncia] = useState(null);
   const [draftReview, setDraftReview] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [subTabDenuncias, setSubTabDenuncias] = useState('pendiente');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -108,6 +111,18 @@ export default function Admin() {
     } catch (e) {}
   };
   const handleRemoveAdmin = async (id) => { try { await deleteDoc(doc(db, "admins", id)); } catch (e) {} };
+
+  // NUEVO: Función exclusiva del Superadministrador para borrar
+  const handleDeleteDenuncia = async (id) => {
+    if (window.confirm("¿Está seguro de borrar esta denuncia permanentemente? Esta acción solo la puede realizar el Superadministrador.")) {
+      try {
+        await deleteDoc(doc(db, "denuncias", id));
+        setActionModal({ open: true, title: 'Eliminado', message: 'El registro ha sido borrado de la base de datos.' });
+      } catch (e) {
+        setActionModal({ open: true, title: 'Acceso Denegado', message: 'No tiene permisos suficientes para borrar denuncias.' });
+      }
+    }
+  };
 
   const handleFormChange = (e) => setDocData({ ...docData, [e.target.name]: e.target.value });
   
@@ -154,10 +169,14 @@ export default function Admin() {
     } catch (error) { setUploading(false); }
   };
 
-  // FUNCIONES PARA ASESORÍAS
+  // FUNCIONES PARA ASESORÍAS ACTUALIZADAS
   const handleOpenReview = (denuncia) => {
     setSelectedDenuncia(denuncia);
-    setDraftReview(denuncia.borradorAsesoria || 'La IA no pudo generar un borrador para este caso.');
+    if (denuncia.estado === 'completada') {
+      setDraftReview(denuncia.respuestaFinal || 'Sin respuesta guardada.');
+    } else {
+      setDraftReview(denuncia.borradorAsesoria || 'La IA no pudo generar un borrador para este caso.');
+    }
   };
 
   const handleSendAdvice = async () => {
@@ -281,36 +300,66 @@ export default function Admin() {
           </Box>
         )}
 
-        {/* PESTAÑA: ASESORÍAS */}
+        {/* PESTAÑA: ASESORÍAS ACTUALIZADA */}
         {tabValue === 2 && (
           <Box sx={{ p: 4, bgcolor: '#fafafa', minHeight: '60vh' }}>
-            <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Solicitudes Pendientes de Asesoría</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-              Revisa los borradores generados por la IA Gemini, modifícalos según tu criterio legal y envíalos al ciudadano.
-            </Typography>
+            <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 4 }} spacing={2}>
+              <Box>
+                <Typography variant="h6" color="primary" fontWeight="bold">Gestión de Asesorías</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Revisa los borradores, envía respuestas o consulta el historial.
+                </Typography>
+              </Box>
+              <ToggleButtonGroup 
+                value={subTabDenuncias} 
+                exclusive 
+                onChange={(e, v) => v && setSubTabDenuncias(v)} 
+                color="primary" 
+                size="small"
+                sx={{ bgcolor: 'white' }}
+              >
+                <ToggleButton value="pendiente" sx={{ px: 3 }}>
+                  <PendingActionsIcon sx={{ mr: 1, fontSize: 20 }} /> Pendientes
+                </ToggleButton>
+                <ToggleButton value="completada" sx={{ px: 3 }}>
+                  <HistoryIcon sx={{ mr: 1, fontSize: 20 }} /> Historial
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Stack>
 
             <Grid container spacing={3}>
-              {listaDenuncias.filter(d => d.estado === 'pendiente').map(denuncia => (
+              {listaDenuncias.filter(d => d.estado === subTabDenuncias).map(denuncia => (
                 <Grid item xs={12} md={6} key={denuncia.id}>
-                  <Card elevation={2} sx={{ borderLeft: '4px solid #f44336' }}>
+                  <Card elevation={2} sx={{ borderLeft: `4px solid ${subTabDenuncias === 'pendiente' ? '#f44336' : '#4caf50'}` }}>
                     <CardContent>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="subtitle1" fontWeight="bold">{denuncia.nombres} {denuncia.apellidos}</Typography>
-                        <Chip label="Pendiente" size="small" color="error" />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Box>
+                          <Typography variant="subtitle1" fontWeight="bold">{denuncia.nombres} {denuncia.apellidos}</Typography>
+                          <Typography variant="body2" color="text.secondary" gutterBottom>{denuncia.email}</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                          {user?.email === SUPER_ADMIN_EMAIL && (
+                            <IconButton size="small" color="error" onClick={() => handleDeleteDenuncia(denuncia.id)} title="Eliminar definitivamente">
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                          <Chip label={subTabDenuncias === 'pendiente' ? 'Pendiente' : 'Completada'} size="small" color={subTabDenuncias === 'pendiente' ? 'error' : 'success'} />
+                        </Box>
                       </Box>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>{denuncia.email}</Typography>
                       <Divider sx={{ my: 1 }} />
                       <Typography variant="body2"><strong>Caso:</strong> {denuncia.tipoDenuncia}</Typography>
                       <Typography variant="body2" sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', mt: 1 }}>
                         {denuncia.descripcion}
                       </Typography>
-                      <Button variant="outlined" sx={{ mt: 2 }} onClick={() => handleOpenReview(denuncia)}>Revisar y Enviar Respuesta</Button>
+                      <Button variant="outlined" sx={{ mt: 2 }} onClick={() => handleOpenReview(denuncia)}>
+                        {subTabDenuncias === 'pendiente' ? 'Revisar y Enviar Respuesta' : 'Ver Respuesta Enviada'}
+                      </Button>
                     </CardContent>
                   </Card>
                 </Grid>
               ))}
-              {listaDenuncias.filter(d => d.estado === 'pendiente').length === 0 && (
-                <Typography sx={{ mt: 4, ml: 3, color: 'text.secondary' }}>No hay asesorías pendientes por revisar.</Typography>
+              {listaDenuncias.filter(d => d.estado === subTabDenuncias).length === 0 && (
+                <Typography sx={{ mt: 4, ml: 3, color: 'text.secondary' }}>No hay asesorías en esta sección.</Typography>
               )}
             </Grid>
           </Box>
@@ -334,12 +383,12 @@ export default function Admin() {
         )}
       </Paper>
       
-      {/* MODAL PARA REVISAR ASESORÍA */}
+      {/* MODAL PARA REVISAR ASESORÍA ACTUALIZADO */}
       <Dialog open={Boolean(selectedDenuncia)} onClose={() => setSelectedDenuncia(null)} maxWidth="md" fullWidth>
         {selectedDenuncia && (
           <>
             <DialogTitle sx={{ bgcolor: '#003399', color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <EmailIcon /> Revisión de Asesoría Legal
+              <EmailIcon /> {subTabDenuncias === 'pendiente' ? 'Revisión de Asesoría Legal' : 'Detalle de Asesoría Enviada'}
             </DialogTitle>
             <DialogContent dividers sx={{ bgcolor: '#f4f6f8' }}>
               <Grid container spacing={3}>
@@ -356,7 +405,7 @@ export default function Admin() {
                 </Grid>
                 <Grid item xs={12} md={7}>
                   <Typography variant="subtitle2" color="secondary.main" fontWeight="bold" gutterBottom>
-                    Borrador propuesto por IA (Editable)
+                    {subTabDenuncias === 'pendiente' ? 'Borrador propuesto por IA (Editable)' : 'Respuesta Final Enviada'}
                   </Typography>
                   <TextField 
                     fullWidth multiline rows={12} 
@@ -364,18 +413,23 @@ export default function Admin() {
                     onChange={(e) => setDraftReview(e.target.value)}
                     variant="outlined"
                     sx={{ bgcolor: 'white' }}
+                    disabled={subTabDenuncias === 'completada'}
                   />
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                    Modifique el texto si es necesario. Al aprobar, este mensaje exacto se enviará por correo.
-                  </Typography>
+                  {subTabDenuncias === 'pendiente' && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                      Modifique el texto si es necesario. Al aprobar, este mensaje exacto se enviará por correo.
+                    </Typography>
+                  )}
                 </Grid>
               </Grid>
             </DialogContent>
             <DialogActions sx={{ p: 2 }}>
-              <Button onClick={() => setSelectedDenuncia(null)} color="inherit" disabled={isSendingEmail}>Cancelar</Button>
-              <Button onClick={handleSendAdvice} variant="contained" color="secondary" sx={{ color: '#000', fontWeight: 'bold' }} disabled={isSendingEmail} startIcon={isSendingEmail ? <CircularProgress size={20} color="inherit" /> : <CheckCircleIcon />}>
-                {isSendingEmail ? 'Enviando...' : 'Aprobar y Enviar Correo'}
-              </Button>
+              <Button onClick={() => setSelectedDenuncia(null)} color="inherit" disabled={isSendingEmail}>Cerrar</Button>
+              {subTabDenuncias === 'pendiente' && (
+                <Button onClick={handleSendAdvice} variant="contained" color="secondary" sx={{ color: '#000', fontWeight: 'bold' }} disabled={isSendingEmail} startIcon={isSendingEmail ? <CircularProgress size={20} color="inherit" /> : <CheckCircleIcon />}>
+                  {isSendingEmail ? 'Enviando...' : 'Aprobar y Enviar Correo'}
+                </Button>
+              )}
             </DialogActions>
           </>
         )}
