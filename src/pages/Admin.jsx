@@ -117,12 +117,19 @@ export default function Admin() {
       setLoadingAI(true);
       const formData = new FormData(); formData.append('file', selectedFile);
       try {
+        // REEMPLAZA ESTA URL POR LA DE TU CLOUD RUN ACTUAL
         const response = await fetch('https://observatorio-backend-extraccion-86857815411.us-central1.run.app/extract-metadata', { method: 'POST', body: formData });
         if (response.ok) {
           const data = await response.json();
           setDocData(prevData => ({ titulo: data.titulo || prevData.titulo, categoria: data.categoria || prevData.categoria, anio: data.anio || prevData.anio, descripcion: data.descripcion || prevData.descripcion }));
+        } else {
+          console.error("Error del servidor IA:", await response.text());
+          setActionModal({ open: true, title: 'IA falló', message: 'No se pudo analizar. Llena manualmente.' });
         }
-      } catch (error) { setActionModal({ open: true, title: 'IA falló', message: 'Llena manualmente.' }); } finally { setLoadingAI(false); }
+      } catch (error) { 
+        console.error("Error de red", error);
+        setActionModal({ open: true, title: 'IA falló', message: 'Error de red. Llena manualmente.' }); 
+      } finally { setLoadingAI(false); }
     }
   };
 
@@ -157,7 +164,7 @@ export default function Admin() {
     setIsSendingEmail(true);
 
     try {
-      // 1. Enviar correo usando el backend Python
+      // REEMPLAZA ESTA URL POR LA DE TU CLOUD RUN ACTUAL
       const response = await fetch('https://observatorio-backend-extraccion-86857815411.us-central1.run.app/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -168,9 +175,12 @@ export default function Admin() {
         })
       });
 
-      if (!response.ok) throw new Error('Error al conectar con servidor de correos');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error al conectar con servidor de correos: ${errorText}`);
+      }
 
-      // 2. Actualizar documento en Firestore
+      // Actualizar documento en Firestore
       await updateDoc(doc(db, "denuncias", selectedDenuncia.id), {
         estado: 'completada',
         respuestaFinal: draftReview,
@@ -270,7 +280,7 @@ export default function Admin() {
           </Box>
         )}
 
-        {/* NUEVA PESTAÑA: ASESORÍAS */}
+        {/* PESTAÑA: ASESORÍAS */}
         {tabValue === 2 && (
           <Box sx={{ p: 4, bgcolor: '#fafafa', minHeight: '60vh' }}>
             <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">Solicitudes Pendientes de Asesoría</Typography>
