@@ -1,81 +1,160 @@
-import { Container, Typography, Paper, Box, Grid, Button, Card, CardContent, CardActions } from '@mui/material';
+import { 
+  Container, Typography, Paper, Box, Grid, Button, 
+  Card, CardContent, CardActions, Divider 
+} from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import GavelIcon from '@mui/icons-material/Gavel';
 import ForumIcon from '@mui/icons-material/Forum';
+import BalanceIcon from '@mui/icons-material/Balance';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 export default function Home() {
   return (
-    <Container maxWidth="lg" sx={{ mt: 5, mb: 5 }}>
+    <Box sx={{ width: '100%', pb: 8 }}>
       
-      {/* --- SECCIÓN HERO (Bienvenida) --- */}
-      <Paper 
-        elevation={3} 
+      {/* --- SECCIÓN HERO (Bienvenida con Gradiente) --- */}
+      <Box 
         sx={{ 
-          p: { xs: 4, md: 8 }, 
-          textAlign: 'center', 
-          borderRadius: 2, 
-          bgcolor: 'primary.main', // Azul de la UE
-          color: 'white' 
+          background: 'linear-gradient(135deg, #003399 0%, #001f5c 100%)',
+          color: 'white',
+          pt: { xs: 8, md: 12 },
+          pb: { xs: 8, md: 12 },
+          px: 2,
+          textAlign: 'center',
+          borderBottom: '5px solid #FFCC00'
         }}
       >
-        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold" sx={{ fontSize: { xs: '2rem', md: '3rem' } }}>
-          Observatorio de Derechos Laborales
-        </Typography>
-        <Typography variant="h6" paragraph sx={{ maxWidth: 800, mx: 'auto', fontWeight: 'light', opacity: 0.9 }}>
-          Una plataforma integral para la protección, orientación y análisis de las condiciones laborales en Costa Rica.
-        </Typography>
-        <Box sx={{ mt: 3, display: 'inline-block', border: '1px solid rgba(255,255,255,0.3)', p: 1.5, borderRadius: 1 }}>
-          <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'secondary.main' }}>
-            Iniciativa desarrollada con el apoyo de la Unión Europea
+        <Container maxWidth="lg">
+          <Typography variant="h2" component="h1" gutterBottom fontWeight="900" sx={{ fontSize: { xs: '2.5rem', md: '4rem' }, letterSpacing: '-0.5px' }}>
+            Observatorio de Derechos Laborales
+          </Typography>
+          <Typography variant="h5" paragraph sx={{ maxWidth: 800, mx: 'auto', fontWeight: 300, opacity: 0.9, mb: 4, lineHeight: 1.6 }}>
+            Plataforma integral e inteligente para la protección, orientación y análisis normativo de las condiciones laborales en Costa Rica.
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Button component={RouterLink} to="/denuncia" variant="contained" color="secondary" size="large" sx={{ color: '#000', fontWeight: 'bold', px: 4, py: 1.5, fontSize: '1.1rem' }}>
+              Solicitar Asesoría Legal
+            </Button>
+            <Button component={RouterLink} to="/repositorio" variant="outlined" size="large" sx={{ color: 'white', borderColor: 'white', fontWeight: 'bold', px: 4, py: 1.5, fontSize: '1.1rem', '&:hover': { borderColor: '#FFCC00', color: '#FFCC00' } }}>
+              Consultar Normativa
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+
+      <Container maxWidth="lg" sx={{ mt: -5, position: 'relative', zIndex: 2 }}>
+        <Paper elevation={4} sx={{ p: 3, textAlign: 'center', borderRadius: 2, bgcolor: '#ffffff', display: 'inline-block', left: '50%', transform: 'translateX(-50%)', position: 'relative' }}>
+          <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            Iniciativa oficial desarrollada con el apoyo de la Unión Europea
+          </Typography>
+        </Paper>
+      </Container>
+
+      <Container maxWidth="lg" sx={{ mt: 8 }}>
+        
+        {/* --- SECCIÓN EXPLICATIVA: ¿Qué es el observatorio? --- */}
+        <Box sx={{ mb: 10, textAlign: 'center' }}>
+          <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>
+            ¿Por qué existe este Observatorio?
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 700, mx: 'auto', mb: 6 }}>
+            Nuestra misión es democratizar el acceso a la justicia laboral. Brindamos herramientas gratuitas tanto para el análisis académico y legal, como para el acompañamiento directo a ciudadanos cuyos derechos han sido vulnerados.
+          </Typography>
+
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ p: 3 }}>
+                <BalanceIcon sx={{ fontSize: 50, color: 'primary.main', mb: 2 }} />
+                <Typography variant="h6" fontWeight="bold" gutterBottom>Justicia Transparente</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Recopilamos y organizamos leyes, reglamentos y jurisprudencia para que trabajadores y empleadores conozcan las reglas claras del entorno laboral.
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ p: 3 }}>
+                <SupportAgentIcon sx={{ fontSize: 50, color: 'primary.main', mb: 2 }} />
+                <Typography variant="h6" fontWeight="bold" gutterBottom>Orientación Gratuita</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Ofrecemos un canal seguro y confidencial para que cualquier ciudadano registre incidentes de acoso, impagos o despidos y reciba una guía estructurada.
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ p: 3 }}>
+                <AutoAwesomeIcon sx={{ fontSize: 50, color: 'secondary.main', mb: 2 }} />
+                <Typography variant="h6" fontWeight="bold" gutterBottom>Impulsado por IA</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Utilizamos inteligencia artificial de vanguardia para analizar casos complejos en segundos, permitiendo a nuestros abogados brindar respuestas precisas y ágiles.
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+
+        <Divider sx={{ mb: 8 }} />
+
+        {/* --- TARJETAS DE NAVEGACIÓN PRINCIPALES --- */}
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>
+            Nuestros Servicios
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Seleccione la herramienta que mejor se adapte a su necesidad actual.
           </Typography>
         </Box>
-      </Paper>
 
-      {/* --- TARJETAS DE NAVEGACIÓN (Llamados a la acción) --- */}
-      <Grid container spacing={4} sx={{ mt: 2 }}>
-        
-        {/* Tarjeta Repositorio */}
-        <Grid item xs={12} md={6}>
-          <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: 6 } }}>
-            <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 4 }}>
-              <GavelIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h5" fontWeight="bold" gutterBottom>
-                Repositorio Documental
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Explora nuestra biblioteca actualizada con la legislación nacional, los tratados internacionales de la OIT y la jurisprudencia relevante.
-              </Typography>
-            </CardContent>
-            <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
-              <Button component={RouterLink} to="/repositorio" variant="outlined" color="primary" size="large" sx={{ fontWeight: 'bold', px: 4 }}>
-                Ir al Buscador Legal
-              </Button>
-            </CardActions>
-          </Card>
+        <Grid container spacing={5}>
+          {/* Tarjeta Repositorio */}
+          <Grid item xs={12} md={6}>
+            <Card elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #003399' }}>
+              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: { xs: 4, md: 6 } }}>
+                <GavelIcon sx={{ fontSize: 70, color: 'primary.main', mb: 3 }} />
+                <Typography variant="h4" fontWeight="bold" gutterBottom color="primary.main">
+                  Repositorio Documental
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
+                  Explora nuestra biblioteca pública y constantemente actualizada. Contiene la legislación nacional vigente, los tratados internacionales de la OIT y la jurisprudencia más relevante de los tribunales de Costa Rica.
+                </Typography>
+              </CardContent>
+              <CardActions sx={{ justifyContent: 'center', pb: 6 }}>
+                <Button component={RouterLink} to="/repositorio" variant="outlined" color="primary" size="large" sx={{ fontWeight: 'bold', px: 5, py: 1.5 }}>
+                  Entrar al Buscador Legal
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+
+          {/* Tarjeta Denuncia / Orientación */}
+          <Grid item xs={12} md={6}>
+            <Card elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #FFCC00' }}>
+              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: { xs: 4, md: 6 } }}>
+                <ForumIcon sx={{ fontSize: 70, color: 'secondary.main', mb: 3 }} />
+                <Typography variant="h4" fontWeight="bold" gutterBottom color="primary.main">
+                  Orientación y Denuncia
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
+                  ¿Han vulnerado sus derechos laborales? Registre su caso de forma segura. Nuestro sistema de Inteligencia Artificial y nuestro equipo de abogados analizarán su situación para enviarle una recomendación legal a su correo.
+                </Typography>
+              </CardContent>
+              <CardActions sx={{ justifyContent: 'center', pb: 6 }}>
+                <Button component={RouterLink} to="/denuncia" variant="contained" color="secondary" size="large" sx={{ color: '#000', fontWeight: 'bold', px: 5, py: 1.5 }}>
+                  Iniciar Solicitud de Ayuda
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
         </Grid>
 
-        {/* Tarjeta Denuncia / Orientación */}
-        <Grid item xs={12} md={6}>
-          <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: 6 } }}>
-            <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 4 }}>
-              <ForumIcon sx={{ fontSize: 60, color: 'secondary.main', mb: 2 }} />
-              <Typography variant="h5" fontWeight="bold" gutterBottom>
-                Orientación y Denuncia
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Consulta tu situación con nuestro asistente de Inteligencia Artificial y registra formalmente una vulneración a tus derechos laborales.
-              </Typography>
-            </CardContent>
-            <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
-              <Button component={RouterLink} to="/denuncia" variant="contained" color="secondary" size="large" sx={{ color: '#000', fontWeight: 'bold', px: 4 }}>
-                Recibir Orientación
-              </Button>
-            </CardActions>
-          </Card>
-        </Grid>
+        {/* --- RESPALDO INSTITUCIONAL --- */}
+        <Box sx={{ mt: 10, textAlign: 'center', p: 4, bgcolor: '#f8f9fa', borderRadius: 2 }}>
+          <Typography variant="body1" color="text.secondary" fontWeight="bold">
+            Una iniciativa impulsada por el Instituto Internacional de Responsabilidad Social y Derechos Humanos (IIRESODH)
+          </Typography>
+        </Box>
 
-      </Grid>
-
-    </Container>
+      </Container>
+    </Box>
   );
 }
