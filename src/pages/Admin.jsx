@@ -51,6 +51,7 @@ export default function Admin() {
 
   const [tabValue, setTabValue] = useState(0);
   const [adminList, setAdminList] = useState([]);
+  const [newAdminName, setNewAdminName] = useState(''); // NUEVO: Estado para el nombre del admin
   const [newAdminEmail, setNewAdminEmail] = useState('');
   
   // Carga Documentos
@@ -107,12 +108,23 @@ export default function Admin() {
   const handleLogout = () => signOut(auth);
 
   const handleAddAdmin = async () => {
-    if (!newAdminEmail) return;
+    if (!newAdminEmail || !newAdminName) {
+      setActionModal({ open: true, title: 'Campos incompletos', message: 'Debe ingresar tanto el nombre como el correo.' });
+      return;
+    }
     try {
-      await setDoc(doc(db, "admins", newAdminEmail.toLowerCase().trim()), { email: newAdminEmail.toLowerCase().trim(), addedBy: user.email, date: serverTimestamp() });
-      setNewAdminEmail(''); setActionModal({ open: true, title: 'Acceso Concedido', message: `Nuevo admin.` });
+      await setDoc(doc(db, "admins", newAdminEmail.toLowerCase().trim()), { 
+        nombre: newAdminName.trim(), // NUEVO: Guardando el nombre
+        email: newAdminEmail.toLowerCase().trim(), 
+        addedBy: user.email, 
+        date: serverTimestamp() 
+      });
+      setNewAdminName(''); 
+      setNewAdminEmail(''); 
+      setActionModal({ open: true, title: 'Acceso Concedido', message: `Nuevo administrador registrado exitosamente.` });
     } catch (e) {}
   };
+  
   const handleRemoveAdmin = async (id) => { try { await deleteDoc(doc(db, "admins", id)); } catch (e) {} };
 
   const handleDeleteDenuncia = async (id) => {
@@ -491,17 +503,30 @@ export default function Admin() {
           </Box>
         )}
 
+        {/* PESTAÑA: ADMINISTRADORES */}
         {tabValue === 3 && (
           <Box sx={{ p: 4 }}>
             <Alert severity="info" sx={{ mb: 3 }}>El Superadmin {SUPER_ADMIN_EMAIL} tiene acceso total.</Alert>
-            <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
-              <TextField label="Email" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
-              <Button variant="contained" startIcon={<PersonAddIcon />} onClick={handleAddAdmin}>Autorizar</Button>
+            
+            {/* NUEVO: Formulario adaptado para recibir Nombre y Correo */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 4 }}>
+              <TextField label="Nombre Completo" size="small" sx={{ flexGrow: 1 }} value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} />
+              <TextField label="Correo Electrónico" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
+              <Button variant="contained" startIcon={<PersonAddIcon />} onClick={handleAddAdmin} sx={{ minWidth: '150px' }}>Autorizar</Button>
             </Stack>
+            
             <List sx={{ bgcolor: '#f9f9f9', borderRadius: 1 }}>
               {adminList.map((admin) => (
                 <ListItem key={admin.id} divider secondaryAction={<IconButton edge="end" color="error" onClick={() => handleRemoveAdmin(admin.id)}><DeleteIcon /></IconButton>}>
-                  <ListItemText primary={admin.email} secondary={`Autorizado por: ${admin.addedBy}`} />
+                  <ListItemText 
+                    primary={
+                      <Typography variant="body1">
+                        {admin.nombre ? <strong>{admin.nombre}</strong> : <strong>{admin.email}</strong>}
+                        {admin.nombre && ` (${admin.email})`}
+                      </Typography>
+                    } 
+                    secondary={`Autorizado por: ${admin.addedBy}`} 
+                  />
                 </ListItem>
               ))}
             </List>
