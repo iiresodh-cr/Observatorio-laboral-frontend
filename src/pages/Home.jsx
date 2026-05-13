@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react';
 import { 
   Container, Typography, Paper, Box, Grid, Button, 
-  Card, CardContent, CardActions, Divider 
+  Card, CardContent, CardActions, Divider, CircularProgress, Link as MuiLink 
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import GavelIcon from '@mui/icons-material/Gavel';
@@ -9,7 +10,36 @@ import BalanceIcon from '@mui/icons-material/Balance';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
+// Firebase Services
+import { db } from '../services/firebaseConfig';
+import { collection, query, where, getCountFromServer } from 'firebase/firestore';
+
 export default function Home() {
+  const [stats, setStats] = useState({ docs: 0, cases: 0, loading: true });
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        // 1. Contar documentos en el repositorio
+        const docsSnap = await getCountFromServer(collection(db, "documentos"));
+        
+        // 2. Contar casos atendidos (denuncias completadas)
+        const casesQuery = query(collection(db, "denuncias"), where("estado", "==", "completada"));
+        const casesSnap = await getCountFromServer(casesQuery);
+
+        setStats({
+          docs: docsSnap.data().count,
+          cases: casesSnap.data().count,
+          loading: false
+        });
+      } catch (error) {
+        console.error("Error cargando estadísticas:", error);
+        setStats(prev => ({ ...prev, loading: false }));
+      }
+    }
+    fetchStats();
+  }, []);
+
   return (
     <Box sx={{ width: '100%', pb: 8 }}>
       
@@ -51,7 +81,34 @@ export default function Home() {
         </Paper>
       </Container>
 
-      <Container maxWidth="lg" sx={{ mt: 8 }}>
+      {/* --- SECCIÓN: CONTADORES DINÁMICOS --- */}
+      <Container maxWidth="md" sx={{ mt: 10, mb: 8 }}>
+        <Grid container spacing={4} justifyContent="center">
+          <Grid item xs={12} sm={5}>
+            <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#f0f4ff', borderRadius: 4, border: '1px solid #e0eaff' }}>
+              <GavelIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
+              {stats.loading ? <CircularProgress size={30} sx={{ display: 'block', mx: 'auto', my: 1 }} /> : (
+                <Typography variant="h3" fontWeight="900" color="primary">{stats.docs}</Typography>
+              )}
+              <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">Documentos Legales</Typography>
+              <Typography variant="caption" color="text.disabled">Leyes, Tratados y Jurisprudencia</Typography>
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={12} sm={5}>
+            <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#fff9e6', borderRadius: 4, border: '1px solid #ffecb3' }}>
+              <SupportAgentIcon sx={{ fontSize: 40, mb: 1, color: '#b28900' }} />
+              {stats.loading ? <CircularProgress size={30} sx={{ display: 'block', mx: 'auto', my: 1, color: '#b28900' }} /> : (
+                <Typography variant="h3" fontWeight="900" sx={{ color: '#b28900' }}>{stats.cases}</Typography>
+              )}
+              <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">Asesorías Finalizadas</Typography>
+              <Typography variant="caption" color="text.disabled">Casos con orientación brindada</Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Container>
+
+      <Container maxWidth="lg" sx={{ mt: 2 }}>
         
         {/* --- SECCIÓN EXPLICATIVA: ¿Qué es el observatorio? --- */}
         <Box sx={{ mb: 10, textAlign: 'center' }}>
@@ -86,7 +143,24 @@ export default function Home() {
                 <AutoAwesomeIcon sx={{ fontSize: 50, color: 'secondary.main', mb: 2 }} />
                 <Typography variant="h6" fontWeight="bold" gutterBottom>Impulsado por IA</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Utilizamos inteligencia artificial de vanguardia para analizar casos complejos en segundos, permitiendo a nuestros abogados brindar respuestas precisas y ágiles.
+                  Utilizamos la inteligencia artificial especializada{' '}
+                  <MuiLink 
+                    href="https://pida-ai.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    sx={{ 
+                      color: 'inherit', 
+                      textDecoration: 'underline', 
+                      textDecorationStyle: 'dotted', 
+                      textUnderlineOffset: '3px', 
+                      fontWeight: 'bold',
+                      transition: '0.2s',
+                      '&:hover': { color: 'primary.main', textDecorationStyle: 'solid' } 
+                    }}
+                  >
+                    PIDA
+                  </MuiLink>
+                  {' '}para analizar casos complejos en segundos, permitiendo a nuestros abogados brindar respuestas precisas y ágiles.
                 </Typography>
               </Box>
             </Grid>
@@ -135,7 +209,24 @@ export default function Home() {
                   Orientación y Denuncia
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
-                  ¿Han vulnerado sus derechos laborales? Registre su caso de forma segura. Nuestro sistema de Inteligencia Artificial y nuestro equipo de abogados analizarán su situación para enviarle una recomendación legal a su correo.
+                  ¿Han vulnerado sus derechos laborales? Registre su caso de forma segura. Nuestro sistema de Inteligencia Artificial{' '}
+                  <MuiLink 
+                    href="https://pida-ai.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    sx={{ 
+                      color: 'inherit', 
+                      textDecoration: 'underline', 
+                      textDecorationStyle: 'dotted', 
+                      textUnderlineOffset: '3px', 
+                      fontWeight: 'bold',
+                      transition: '0.2s',
+                      '&:hover': { color: 'primary.main', textDecorationStyle: 'solid' } 
+                    }}
+                  >
+                    PIDA
+                  </MuiLink>
+                  {' '}y nuestro equipo de abogados analizarán su situación para enviarle una recomendación legal a su correo.
                 </Typography>
               </CardContent>
               <CardActions sx={{ justifyContent: 'center', pb: 6 }}>
