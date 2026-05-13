@@ -87,9 +87,12 @@ export default function Repositorio() {
 
   const sortedDocs = [...filteredDocs].sort((a, b) => {
     if (sortOrder === 'alfabetico') return (a.titulo || '').localeCompare(b.titulo || '');
-    const timeA = a.fechaCreacion?.toMillis ? a.fechaCreacion.toMillis() : 0;
-    const timeB = b.fechaCreacion?.toMillis ? b.fechaCreacion.toMillis() : 0;
-    return sortOrder === 'fecha_asc' ? timeA - timeB : timeB - timeA;
+    
+    // Se convierte a entero para asegurar un ordenamiento matemático correcto por año
+    const anioA = parseInt(a.anio) || 0;
+    const anioB = parseInt(b.anio) || 0;
+    
+    return sortOrder === 'fecha_asc' ? anioA - anioB : anioB - anioA;
   });
 
   const totalPages = Math.ceil(sortedDocs.length / itemsPerPage);
@@ -159,8 +162,8 @@ export default function Repositorio() {
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
         >
-          <MenuItem value="fecha_desc">Recientes primero</MenuItem>
-          <MenuItem value="fecha_asc">Antiguos primero</MenuItem>
+          <MenuItem value="fecha_desc">Año más reciente</MenuItem>
+          <MenuItem value="fecha_asc">Año más antiguo</MenuItem>
           <MenuItem value="alfabetico">Orden A-Z</MenuItem>
         </TextField>
       </Box>
