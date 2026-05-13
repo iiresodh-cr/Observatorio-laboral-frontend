@@ -19,6 +19,7 @@ import {
   History as HistoryIcon, PendingActions as PendingActionsIcon,
   Assessment as AssessmentIcon
 } from '@mui/icons-material';
+import ReactMarkdown from 'react-markdown'; // NUEVO: Importación para renderizar Markdown
 
 // Firebase Services
 import { db, storage, auth, googleProvider } from '../services/firebaseConfig';
@@ -227,7 +228,7 @@ export default function Admin() {
     casos: tipoCounts[key],
   })).sort((a, b) => b.casos - a.casos);
 
-  // NUEVO: Función para generar informe con PIDA (Gemini 2.5 Pro)
+  // Función para generar informe con PIDA (Gemini 2.5 Pro)
   const handleGeneratePidaReport = async () => {
     setGeneratingReport(true);
     setAiReport('');
@@ -297,7 +298,7 @@ export default function Admin() {
           </Tabs>
         </Box>
 
-        {/* PESTAÑA: INFORMES Y ESTADÍSTICAS (Totalmente Dinámica) */}
+        {/* PESTAÑA: INFORMES Y ESTADÍSTICAS */}
         {tabValue === 0 && (
           <Box sx={{ p: 4, bgcolor: '#fafafa' }}>
             
@@ -351,15 +352,15 @@ export default function Admin() {
               )}
             </Paper>
 
-            {/* GENERACIÓN DE INFORME CON IA (PIDA) */}
+            {/* GENERACIÓN DE INFORME CON IA (PIDA) RENDERIZADO EN MARKDOWN */}
             <Box sx={{ mt: 6, p: 4, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: 'white' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Box>
                   <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <AutoAwesomeIcon color="secondary" /> Informe Ejecutivo (PIDA)
+                    <AutoAwesomeIcon color="secondary" /> Informe Ejecutivo
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Utiliza Gemini 2.5 Pro para analizar los datos mostrados arriba y sugerir estrategias.
+                    Utiliza PIDA para analizar los datos mostrados arriba y sugerir estrategias.
                   </Typography>
                 </Box>
                 <Button 
@@ -376,10 +377,20 @@ export default function Admin() {
               {generatingReport && <LinearProgress color="secondary" sx={{ mb: 2 }} />}
               
               {aiReport && (
-                <Paper variant="outlined" sx={{ p: 3, bgcolor: '#fafafa', maxHeight: 500, overflowY: 'auto' }}>
-                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>
-                    {aiReport}
-                  </Typography>
+                <Paper variant="outlined" sx={{ p: 4, bgcolor: '#fafafa', maxHeight: 600, overflowY: 'auto' }}>
+                  <Box sx={{ 
+                    fontFamily: 'inherit',
+                    '& h1, & h2, & h3': { color: '#003399', mt: 3, mb: 1.5, fontWeight: 'bold' }, 
+                    '& h1': { fontSize: '1.75rem', borderBottom: '2px solid #e0e0e0', pb: 1 },
+                    '& h2': { fontSize: '1.5rem' },
+                    '& h3': { fontSize: '1.25rem' },
+                    '& p': { lineHeight: 1.7, mb: 2, color: '#333' },
+                    '& strong': { color: '#000' },
+                    '& ul, & ol': { pl: 3, mb: 2, color: '#333' },
+                    '& li': { mb: 1, lineHeight: 1.6 }
+                  }}>
+                    <ReactMarkdown>{aiReport}</ReactMarkdown>
+                  </Box>
                 </Paper>
               )}
             </Box>
