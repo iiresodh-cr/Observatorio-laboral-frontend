@@ -117,7 +117,7 @@ export default function Admin() {
       setLoadingAI(true);
       const formData = new FormData(); formData.append('file', selectedFile);
       try {
-        const response = await fetch('https://observatorio-backend-extracci-n-75047069496.us-central1.run.app/extract-metadata', { method: 'POST', body: formData });
+        const response = await fetch('https://observatorio-backend-extraccion-86857815411.us-central1.run.app/extract-metadata', { method: 'POST', body: formData });
         if (response.ok) {
           const data = await response.json();
           setDocData(prevData => ({ titulo: data.titulo || prevData.titulo, categoria: data.categoria || prevData.categoria, anio: data.anio || prevData.anio, descripcion: data.descripcion || prevData.descripcion }));
@@ -158,7 +158,7 @@ export default function Admin() {
 
     try {
       // 1. Enviar correo usando el backend Python
-      const response = await fetch('https://observatorio-backend-extracci-n-75047069496.us-central1.run.app/send-email', {
+      const response = await fetch('https://observatorio-backend-extraccion-86857815411.us-central1.run.app/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -65,7 +65,8 @@ export default function Denuncia() {
       // 1. Solicitar análisis a Gemini en el Backend
       let borradorIA = '';
       try {
-        const response = await fetch('https://observatorio-backend-extracci-n-75047069496.us-central1.run.app/analyze-denuncia', {
+        // REEMPLAZA ESTA URL POR LA DE TU CLOUD RUN ACTUAL
+        const response = await fetch('https://observatorio-backend-extraccion-86857815411.us-central1.run.app/analyze-denuncia', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -74,12 +75,17 @@ export default function Denuncia() {
             empresa: formData.empresa
           })
         });
+        
         if (response.ok) {
           const data = await response.json();
           borradorIA = data.draft;
+        } else {
+          // Mejoramos el log de errores para atrapar fallos del servidor 500 o 403
+          const errorData = await response.text();
+          console.error("Error del servidor al generar IA:", response.status, errorData);
         }
       } catch (aiError) {
-        console.error("Error obteniendo análisis de IA", aiError);
+        console.error("Error de red obteniendo análisis de IA", aiError);
       }
 
       // 2. Guardar todo en Firestore
@@ -141,7 +147,6 @@ export default function Denuncia() {
       </Dialog>
 
       <Box sx={{ mb: 4 }}>
-        {/* TITULO Y SUBTITULO ACTUALIZADOS */}
         <Typography variant="h4" color="primary" fontWeight="800" gutterBottom>
           Registro de Vulneraciones y Solicitud de Asesoría
         </Typography>
