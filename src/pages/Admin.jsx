@@ -41,14 +41,14 @@ const BACKEND_URL = 'https://observatorio-backend-86857815411.us-central1.run.ap
 export default function Admin() {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isAuthor, setIsAuthor] = useState(false); // NUEVO: Estado para Rol de Autor
+  const [isAuthor, setIsAuthor] = useState(false); 
   const [loadingAuth, setLoadingAuth] = useState(true);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  const [tabValue, setTabValue] = useState('informes'); // Refactorizado a string para seguridad de roles
+  const [tabValue, setTabValue] = useState('informes'); 
   
   // Estados de Administración
   const [adminList, setAdminList] = useState([]);
@@ -60,6 +60,9 @@ export default function Admin() {
   const [newAutorName, setNewAutorName] = useState('');
   const [newAutorEmail, setNewAutorEmail] = useState('');
   
+  // Estado general de creación de usuarios para bloqueo de botones
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+
   // Carga Documentos
   const [uploading, setUploading] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
@@ -87,6 +90,14 @@ export default function Admin() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
+        // REGLA DE SEGURIDAD: Validar que el correo esté verificado si no es inicio por Google
+        if (currentUser.providerData[0]?.providerId === 'password' && !currentUser.emailVerified) {
+          await signOut(auth);
+          setLoginError('Por seguridad, debes verificar tu correo electrónico antes de ingresar. Revisa tu bandeja de entrada o carpeta de Spam.');
+          setLoadingAuth(false);
+          return;
+        }
+
         const userEmail = currentUser.email.toLowerCase();
         let adminAcc = false;
         let authorAcc = false;
@@ -107,7 +118,6 @@ export default function Admin() {
           setIsAdmin(adminAcc);
           setIsAuthor(authorAcc);
           setUser(currentUser);
-          // Si solo es autor y no admin, forzar pestaña de blog
           if (!adminAcc && authorAcc) {
             setTabValue('blog');
           } else {
@@ -138,7 +148,6 @@ export default function Admin() {
       });
       return () => { unsubAdmins(); unsubAutores(); unsubDenuncias(); };
     } else if (isAuthor) {
-      // Si solo es autor, solo necesita ver los posts (y opcionalmente la lista de autores)
       const unsubAutores = onSnapshot(collection(db, "autores"), (snapshot) => {
         setAutorList(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       });
@@ -159,18 +168,25 @@ export default function Admin() {
   const handleLoginManual = async (e) => { e.preventDefault(); setLoginError(''); try { await signInWithEmailAndPassword(auth, email, password); } catch (e) { setLoginError('Credenciales incorrectas.'); } };
   const handleLogout = () => signOut(auth);
 
+  // NUEVO: Funciones que llaman al backend para crear usuario, verificar y notificar
   const handleAddAdmin = async () => {
     if (!newAdminEmail || !newAdminName) {
       setActionModal({ open: true, title: 'Campos incompletos', message: 'Debe ingresar nombre y correo del administrador.' });
       return;
     }
+    setIsCreatingUser(true);
     try {
-      await setDoc(doc(db, "admins", newAdminEmail.toLowerCase().trim()), { 
-        nombre: newAdminName.trim(), email: newAdminEmail.toLowerCase().trim(), addedBy: user.email, date: serverTimestamp() 
+      const response = await fetch(`${BACKEND_URL}/create-user`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newAdminEmail, nombre: newAdminName, rol: 'admin', addedBy: user.email })
       });
+      if (!response.ok) throw new Error("Error creando usuario en el backend");
+      
       setNewAdminName(''); setNewAdminEmail(''); 
-      setActionModal({ open: true, title: 'Administrador Agregado', message: `Nuevo administrador registrado exitosamente.` });
-    } catch (e) {}
+      setActionModal({ open: true, title: 'Administrador Registrado', message: `Cuenta creada. Se ha enviado un correo con la contraseña temporal y el link de verificación a ${newAdminEmail}.` });
+    } catch (e) {
+      setActionModal({ open: true, title: 'Error', message: 'No se pudo crear la cuenta de usuario.' });
+    } finally { setIsCreatingUser(false); }
   };
   
   const handleAddAutor = async () => {
@@ -178,13 +194,19 @@ export default function Admin() {
       setActionModal({ open: true, title: 'Campos incompletos', message: 'Debe ingresar nombre y correo del redactor.' });
       return;
     }
+    setIsCreatingUser(true);
     try {
-      await setDoc(doc(db, "autores", newAutorEmail.toLowerCase().trim()), { 
-        nombre: newAutorName.trim(), email: newAutorEmail.toLowerCase().trim(), addedBy: user.email, date: serverTimestamp() 
+      const response = await fetch(`${BACKEND_URL}/create-user`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newAutorEmail, nombre: newAutorName, rol: 'autor', addedBy: user.email })
       });
+      if (!response.ok) throw new Error("Error creando usuario en el backend");
+
       setNewAutorName(''); setNewAutorEmail(''); 
-      setActionModal({ open: true, title: 'Redactor Agregado', message: `Nuevo autor de blog registrado exitosamente.` });
-    } catch (e) {}
+      setActionModal({ open: true, title: 'Redactor Registrado', message: `Cuenta creada. Se ha enviado un correo con la contraseña temporal y el link de verificación a ${newAutorEmail}.` });
+    } catch (e) {
+      setActionModal({ open: true, title: 'Error', message: 'No se pudo crear la cuenta de usuario.' });
+    } finally { setIsCreatingUser(false); }
   };
 
   const handleRemoveAdmin = async (id) => { try { await deleteDoc(doc(db, "admins", id)); } catch (e) {} };
@@ -274,7 +296,6 @@ export default function Admin() {
     if (!blogData.titulo || !blogData.contenido) return;
     setPublishing(true);
     
-    // Obtener el nombre del autor logueado para mostrarlo en el blog
     const currentAutor = autorList.find(a => a.email === user.email) || adminList.find(a => a.email === user.email);
     const nombreAutor = currentAutor ? currentAutor.nombre : user.email;
 
@@ -480,15 +501,16 @@ export default function Admin() {
 
         {tabValue === 'admins' && isAdmin && (
           <Box sx={{ p: 4 }}>
-            <Alert severity="info" sx={{ mb: 4 }}>Gestión de accesos y permisos de la plataforma.</Alert>
+            <Alert severity="info" sx={{ mb: 4 }}>Gestión centralizada. Al autorizar, el sistema creará la cuenta y enviará un correo automático para la verificación del usuario.</Alert>
             
-            {/* SECCIÓN ADMINISTRADORES */}
             <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>Administradores del Sistema</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Tienen acceso total a estadísticas, asesorías, documentos y permisos.</Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
-              <TextField label="Nombre Completo" size="small" sx={{ flexGrow: 1 }} value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} />
-              <TextField label="Correo Electrónico" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
-              <Button variant="contained" startIcon={<PersonAddIcon />} onClick={handleAddAdmin} sx={{ minWidth: '150px' }}>Autorizar</Button>
+              <TextField label="Nombre Completo" size="small" sx={{ flexGrow: 1 }} value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} disabled={isCreatingUser} />
+              <TextField label="Correo Electrónico" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} disabled={isCreatingUser} />
+              <Button variant="contained" startIcon={isCreatingUser ? <CircularProgress size={20} color="inherit" /> : <PersonAddIcon />} onClick={handleAddAdmin} sx={{ minWidth: '150px' }} disabled={isCreatingUser}>
+                {isCreatingUser ? 'Procesando...' : 'Autorizar Admin'}
+              </Button>
             </Stack>
             <List sx={{ bgcolor: '#f9f9f9', borderRadius: 1, mb: 6 }}>
               <ListItem divider secondaryAction={<Chip label="Inamovible" size="small" color="primary" sx={{ fontWeight: 'bold' }} />}>
@@ -503,13 +525,14 @@ export default function Admin() {
 
             <Divider sx={{ my: 4 }} />
 
-            {/* NUEVO: SECCIÓN REDACTORES DE BLOG */}
             <Typography variant="h6" color="secondary.main" fontWeight="bold" gutterBottom>Redactores Autorizados (Blog)</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Estas personas <strong>solo</strong> tendrán acceso a la pestaña de "Redacción Blog" para escribir y publicar artículos. No podrán ver denuncias ni estadísticas.</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Solo tendrán acceso a la pestaña de "Redacción Blog" para escribir y publicar artículos.</Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
-              <TextField label="Nombre del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorName} onChange={(e) => setNewAutorName(e.target.value)} />
-              <TextField label="Correo del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorEmail} onChange={(e) => setNewAutorEmail(e.target.value)} />
-              <Button variant="contained" color="secondary" startIcon={<EditIcon />} onClick={handleAddAutor} sx={{ minWidth: '150px', color: 'black' }}>Autorizar Autor</Button>
+              <TextField label="Nombre del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorName} onChange={(e) => setNewAutorName(e.target.value)} disabled={isCreatingUser} />
+              <TextField label="Correo del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorEmail} onChange={(e) => setNewAutorEmail(e.target.value)} disabled={isCreatingUser} />
+              <Button variant="contained" color="secondary" startIcon={isCreatingUser ? <CircularProgress size={20} color="inherit" /> : <EditIcon />} onClick={handleAddAutor} sx={{ minWidth: '150px', color: 'black' }} disabled={isCreatingUser}>
+                {isCreatingUser ? 'Procesando...' : 'Autorizar Autor'}
+              </Button>
             </Stack>
             <List sx={{ bgcolor: '#fffde7', borderRadius: 1 }}>
               {autorList.length === 0 && <Typography variant="body2" sx={{ p: 2, color: 'text.secondary' }}>No hay redactores autorizados aún.</Typography>}
@@ -522,7 +545,6 @@ export default function Admin() {
           </Box>
         )}
 
-        {/* NUEVO: PESTAÑA REDACCIÓN BLOG */}
         {tabValue === 'blog' && (isAdmin || isAuthor) && (
           <Box sx={{ p: 4, bgcolor: '#fafafa' }}>
             <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>Redactar Nuevo Artículo</Typography>
