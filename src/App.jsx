@@ -5,7 +5,8 @@ import Home from './pages/Home';
 import Denuncia from './pages/Denuncia';
 import Admin from './pages/Admin';
 import Repositorio from './pages/Repositorio';
-import Blog from './pages/Blog'; // NUEVO: Importación de la página de Blog
+import Blog from './pages/Blog';
+import AuthAction from './pages/AuthAction'; // NUEVO: Importación del gestor de auth
 
 // Tema visual con los colores de la Unión Europea
 const theme = createTheme({
@@ -38,6 +39,7 @@ function App() {
           <Route path="/denuncia" element={<Denuncia />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/auth-action" element={<AuthAction />} /> {/* NUEVA RUTA */}
         </Routes>
       </Router>
     </ThemeProvider>
