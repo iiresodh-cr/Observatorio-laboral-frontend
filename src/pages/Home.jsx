@@ -9,27 +9,21 @@ import ForumIcon from '@mui/icons-material/Forum';
 import BalanceIcon from '@mui/icons-material/Balance';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import NewspaperIcon from '@mui/icons-material/Newspaper'; // NUEVO: Icono para el blog
+import NewspaperIcon from '@mui/icons-material/Newspaper';
 
 // Firebase Services
 import { db } from '../services/firebaseConfig';
 import { collection, query, where, getCountFromServer } from 'firebase/firestore';
 
 export default function Home() {
-  // NUEVO: Se agregó 'blogs' al estado
   const [stats, setStats] = useState({ docs: 0, cases: 0, blogs: 0, loading: true });
 
   useEffect(() => {
     async function fetchStats() {
       try {
-        // 1. Contar documentos
         const docsSnap = await getCountFromServer(collection(db, "documentos"));
-        
-        // 2. Contar casos completados
         const casesQuery = query(collection(db, "denuncias"), where("estado", "==", "completada"));
         const casesSnap = await getCountFromServer(casesQuery);
-
-        // 3. NUEVO: Contar artículos del blog
         const blogsSnap = await getCountFromServer(collection(db, "blog"));
 
         setStats({
@@ -109,7 +103,6 @@ export default function Home() {
             <Typography variant="caption" color="text.disabled">Casos con orientación brindada</Typography>
           </Paper>
 
-          {/* NUEVO: Contador del Blog */}
           <Paper elevation={0} sx={{ flex: 1, p: 4, textAlign: 'center', bgcolor: '#e8f5e9', borderRadius: 4, border: '1px solid #c8e6c9' }}>
             <NewspaperIcon sx={{ fontSize: 40, mb: 1, color: '#2e7d32' }} />
             {stats.loading ? <CircularProgress size={30} sx={{ display: 'block', mx: 'auto', my: 1, color: '#2e7d32' }} /> : (
@@ -133,8 +126,8 @@ export default function Home() {
             Nuestra misión es democratizar el acceso a la justicia laboral. Brindamos herramientas gratuitas tanto para el análisis académico y legal, como para el acompañamiento directo a ciudadanos cuyos derechos han sido vulnerados.
           </Typography>
 
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
+          <Grid container spacing={4} justifyContent="center">
+            <Grid item xs={12} sm={6} md={4}>
               <Box sx={{ p: 3 }}>
                 <BalanceIcon sx={{ fontSize: 50, color: 'primary.main', mb: 2 }} />
                 <Typography variant="h6" fontWeight="bold" gutterBottom>Justicia Transparente</Typography>
@@ -143,7 +136,7 @@ export default function Home() {
                 </Typography>
               </Box>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} sm={6} md={4}>
               <Box sx={{ p: 3 }}>
                 <SupportAgentIcon sx={{ fontSize: 50, color: 'primary.main', mb: 2 }} />
                 <Typography variant="h6" fontWeight="bold" gutterBottom>Orientación Gratuita</Typography>
@@ -152,7 +145,7 @@ export default function Home() {
                 </Typography>
               </Box>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} sm={6} md={4}>
               <Box sx={{ p: 3 }}>
                 <AutoAwesomeIcon sx={{ fontSize: 50, color: 'secondary.main', mb: 2 }} />
                 <Typography variant="h6" fontWeight="bold" gutterBottom>Impulsado por IA</Typography>
@@ -189,11 +182,11 @@ export default function Home() {
           </Typography>
         </Box>
 
-        {/* NUEVO: Grid de 3 columnas (md={4}) */}
-        <Grid container spacing={4}>
+        {/* SOLUCIÓN: justifyContent="center" y alignItems="stretch" para forzar alineación y simetría */}
+        <Grid container spacing={4} justifyContent="center" alignItems="stretch">
           
           {/* Tarjeta Repositorio */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={8} md={4}>
             <Card elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #003399' }}>
               <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: { xs: 3, md: 4 } }}>
                 <GavelIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
@@ -213,7 +206,7 @@ export default function Home() {
           </Grid>
 
           {/* Tarjeta Denuncia */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={8} md={4}>
             <Card elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #FFCC00' }}>
               <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: { xs: 3, md: 4 } }}>
                 <ForumIcon sx={{ fontSize: 60, color: 'secondary.main', mb: 2 }} />
@@ -232,8 +225,8 @@ export default function Home() {
             </Card>
           </Grid>
 
-          {/* NUEVO: Tarjeta Blog */}
-          <Grid item xs={12} md={4}>
+          {/* Tarjeta Blog */}
+          <Grid item xs={12} sm={8} md={4}>
             <Card elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #4caf50' }}>
               <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: { xs: 3, md: 4 } }}>
                 <NewspaperIcon sx={{ fontSize: 60, color: '#4caf50', mb: 2 }} />
