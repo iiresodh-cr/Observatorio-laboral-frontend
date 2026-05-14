@@ -15,6 +15,7 @@ export default function Navbar() {
           <Button color="inherit" component={RouterLink} to="/">Inicio</Button>
           <Button color="inherit" component={RouterLink} to="/repositorio">Repositorio</Button>
           <Button color="inherit" component={RouterLink} to="/denuncia">Denuncias</Button>
+          <Button color="inherit" component={RouterLink} to="/blog">Blog</Button>
           {/* El botón de Admin ha sido eliminado de aquí para ocultarlo al público */}
         </Box>
       </Toolbar>

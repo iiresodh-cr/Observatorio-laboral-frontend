@@ -17,9 +17,9 @@ import {
   Google as GoogleIcon, AssignmentLate as AssignmentLateIcon,
   AutoAwesome as AutoAwesomeIcon, Email as EmailIcon, CheckCircle as CheckCircleIcon,
   History as HistoryIcon, PendingActions as PendingActionsIcon,
-  Assessment as AssessmentIcon
+  Assessment as AssessmentIcon, Newspaper as NewspaperIcon, Edit as EditIcon
 } from '@mui/icons-material';
-import ReactMarkdown from 'react-markdown'; // Importación para renderizar Markdown
+import ReactMarkdown from 'react-markdown';
 
 // Firebase Services
 import { db, storage, auth, googleProvider } from '../services/firebaseConfig';
@@ -35,24 +35,30 @@ const categorias = [
   { value: 'articulos', label: 'Libros y Artículos' }
 ];
 
-// Colores institucionales para los gráficos
 const COLORS = ['#003399', '#FFCC00', '#1565c0', '#ffd54f', '#001f5c', '#ffb300', '#90caf9'];
-
 const BACKEND_URL = 'https://observatorio-backend-86857815411.us-central1.run.app';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthor, setIsAuthor] = useState(false); // NUEVO: Estado para Rol de Autor
   const [loadingAuth, setLoadingAuth] = useState(true);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState('informes'); // Refactorizado a string para seguridad de roles
+  
+  // Estados de Administración
   const [adminList, setAdminList] = useState([]);
   const [newAdminName, setNewAdminName] = useState('');
   const [newAdminEmail, setNewAdminEmail] = useState('');
+
+  // Estados de Autores
+  const [autorList, setAutorList] = useState([]);
+  const [newAutorName, setNewAutorName] = useState('');
+  const [newAutorEmail, setNewAutorEmail] = useState('');
   
   // Carga Documentos
   const [uploading, setUploading] = useState(false);
@@ -69,23 +75,51 @@ export default function Admin() {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [subTabDenuncias, setSubTabDenuncias] = useState('pendiente');
 
-  // Informes e Inteligencia Artificial
+  // Informes IA
   const [aiReport, setAiReport] = useState('');
   const [generatingReport, setGeneratingReport] = useState(false);
+
+  // Artículos de Blog
+  const [blogData, setBlogData] = useState({ titulo: '', contenido: '' });
+  const [blogPosts, setBlogPosts] = useState([]);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         const userEmail = currentUser.email.toLowerCase();
+        let adminAcc = false;
+        let authorAcc = false;
+
         if (userEmail === SUPER_ADMIN_EMAIL.toLowerCase()) {
-          setIsAdmin(true); setUser(currentUser);
+          adminAcc = true; authorAcc = true;
         } else {
-          const q = query(collection(db, "admins"), where("email", "==", userEmail));
-          const querySnapshot = await getDocs(q);
-          if (!querySnapshot.empty) { setIsAdmin(true); setUser(currentUser); } 
-          else { await signOut(auth); setLoginError(`El acceso para ${currentUser.email} no está autorizado.`); }
+          const qAdmin = query(collection(db, "admins"), where("email", "==", userEmail));
+          const snapAdmin = await getDocs(qAdmin);
+          if (!snapAdmin.empty) { adminAcc = true; authorAcc = true; }
+
+          const qAuthor = query(collection(db, "autores"), where("email", "==", userEmail));
+          const snapAuthor = await getDocs(qAuthor);
+          if (!snapAuthor.empty) { authorAcc = true; }
         }
-      } else { setUser(null); setIsAdmin(false); }
+
+        if (adminAcc || authorAcc) {
+          setIsAdmin(adminAcc);
+          setIsAuthor(authorAcc);
+          setUser(currentUser);
+          // Si solo es autor y no admin, forzar pestaña de blog
+          if (!adminAcc && authorAcc) {
+            setTabValue('blog');
+          } else {
+            setTabValue('informes');
+          }
+        } else {
+          await signOut(auth);
+          setLoginError(`El acceso para ${currentUser.email} no está autorizado.`);
+        }
+      } else { 
+        setUser(null); setIsAdmin(false); setIsAuthor(false); 
+      }
       setLoadingAuth(false);
     });
     return () => unsubscribe();
@@ -96,12 +130,30 @@ export default function Admin() {
       const unsubAdmins = onSnapshot(collection(db, "admins"), (snapshot) => {
         setAdminList(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       });
+      const unsubAutores = onSnapshot(collection(db, "autores"), (snapshot) => {
+        setAutorList(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
       const unsubDenuncias = onSnapshot(query(collection(db, "denuncias"), orderBy("fechaRegistro", "desc")), (snapshot) => {
         setListaDenuncias(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       });
-      return () => { unsubAdmins(); unsubDenuncias(); };
+      return () => { unsubAdmins(); unsubAutores(); unsubDenuncias(); };
+    } else if (isAuthor) {
+      // Si solo es autor, solo necesita ver los posts (y opcionalmente la lista de autores)
+      const unsubAutores = onSnapshot(collection(db, "autores"), (snapshot) => {
+        setAutorList(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+      return () => { unsubAutores(); };
     }
-  }, [isAdmin]);
+  }, [isAdmin, isAuthor]);
+
+  useEffect(() => {
+    if (isAdmin || isAuthor) {
+      const unsubBlog = onSnapshot(query(collection(db, "blog"), orderBy("fechaCreacion", "desc")), (snapshot) => {
+        setBlogPosts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+      return () => unsubBlog();
+    }
+  }, [isAdmin, isAuthor]);
 
   const handleLoginGoogle = async () => { setLoginError(''); try { await signInWithPopup(auth, googleProvider); } catch (e) { setLoginError('Fallo en la conexión.'); } };
   const handleLoginManual = async (e) => { e.preventDefault(); setLoginError(''); try { await signInWithEmailAndPassword(auth, email, password); } catch (e) { setLoginError('Credenciales incorrectas.'); } };
@@ -109,31 +161,42 @@ export default function Admin() {
 
   const handleAddAdmin = async () => {
     if (!newAdminEmail || !newAdminName) {
-      setActionModal({ open: true, title: 'Campos incompletos', message: 'Debe ingresar tanto el nombre como el correo.' });
+      setActionModal({ open: true, title: 'Campos incompletos', message: 'Debe ingresar nombre y correo del administrador.' });
       return;
     }
     try {
       await setDoc(doc(db, "admins", newAdminEmail.toLowerCase().trim()), { 
-        nombre: newAdminName.trim(), 
-        email: newAdminEmail.toLowerCase().trim(), 
-        addedBy: user.email, 
-        date: serverTimestamp() 
+        nombre: newAdminName.trim(), email: newAdminEmail.toLowerCase().trim(), addedBy: user.email, date: serverTimestamp() 
       });
-      setNewAdminName(''); 
-      setNewAdminEmail(''); 
-      setActionModal({ open: true, title: 'Acceso Concedido', message: `Nuevo administrador registrado exitosamente.` });
+      setNewAdminName(''); setNewAdminEmail(''); 
+      setActionModal({ open: true, title: 'Administrador Agregado', message: `Nuevo administrador registrado exitosamente.` });
     } catch (e) {}
   };
   
+  const handleAddAutor = async () => {
+    if (!newAutorEmail || !newAutorName) {
+      setActionModal({ open: true, title: 'Campos incompletos', message: 'Debe ingresar nombre y correo del redactor.' });
+      return;
+    }
+    try {
+      await setDoc(doc(db, "autores", newAutorEmail.toLowerCase().trim()), { 
+        nombre: newAutorName.trim(), email: newAutorEmail.toLowerCase().trim(), addedBy: user.email, date: serverTimestamp() 
+      });
+      setNewAutorName(''); setNewAutorEmail(''); 
+      setActionModal({ open: true, title: 'Redactor Agregado', message: `Nuevo autor de blog registrado exitosamente.` });
+    } catch (e) {}
+  };
+
   const handleRemoveAdmin = async (id) => { try { await deleteDoc(doc(db, "admins", id)); } catch (e) {} };
+  const handleRemoveAutor = async (id) => { try { await deleteDoc(doc(db, "autores", id)); } catch (e) {} };
 
   const handleDeleteDenuncia = async (id) => {
-    if (window.confirm("¿Está seguro de borrar esta denuncia permanentemente? Esta acción solo la puede realizar el Superadministrador.")) {
+    if (window.confirm("¿Está seguro de borrar esta denuncia permanentemente?")) {
       try {
         await deleteDoc(doc(db, "denuncias", id));
-        setActionModal({ open: true, title: 'Eliminado', message: 'El registro ha sido borrado de la base de datos.' });
+        setActionModal({ open: true, title: 'Eliminado', message: 'El registro ha sido borrado.' });
       } catch (e) {
-        setActionModal({ open: true, title: 'Acceso Denegado', message: 'No tiene permisos suficientes para borrar denuncias.' });
+        setActionModal({ open: true, title: 'Acceso Denegado', message: 'Solo el Superadmin puede borrar denuncias.' });
       }
     }
   };
@@ -143,8 +206,7 @@ export default function Admin() {
   const handleFileChange = async (e) => { 
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      setArchivo(selectedFile); 
-      setLoadingAI(true);
+      setArchivo(selectedFile); setLoadingAI(true);
       const formData = new FormData(); formData.append('file', selectedFile);
       try {
         const response = await fetch(`${BACKEND_URL}/extract-metadata`, { method: 'POST', body: formData });
@@ -161,8 +223,7 @@ export default function Admin() {
   };
 
   const handleUploadSubmit = async (e) => {
-    e.preventDefault(); if (!archivo) return;
-    setUploading(true);
+    e.preventDefault(); if (!archivo) return; setUploading(true);
     try {
       const nombreArchivo = `${Date.now()}_${archivo.name}`;
       const storageRef = ref(storage, `documentos/${nombreArchivo}`);
@@ -190,88 +251,80 @@ export default function Admin() {
   };
 
   const handleSendAdvice = async () => {
-    if (!selectedDenuncia) return;
-    setIsSendingEmail(true);
+    if (!selectedDenuncia) return; setIsSendingEmail(true);
     try {
       const response = await fetch(`${BACKEND_URL}/send-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to_email: selectedDenuncia.email,
-          subject: "Observatorio Laboral: Orientación sobre su caso",
-          body: draftReview
-        })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to_email: selectedDenuncia.email, subject: "Observatorio Laboral: Orientación sobre su caso", body: draftReview })
       });
-
-      if (!response.ok) {
-        throw new Error(`Error al conectar con servidor de correos`);
-      }
+      if (!response.ok) throw new Error(`Error`);
 
       await updateDoc(doc(db, "denuncias", selectedDenuncia.id), {
-        estado: 'completada',
-        respuestaFinal: draftReview,
-        respondidoPor: user.email,
-        fechaRespuesta: serverTimestamp()
+        estado: 'completada', respuestaFinal: draftReview, respondidoPor: user.email, fechaRespuesta: serverTimestamp()
       });
-
       setActionModal({ open: true, title: 'Asesoría Enviada', message: 'El ciudadano ha recibido el correo exitosamente.' });
       setSelectedDenuncia(null);
     } catch (error) {
       setActionModal({ open: true, title: 'Error', message: 'No se pudo enviar el correo.' });
+    } finally { setIsSendingEmail(false); }
+  };
+
+  const handlePublishBlog = async (e) => {
+    e.preventDefault();
+    if (!blogData.titulo || !blogData.contenido) return;
+    setPublishing(true);
+    
+    // Obtener el nombre del autor logueado para mostrarlo en el blog
+    const currentAutor = autorList.find(a => a.email === user.email) || adminList.find(a => a.email === user.email);
+    const nombreAutor = currentAutor ? currentAutor.nombre : user.email;
+
+    try {
+      await addDoc(collection(db, "blog"), {
+        titulo: blogData.titulo,
+        contenido: blogData.contenido,
+        autorEmail: user.email,
+        autorNombre: nombreAutor,
+        fechaCreacion: serverTimestamp()
+      });
+      setBlogData({ titulo: '', contenido: '' });
+      setActionModal({ open: true, title: 'Publicado', message: 'El artículo se ha publicado en el blog exitosamente.' });
+    } catch (error) {
+      setActionModal({ open: true, title: 'Error', message: 'No se pudo publicar el artículo.' });
     } finally {
-      setIsSendingEmail(false);
+      setPublishing(false);
     }
   };
 
-  // --- CÁLCULO DE ESTADÍSTICAS EN TIEMPO REAL ---
+  const handleDeletePost = async (id) => {
+    if(window.confirm("¿Borrar este artículo del blog?")) {
+      try { await deleteDoc(doc(db, "blog", id)); } catch(e) {}
+    }
+  };
+
   const totalDenuncias = listaDenuncias.length;
   const pendientes = listaDenuncias.filter(d => d.estado === 'pendiente').length;
   const completadas = listaDenuncias.filter(d => d.estado === 'completada').length;
 
   const tipoCounts = {};
-  listaDenuncias.forEach(d => {
-    if (d.tipoDenuncia) {
-      tipoCounts[d.tipoDenuncia] = (tipoCounts[d.tipoDenuncia] || 0) + 1;
-    }
-  });
+  listaDenuncias.forEach(d => { if (d.tipoDenuncia) tipoCounts[d.tipoDenuncia] = (tipoCounts[d.tipoDenuncia] || 0) + 1; });
+  const chartData = Object.keys(tipoCounts).map((key) => ({ nombre: key, casos: tipoCounts[key] })).sort((a, b) => b.casos - a.casos);
 
-  const chartData = Object.keys(tipoCounts).map((key) => ({
-    nombre: key,
-    casos: tipoCounts[key],
-  })).sort((a, b) => b.casos - a.casos);
-
-  // Función para generar informe con PIDA (Gemini 2.5 Pro)
   const handleGeneratePidaReport = async () => {
-    setGeneratingReport(true);
-    setAiReport('');
+    setGeneratingReport(true); setAiReport('');
     try {
       const response = await fetch(`${BACKEND_URL}/generate-report`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          total_denuncias: totalDenuncias,
-          pendientes: pendientes,
-          completadas: completadas,
-          desglose_tipos: tipoCounts
-        })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ total_denuncias: totalDenuncias, pendientes: pendientes, completadas: completadas, desglose_tipos: tipoCounts })
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setAiReport(data.report);
-      } else {
-        setActionModal({ open: true, title: 'Error PIDA', message: 'No se pudo generar el informe analítico.' });
-      }
-    } catch (error) {
-      setActionModal({ open: true, title: 'Error de Conexión', message: 'PIDA no responde.' });
-    } finally {
-      setGeneratingReport(false);
-    }
+      if (response.ok) { const data = await response.json(); setAiReport(data.report); } 
+      else { setActionModal({ open: true, title: 'Error PIDA', message: 'No se pudo generar el informe analítico.' }); }
+    } catch (error) { setActionModal({ open: true, title: 'Error de Conexión', message: 'PIDA no responde.' }); } 
+    finally { setGeneratingReport(false); }
   };
 
   if (loadingAuth) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><LinearProgress sx={{ width: '40%' }} /></Box>;
 
-  if (!user || !isAdmin) {
+  if (!user || (!isAdmin && !isAuthor)) {
     return (
       <Container maxWidth="xs" sx={{ mt: 8 }}>
         <Paper elevation={4} sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
@@ -294,8 +347,8 @@ export default function Admin() {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant="h4" color="primary" fontWeight="bold">Panel Administrativo</Typography>
-          <Typography variant="body2" color="text.secondary">Sesión: <strong>{user.email}</strong></Typography>
+          <Typography variant="h4" color="primary" fontWeight="bold">{isAdmin ? 'Panel Administrativo' : 'Panel de Redacción'}</Typography>
+          <Typography variant="body2" color="text.secondary">Sesión: <strong>{user.email}</strong> {isAuthor && !isAdmin && '(Redactor)'}</Typography>
         </Box>
         <Button variant="outlined" color="error" startIcon={<LogoutIcon />} onClick={handleLogout}>Cerrar Sesión</Button>
       </Box>
@@ -303,41 +356,25 @@ export default function Admin() {
       <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f4f6f8' }}>
           <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} indicatorColor="secondary" textColor="primary" variant="scrollable" scrollButtons="auto">
-            <Tab icon={<AssessmentIcon />} label="Informes y Gráficos" />
-            <Tab icon={<CloudUploadIcon />} label="Carga Manual" />
-            <Tab icon={<EmailIcon />} label="Asesorías" />
-            <Tab icon={<GroupIcon />} label="Administradores" />
+            {isAdmin && <Tab value="informes" icon={<AssessmentIcon />} label="Informes y Gráficos" />}
+            {isAdmin && <Tab value="carga" icon={<CloudUploadIcon />} label="Carga Manual" />}
+            {isAdmin && <Tab value="asesorias" icon={<EmailIcon />} label="Asesorías" />}
+            {isAdmin && <Tab value="admins" icon={<GroupIcon />} label="Administradores" />}
+            {(isAdmin || isAuthor) && <Tab value="blog" icon={<NewspaperIcon />} label="Redacción Blog" />}
           </Tabs>
         </Box>
 
-        {/* PESTAÑA: INFORMES Y ESTADÍSTICAS */}
-        {tabValue === 0 && (
+        {tabValue === 'informes' && isAdmin && (
           <Box sx={{ p: 4, bgcolor: '#fafafa' }}>
-            
             <Grid container spacing={3} sx={{ mb: 4 }}>
               <Grid item xs={12} sm={4}>
-                <Card sx={{ borderTop: '4px solid #003399', height: '100%' }}>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">CASOS TOTALES</Typography>
-                    <Typography variant="h3" fontWeight="bold" color="primary">{totalDenuncias}</Typography>
-                  </CardContent>
-                </Card>
+                <Card sx={{ borderTop: '4px solid #003399', height: '100%' }}><CardContent sx={{ textAlign: 'center' }}><Typography variant="subtitle2" color="text.secondary" fontWeight="bold">CASOS TOTALES</Typography><Typography variant="h3" fontWeight="bold" color="primary">{totalDenuncias}</Typography></CardContent></Card>
               </Grid>
               <Grid item xs={12} sm={4}>
-                <Card sx={{ borderTop: '4px solid #f44336', height: '100%' }}>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">PENDIENTES DE ATENCIÓN</Typography>
-                    <Typography variant="h3" fontWeight="bold" color="error">{pendientes}</Typography>
-                  </CardContent>
-                </Card>
+                <Card sx={{ borderTop: '4px solid #f44336', height: '100%' }}><CardContent sx={{ textAlign: 'center' }}><Typography variant="subtitle2" color="text.secondary" fontWeight="bold">PENDIENTES DE ATENCIÓN</Typography><Typography variant="h3" fontWeight="bold" color="error">{pendientes}</Typography></CardContent></Card>
               </Grid>
               <Grid item xs={12} sm={4}>
-                <Card sx={{ borderTop: '4px solid #4caf50', height: '100%' }}>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">ASESORÍAS FINALIZADAS</Typography>
-                    <Typography variant="h3" fontWeight="bold" color="success.main">{completadas}</Typography>
-                  </CardContent>
-                </Card>
+                <Card sx={{ borderTop: '4px solid #4caf50', height: '100%' }}><CardContent sx={{ textAlign: 'center' }}><Typography variant="subtitle2" color="text.secondary" fontWeight="bold">ASESORÍAS FINALIZADAS</Typography><Typography variant="h3" fontWeight="bold" color="success.main">{completadas}</Typography></CardContent></Card>
               </Grid>
             </Grid>
 
@@ -351,79 +388,44 @@ export default function Admin() {
                     <YAxis allowDecimals={false} />
                     <Tooltip cursor={{ fill: '#f5f5f5' }} />
                     <Bar dataKey="casos" radius={[4, 4, 0, 0]}>
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
+                      {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                  <Typography color="text.secondary">No hay datos suficientes para graficar.</Typography>
-                </Box>
+                <Box display="flex" justifyContent="center" alignItems="center" height="100%"><Typography color="text.secondary">No hay datos suficientes para graficar.</Typography></Box>
               )}
             </Paper>
 
-            {/* GENERACIÓN DE INFORME CON IA (PIDA) RENDERIZADO EN MARKDOWN */}
             <Box sx={{ mt: 6, p: 4, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: 'white' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Box>
-                  <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <AutoAwesomeIcon color="secondary" /> Informe Ejecutivo
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Utiliza PIDA para analizar los datos mostrados arriba y sugerir estrategias.
-                  </Typography>
+                  <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><AutoAwesomeIcon color="secondary" /> Informe Ejecutivo</Typography>
+                  <Typography variant="body2" color="text.secondary">Utiliza PIDA para analizar los datos mostrados arriba y sugerir estrategias.</Typography>
                 </Box>
-                <Button 
-                  variant="contained" 
-                  color="secondary" 
-                  onClick={handleGeneratePidaReport}
-                  disabled={generatingReport || totalDenuncias === 0}
-                  sx={{ color: '#000', fontWeight: 'bold' }}
-                >
+                <Button variant="contained" color="secondary" onClick={handleGeneratePidaReport} disabled={generatingReport || totalDenuncias === 0} sx={{ color: '#000', fontWeight: 'bold' }}>
                   {generatingReport ? 'Analizando datos...' : 'Generar Informe Analítico'}
                 </Button>
               </Box>
-              
               {generatingReport && <LinearProgress color="secondary" sx={{ mb: 2 }} />}
-              
               {aiReport && (
                 <Paper variant="outlined" sx={{ p: 4, bgcolor: '#fafafa', maxHeight: 600, overflowY: 'auto' }}>
-                  <Box sx={{ 
-                    fontFamily: 'inherit',
-                    '& h1, & h2, & h3': { color: '#003399', mt: 3, mb: 1.5, fontWeight: 'bold' }, 
-                    '& h1': { fontSize: '1.75rem', borderBottom: '2px solid #e0e0e0', pb: 1 },
-                    '& h2': { fontSize: '1.5rem' },
-                    '& h3': { fontSize: '1.25rem' },
-                    '& p': { lineHeight: 1.7, mb: 2, color: '#333' },
-                    '& strong': { color: '#000' },
-                    '& ul, & ol': { pl: 3, mb: 2, color: '#333' },
-                    '& li': { mb: 1, lineHeight: 1.6 }
-                  }}>
+                  <Box sx={{ fontFamily: 'inherit', '& h1, & h2, & h3': { color: '#003399', mt: 3, mb: 1.5, fontWeight: 'bold' }, '& h1': { fontSize: '1.75rem', borderBottom: '2px solid #e0e0e0', pb: 1 }, '& h2': { fontSize: '1.5rem' }, '& h3': { fontSize: '1.25rem' }, '& p': { lineHeight: 1.7, mb: 2, color: '#333' }, '& strong': { color: '#000' }, '& ul, & ol': { pl: 3, mb: 2, color: '#333' }, '& li': { mb: 1, lineHeight: 1.6 } }}>
                     <ReactMarkdown>{aiReport}</ReactMarkdown>
                   </Box>
                 </Paper>
               )}
             </Box>
-
           </Box>
         )}
 
-        {tabValue === 1 && (
+        {tabValue === 'carga' && isAdmin && (
           <Box component="form" onSubmit={handleUploadSubmit} sx={{ p: 4 }}>
             <Box sx={{ p: 4, border: '2px dashed #ccc', borderRadius: 2, textAlign: 'center', bgcolor: loadingAI ? '#f0f7ff' : '#fafafa', mb: 4, transition: '0.3s' }}>
               {loadingAI ? (
-                <Stack alignItems="center" spacing={2}>
-                  <CircularProgress size={40} color="secondary" />
-                  <Typography variant="h6" color="secondary.main" fontWeight="bold">IA analizando documento...</Typography>
-                </Stack>
+                <Stack alignItems="center" spacing={2}><CircularProgress size={40} color="secondary" /><Typography variant="h6" color="secondary.main" fontWeight="bold">IA analizando documento...</Typography></Stack>
               ) : (
-                <Stack alignItems="center" spacing={2}>
-                  <AutoAwesomeIcon color="secondary" sx={{ fontSize: 40 }} />
-                  <Typography variant="h6" color="text.primary">{archivo ? `Archivo: ${archivo.name}` : 'Sube un PDF para autocompletar'}</Typography>
-                  <Button variant="contained" component="label" size="large" startIcon={<PictureAsPdfIcon />}>Elegir Archivo PDF<input type="file" hidden accept="application/pdf" onChange={handleFileChange} /></Button>
-                </Stack>
+                <Stack alignItems="center" spacing={2}><AutoAwesomeIcon color="secondary" sx={{ fontSize: 40 }} /><Typography variant="h6" color="text.primary">{archivo ? `Archivo: ${archivo.name}` : 'Sube un PDF para autocompletar'}</Typography><Button variant="contained" component="label" size="large" startIcon={<PictureAsPdfIcon />}>Elegir Archivo PDF<input type="file" hidden accept="application/pdf" onChange={handleFileChange} /></Button></Stack>
               )}
             </Box>
             <Stack spacing={3}>
@@ -438,30 +440,16 @@ export default function Admin() {
           </Box>
         )}
 
-        {/* PESTAÑA: ASESORÍAS */}
-        {tabValue === 2 && (
+        {tabValue === 'asesorias' && isAdmin && (
           <Box sx={{ p: 4, bgcolor: '#fafafa', minHeight: '60vh' }}>
             <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 4 }} spacing={2}>
               <Box>
                 <Typography variant="h6" color="primary" fontWeight="bold">Gestión de Asesorías</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Revisa los borradores, envía respuestas o consulta el historial.
-                </Typography>
+                <Typography variant="body2" color="text.secondary">Revisa los borradores, envía respuestas o consulta el historial.</Typography>
               </Box>
-              <ToggleButtonGroup 
-                value={subTabDenuncias} 
-                exclusive 
-                onChange={(e, v) => v && setSubTabDenuncias(v)} 
-                color="primary" 
-                size="small"
-                sx={{ bgcolor: 'white' }}
-              >
-                <ToggleButton value="pendiente" sx={{ px: 3 }}>
-                  <PendingActionsIcon sx={{ mr: 1, fontSize: 20 }} /> Pendientes
-                </ToggleButton>
-                <ToggleButton value="completada" sx={{ px: 3 }}>
-                  <HistoryIcon sx={{ mr: 1, fontSize: 20 }} /> Historial
-                </ToggleButton>
+              <ToggleButtonGroup value={subTabDenuncias} exclusive onChange={(e, v) => v && setSubTabDenuncias(v)} color="primary" size="small" sx={{ bgcolor: 'white' }}>
+                <ToggleButton value="pendiente" sx={{ px: 3 }}><PendingActionsIcon sx={{ mr: 1, fontSize: 20 }} /> Pendientes</ToggleButton>
+                <ToggleButton value="completada" sx={{ px: 3 }}><HistoryIcon sx={{ mr: 1, fontSize: 20 }} /> Historial</ToggleButton>
               </ToggleButtonGroup>
             </Stack>
 
@@ -471,77 +459,115 @@ export default function Admin() {
                   <Card elevation={2} sx={{ borderLeft: `4px solid ${subTabDenuncias === 'pendiente' ? '#f44336' : '#4caf50'}` }}>
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <Box>
-                          <Typography variant="subtitle1" fontWeight="bold">{denuncia.nombres} {denuncia.apellidos}</Typography>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>{denuncia.email}</Typography>
-                        </Box>
+                        <Box><Typography variant="subtitle1" fontWeight="bold">{denuncia.nombres} {denuncia.apellidos}</Typography><Typography variant="body2" color="text.secondary" gutterBottom>{denuncia.email}</Typography></Box>
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                          {user?.email === SUPER_ADMIN_EMAIL && (
-                            <IconButton size="small" color="error" onClick={() => handleDeleteDenuncia(denuncia.id)} title="Eliminar definitivamente">
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          )}
+                          {user?.email === SUPER_ADMIN_EMAIL && (<IconButton size="small" color="error" onClick={() => handleDeleteDenuncia(denuncia.id)} title="Eliminar definitivamente"><DeleteIcon fontSize="small" /></IconButton>)}
                           <Chip label={subTabDenuncias === 'pendiente' ? 'Pendiente' : 'Completada'} size="small" color={subTabDenuncias === 'pendiente' ? 'error' : 'success'} />
                         </Box>
                       </Box>
                       <Divider sx={{ my: 1 }} />
                       <Typography variant="body2"><strong>Caso:</strong> {denuncia.tipoDenuncia}</Typography>
-                      <Typography variant="body2" sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', mt: 1 }}>
-                        {denuncia.descripcion}
-                      </Typography>
-                      <Button variant="outlined" sx={{ mt: 2 }} onClick={() => handleOpenReview(denuncia)}>
-                        {subTabDenuncias === 'pendiente' ? 'Revisar y Enviar Respuesta' : 'Ver Respuesta Enviada'}
-                      </Button>
+                      <Typography variant="body2" sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', mt: 1 }}>{denuncia.descripcion}</Typography>
+                      <Button variant="outlined" sx={{ mt: 2 }} onClick={() => handleOpenReview(denuncia)}>{subTabDenuncias === 'pendiente' ? 'Revisar y Enviar Respuesta' : 'Ver Respuesta Enviada'}</Button>
                     </CardContent>
                   </Card>
                 </Grid>
               ))}
-              {listaDenuncias.filter(d => d.estado === subTabDenuncias).length === 0 && (
-                <Typography sx={{ mt: 4, ml: 3, color: 'text.secondary' }}>No hay asesorías en esta sección.</Typography>
-              )}
+              {listaDenuncias.filter(d => d.estado === subTabDenuncias).length === 0 && (<Typography sx={{ mt: 4, ml: 3, color: 'text.secondary' }}>No hay asesorías en esta sección.</Typography>)}
             </Grid>
           </Box>
         )}
 
-        {/* PESTAÑA: ADMINISTRADORES */}
-        {tabValue === 3 && (
+        {tabValue === 'admins' && isAdmin && (
           <Box sx={{ p: 4 }}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 4 }}>
+            <Alert severity="info" sx={{ mb: 4 }}>Gestión de accesos y permisos de la plataforma.</Alert>
+            
+            {/* SECCIÓN ADMINISTRADORES */}
+            <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>Administradores del Sistema</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Tienen acceso total a estadísticas, asesorías, documentos y permisos.</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
               <TextField label="Nombre Completo" size="small" sx={{ flexGrow: 1 }} value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} />
               <TextField label="Correo Electrónico" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
               <Button variant="contained" startIcon={<PersonAddIcon />} onClick={handleAddAdmin} sx={{ minWidth: '150px' }}>Autorizar</Button>
             </Stack>
-            
-            <List sx={{ bgcolor: '#f9f9f9', borderRadius: 1 }}>
-              
-              {/* NUEVO: Superadmin integrado en la lista con etiqueta Inamovible */}
+            <List sx={{ bgcolor: '#f9f9f9', borderRadius: 1, mb: 6 }}>
               <ListItem divider secondaryAction={<Chip label="Inamovible" size="small" color="primary" sx={{ fontWeight: 'bold' }} />}>
-                <ListItemText 
-                  primary={
-                    <Typography variant="body1">
-                      <strong>Super Administrador</strong> ({SUPER_ADMIN_EMAIL})
-                    </Typography>
-                  } 
-                  secondary="Acceso total al sistema (Predeterminado)" 
-                />
+                <ListItemText primary={<Typography variant="body1"><strong>Super Administrador</strong> ({SUPER_ADMIN_EMAIL})</Typography>} secondary="Acceso total al sistema (Predeterminado)" />
               </ListItem>
-
               {adminList.map((admin) => (
                 <ListItem key={admin.id} divider secondaryAction={<IconButton edge="end" color="error" onClick={() => handleRemoveAdmin(admin.id)}><DeleteIcon /></IconButton>}>
+                  <ListItemText primary={<Typography variant="body1">{admin.nombre ? <strong>{admin.nombre}</strong> : <strong>{admin.email}</strong>}{admin.nombre && ` (${admin.email})`}</Typography>} secondary={`Autorizado por: ${admin.addedBy}`} />
+                </ListItem>
+              ))}
+            </List>
+
+            <Divider sx={{ my: 4 }} />
+
+            {/* NUEVO: SECCIÓN REDACTORES DE BLOG */}
+            <Typography variant="h6" color="secondary.main" fontWeight="bold" gutterBottom>Redactores Autorizados (Blog)</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Estas personas <strong>solo</strong> tendrán acceso a la pestaña de "Redacción Blog" para escribir y publicar artículos. No podrán ver denuncias ni estadísticas.</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
+              <TextField label="Nombre del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorName} onChange={(e) => setNewAutorName(e.target.value)} />
+              <TextField label="Correo del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorEmail} onChange={(e) => setNewAutorEmail(e.target.value)} />
+              <Button variant="contained" color="secondary" startIcon={<EditIcon />} onClick={handleAddAutor} sx={{ minWidth: '150px', color: 'black' }}>Autorizar Autor</Button>
+            </Stack>
+            <List sx={{ bgcolor: '#fffde7', borderRadius: 1 }}>
+              {autorList.length === 0 && <Typography variant="body2" sx={{ p: 2, color: 'text.secondary' }}>No hay redactores autorizados aún.</Typography>}
+              {autorList.map((autor) => (
+                <ListItem key={autor.id} divider secondaryAction={<IconButton edge="end" color="error" onClick={() => handleRemoveAutor(autor.id)}><DeleteIcon /></IconButton>}>
+                  <ListItemText primary={<Typography variant="body1"><strong>{autor.nombre}</strong> ({autor.email})</Typography>} secondary={`Autorizado por: ${autor.addedBy}`} />
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        )}
+
+        {/* NUEVO: PESTAÑA REDACCIÓN BLOG */}
+        {tabValue === 'blog' && (isAdmin || isAuthor) && (
+          <Box sx={{ p: 4, bgcolor: '#fafafa' }}>
+            <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>Redactar Nuevo Artículo</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+              Puede utilizar formato <strong>Markdown</strong> en el contenido para añadir negritas (**texto**), títulos (# Título), listas y enlaces.
+            </Typography>
+            
+            <Paper elevation={2} sx={{ p: 3, mb: 6 }}>
+              <Stack spacing={3} component="form" onSubmit={handlePublishBlog}>
+                <TextField 
+                  fullWidth label="Título del Artículo" value={blogData.titulo} 
+                  onChange={(e) => setBlogData({...blogData, titulo: e.target.value})} required 
+                />
+                <TextField 
+                  fullWidth multiline minRows={8} label="Contenido del Artículo (Soporta Markdown)" 
+                  value={blogData.contenido} onChange={(e) => setBlogData({...blogData, contenido: e.target.value})} required 
+                  sx={{ fontFamily: 'monospace' }}
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button type="submit" variant="contained" color="primary" size="large" disabled={publishing}>
+                    {publishing ? 'Publicando...' : 'Publicar en el Blog Oficial'}
+                  </Button>
+                </Box>
+              </Stack>
+            </Paper>
+
+            <Divider sx={{ mb: 4 }} />
+            
+            <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>Tus Artículos Publicados</Typography>
+            <List sx={{ bgcolor: 'white', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+              {blogPosts.filter(p => isAdmin || p.autorEmail === user.email).length === 0 && (
+                <Typography sx={{ p: 2, color: 'text.secondary' }}>No tienes artículos publicados aún.</Typography>
+              )}
+              {blogPosts.filter(p => isAdmin || p.autorEmail === user.email).map(post => (
+                <ListItem key={post.id} divider secondaryAction={<IconButton color="error" onClick={() => handleDeletePost(post.id)}><DeleteIcon /></IconButton>}>
                   <ListItemText 
-                    primary={
-                      <Typography variant="body1">
-                        {admin.nombre ? <strong>{admin.nombre}</strong> : <strong>{admin.email}</strong>}
-                        {admin.nombre && ` (${admin.email})`}
-                      </Typography>
-                    } 
-                    secondary={`Autorizado por: ${admin.addedBy}`} 
+                    primary={<Typography fontWeight="bold">{post.titulo}</Typography>}
+                    secondary={`Publicado por ${post.autorNombre} el ${post.fechaCreacion?.toDate().toLocaleDateString() || 'recientemente'}`}
                   />
                 </ListItem>
               ))}
             </List>
           </Box>
         )}
+
       </Paper>
       
       {/* MODAL PARA REVISAR ASESORÍA */}
@@ -574,22 +600,12 @@ export default function Admin() {
                   </Typography>
                   {subTabDenuncias === 'pendiente' ? (
                     <>
-                      <TextField 
-                        fullWidth multiline minRows={12} maxRows={16}
-                        value={draftReview} 
-                        onChange={(e) => setDraftReview(e.target.value)}
-                        variant="outlined"
-                        sx={{ bgcolor: 'white', flexGrow: 1 }}
-                      />
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                        Modifique el texto si es necesario. Al aprobar, este mensaje exacto se enviará por correo.
-                      </Typography>
+                      <TextField fullWidth multiline minRows={12} maxRows={16} value={draftReview} onChange={(e) => setDraftReview(e.target.value)} variant="outlined" sx={{ bgcolor: 'white', flexGrow: 1 }} />
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Modifique el texto si es necesario. Al aprobar, este mensaje exacto se enviará por correo.</Typography>
                     </>
                   ) : (
                     <Paper variant="outlined" sx={{ p: 2, bgcolor: 'white', flexGrow: 1, overflowY: 'auto', maxHeight: { xs: 200, md: 400 } }}>
-                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: 'text.primary', wordBreak: 'break-word' }}>
-                        {draftReview}
-                      </Typography>
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: 'text.primary', wordBreak: 'break-word' }}>{draftReview}</Typography>
                     </Paper>
                   )}
                 </Grid>

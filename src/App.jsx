@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Denuncia from './pages/Denuncia';
 import Admin from './pages/Admin';
 import Repositorio from './pages/Repositorio';
+import Blog from './pages/Blog'; // NUEVO: Importación de la página de Blog
 
 // Tema visual con los colores de la Unión Europea
 const theme = createTheme({
@@ -35,6 +36,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/repositorio" element={<Repositorio />} />
           <Route path="/denuncia" element={<Denuncia />} />
+          <Route path="/blog" element={<Blog />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </Router>
