@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Container, Typography, Paper, Box, Grid, Button, 
-  Card, CardContent, CardActions, Divider, CircularProgress, Link as MuiLink,
-  Stack 
+  Card, CardContent, CardActions, Divider, CircularProgress, Link as MuiLink 
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import GavelIcon from '@mui/icons-material/Gavel';
@@ -183,67 +182,61 @@ export default function Home() {
           </Typography>
         </Box>
 
-        {/* SOLUCIÓN DEFINITIVA: Usamos Stack para forzar apilamiento vertical centrado absoluto */}
-        <Stack spacing={4} alignItems="center">
+        {/* SOLUCIÓN INFALIBLE: Contenedor con márgenes automáticos (mx: 'auto') y ancho máximo fijo */}
+        <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
           
-          <Box sx={{ width: '100%', maxWidth: 800 }}>
-            <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #003399' }}>
-              <CardContent sx={{ textAlign: 'center', p: { xs: 3, md: 4 } }}>
-                <GavelIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
-                  Repositorio Documental
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Explora nuestra biblioteca con la legislación nacional vigente, tratados de la OIT y la jurisprudencia más relevante de Costa Rica.
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
-                <Button component={RouterLink} to="/repositorio" variant="outlined" color="primary" sx={{ fontWeight: 'bold', px: 4 }}>
-                  Buscador Legal
-                </Button>
-              </CardActions>
-            </Card>
-          </Box>
+          <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #003399' }}>
+            <CardContent sx={{ textAlign: 'center', p: { xs: 3, md: 4 } }}>
+              <GavelIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+              <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
+                Repositorio Documental
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Explora nuestra biblioteca con la legislación nacional vigente, tratados de la OIT y la jurisprudencia más relevante de Costa Rica.
+              </Typography>
+            </CardContent>
+            <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
+              <Button component={RouterLink} to="/repositorio" variant="outlined" color="primary" sx={{ fontWeight: 'bold', px: 4 }}>
+                Buscador Legal
+              </Button>
+            </CardActions>
+          </Card>
 
-          <Box sx={{ width: '100%', maxWidth: 800 }}>
-            <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #FFCC00' }}>
-              <CardContent sx={{ textAlign: 'center', p: { xs: 3, md: 4 } }}>
-                <ForumIcon sx={{ fontSize: 60, color: 'secondary.main', mb: 2 }} />
-                <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
-                  Orientación Legal
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Registre su caso de forma segura. Nuestro equipo y PIDA analizarán su situación para enviarle una recomendación a su correo.
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
-                <Button component={RouterLink} to="/denuncia" variant="contained" color="secondary" sx={{ color: '#000', fontWeight: 'bold', px: 4 }}>
-                  Solicitar Ayuda
-                </Button>
-              </CardActions>
-            </Card>
-          </Box>
+          <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #FFCC00' }}>
+            <CardContent sx={{ textAlign: 'center', p: { xs: 3, md: 4 } }}>
+              <ForumIcon sx={{ fontSize: 60, color: 'secondary.main', mb: 2 }} />
+              <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
+                Orientación Legal
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Registre su caso de forma segura. Nuestro equipo y PIDA analizarán su situación para enviarle una recomendación a su correo.
+              </Typography>
+            </CardContent>
+            <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
+              <Button component={RouterLink} to="/denuncia" variant="contained" color="secondary" sx={{ color: '#000', fontWeight: 'bold', px: 4 }}>
+                Solicitar Ayuda
+              </Button>
+            </CardActions>
+          </Card>
 
-          <Box sx={{ width: '100%', maxWidth: 800 }}>
-            <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #4caf50' }}>
-              <CardContent sx={{ textAlign: 'center', p: { xs: 3, md: 4 } }}>
-                <NewspaperIcon sx={{ fontSize: 60, color: '#4caf50', mb: 2 }} />
-                <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
-                  Blog Oficial
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Manténgase informado con análisis profundos, artículos de opinión y actualizaciones redactadas por nuestros expertos legales.
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
-                <Button component={RouterLink} to="/blog" variant="outlined" color="success" sx={{ fontWeight: 'bold', px: 4 }}>
-                  Leer Artículos
-                </Button>
-              </CardActions>
-            </Card>
-          </Box>
+          <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #4caf50' }}>
+            <CardContent sx={{ textAlign: 'center', p: { xs: 3, md: 4 } }}>
+              <NewspaperIcon sx={{ fontSize: 60, color: '#4caf50', mb: 2 }} />
+              <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
+                Blog Oficial
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Manténgase informado con análisis profundos, artículos de opinión y actualizaciones redactadas por nuestros expertos legales.
+              </Typography>
+            </CardContent>
+            <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
+              <Button component={RouterLink} to="/blog" variant="outlined" color="success" sx={{ fontWeight: 'bold', px: 4 }}>
+                Leer Artículos
+              </Button>
+            </CardActions>
+          </Card>
 
-        </Stack>
+        </Box>
 
         {/* --- RESPALDO INSTITUCIONAL --- */}
         <Box sx={{ mt: 10, textAlign: 'center', p: 4, bgcolor: '#f8f9fa', borderRadius: 2 }}>
