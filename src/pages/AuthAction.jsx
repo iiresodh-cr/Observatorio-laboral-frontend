@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link as RouterLink } from 'react-router-dom';
 import { Container, Paper, Typography, Box, CircularProgress, Button } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+
+// SOLUCIÓN: Importación nombrada desde la raíz del paquete
+import { 
+  CheckCircle as CheckCircleIcon, 
+  ErrorOutline as ErrorOutlineIcon 
+} from '@mui/icons-material';
 
 // Firebase
 import { auth } from '../services/firebaseConfig';
