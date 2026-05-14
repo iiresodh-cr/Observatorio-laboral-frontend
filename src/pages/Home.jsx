@@ -9,27 +9,33 @@ import ForumIcon from '@mui/icons-material/Forum';
 import BalanceIcon from '@mui/icons-material/Balance';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import NewspaperIcon from '@mui/icons-material/Newspaper'; // NUEVO: Icono para el blog
 
 // Firebase Services
 import { db } from '../services/firebaseConfig';
 import { collection, query, where, getCountFromServer } from 'firebase/firestore';
 
 export default function Home() {
-  const [stats, setStats] = useState({ docs: 0, cases: 0, loading: true });
+  // NUEVO: Se agregó 'blogs' al estado
+  const [stats, setStats] = useState({ docs: 0, cases: 0, blogs: 0, loading: true });
 
   useEffect(() => {
     async function fetchStats() {
       try {
-        // 1. Contar documentos en el repositorio
+        // 1. Contar documentos
         const docsSnap = await getCountFromServer(collection(db, "documentos"));
         
-        // 2. Contar casos atendidos (denuncias completadas)
+        // 2. Contar casos completados
         const casesQuery = query(collection(db, "denuncias"), where("estado", "==", "completada"));
         const casesSnap = await getCountFromServer(casesQuery);
+
+        // 3. NUEVO: Contar artículos del blog
+        const blogsSnap = await getCountFromServer(collection(db, "blog"));
 
         setStats({
           docs: docsSnap.data().count,
           cases: casesSnap.data().count,
+          blogs: blogsSnap.data().count,
           loading: false
         });
       } catch (error) {
@@ -43,7 +49,7 @@ export default function Home() {
   return (
     <Box sx={{ width: '100%', pb: 8 }}>
       
-      {/* --- SECCIÓN HERO (Bienvenida con Gradiente) --- */}
+      {/* --- SECCIÓN HERO --- */}
       <Box 
         sx={{ 
           background: 'linear-gradient(135deg, #003399 0%, #001f5c 100%)',
@@ -81,10 +87,11 @@ export default function Home() {
         </Paper>
       </Container>
 
-      {/* --- SECCIÓN: CONTADORES DINÁMICOS (ALINEACIÓN CORREGIDA) --- */}
+      {/* --- SECCIÓN: CONTADORES DINÁMICOS --- */}
       <Container maxWidth="lg" sx={{ mt: 10, mb: 8 }}>
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'center', alignItems: 'center', gap: 4 }}>
-          <Paper elevation={0} sx={{ width: '100%', maxWidth: 350, p: 4, textAlign: 'center', bgcolor: '#f0f4ff', borderRadius: 4, border: '1px solid #e0eaff' }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'center', alignItems: 'stretch', gap: 4 }}>
+          
+          <Paper elevation={0} sx={{ flex: 1, p: 4, textAlign: 'center', bgcolor: '#f0f4ff', borderRadius: 4, border: '1px solid #e0eaff' }}>
             <GavelIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
             {stats.loading ? <CircularProgress size={30} sx={{ display: 'block', mx: 'auto', my: 1 }} /> : (
               <Typography variant="h3" fontWeight="900" color="primary">{stats.docs}</Typography>
@@ -93,7 +100,7 @@ export default function Home() {
             <Typography variant="caption" color="text.disabled">Leyes, Tratados y Jurisprudencia</Typography>
           </Paper>
           
-          <Paper elevation={0} sx={{ width: '100%', maxWidth: 350, p: 4, textAlign: 'center', bgcolor: '#fff9e6', borderRadius: 4, border: '1px solid #ffecb3' }}>
+          <Paper elevation={0} sx={{ flex: 1, p: 4, textAlign: 'center', bgcolor: '#fff9e6', borderRadius: 4, border: '1px solid #ffecb3' }}>
             <SupportAgentIcon sx={{ fontSize: 40, mb: 1, color: '#b28900' }} />
             {stats.loading ? <CircularProgress size={30} sx={{ display: 'block', mx: 'auto', my: 1, color: '#b28900' }} /> : (
               <Typography variant="h3" fontWeight="900" sx={{ color: '#b28900' }}>{stats.cases}</Typography>
@@ -101,12 +108,23 @@ export default function Home() {
             <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">Asesorías Finalizadas</Typography>
             <Typography variant="caption" color="text.disabled">Casos con orientación brindada</Typography>
           </Paper>
+
+          {/* NUEVO: Contador del Blog */}
+          <Paper elevation={0} sx={{ flex: 1, p: 4, textAlign: 'center', bgcolor: '#e8f5e9', borderRadius: 4, border: '1px solid #c8e6c9' }}>
+            <NewspaperIcon sx={{ fontSize: 40, mb: 1, color: '#2e7d32' }} />
+            {stats.loading ? <CircularProgress size={30} sx={{ display: 'block', mx: 'auto', my: 1, color: '#2e7d32' }} /> : (
+              <Typography variant="h3" fontWeight="900" sx={{ color: '#2e7d32' }}>{stats.blogs}</Typography>
+            )}
+            <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">Artículos Publicados</Typography>
+            <Typography variant="caption" color="text.disabled">Análisis y noticias del sector</Typography>
+          </Paper>
+
         </Box>
       </Container>
 
       <Container maxWidth="lg" sx={{ mt: 2 }}>
         
-        {/* --- SECCIÓN EXPLICATIVA: ¿Qué es el observatorio? --- */}
+        {/* --- SECCIÓN EXPLICATIVA --- */}
         <Box sx={{ mb: 10, textAlign: 'center' }}>
           <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>
             ¿Por qué existe este Observatorio?
@@ -145,12 +163,8 @@ export default function Home() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     sx={{ 
-                      color: 'inherit', 
-                      textDecoration: 'underline', 
-                      textDecorationStyle: 'dotted', 
-                      textUnderlineOffset: '3px', 
-                      fontWeight: 'bold',
-                      transition: '0.2s',
+                      color: 'inherit', textDecoration: 'underline', textDecorationStyle: 'dotted', 
+                      textUnderlineOffset: '3px', fontWeight: 'bold', transition: '0.2s',
                       '&:hover': { color: 'primary.main', textDecorationStyle: 'solid' } 
                     }}
                   >
@@ -166,7 +180,7 @@ export default function Home() {
         <Divider sx={{ mb: 8 }} />
 
         {/* --- TARJETAS DE NAVEGACIÓN PRINCIPALES --- */}
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>
             Nuestros Servicios
           </Typography>
@@ -175,63 +189,69 @@ export default function Home() {
           </Typography>
         </Box>
 
-        <Grid container spacing={5}>
+        {/* NUEVO: Grid de 3 columnas (md={4}) */}
+        <Grid container spacing={4}>
+          
           {/* Tarjeta Repositorio */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={4}>
             <Card elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #003399' }}>
-              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: { xs: 4, md: 6 } }}>
-                <GavelIcon sx={{ fontSize: 70, color: 'primary.main', mb: 3 }} />
-                <Typography variant="h4" fontWeight="bold" gutterBottom color="primary.main">
+              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: { xs: 3, md: 4 } }}>
+                <GavelIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+                <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
                   Repositorio Documental
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
-                  Explora nuestra biblioteca pública y constantemente actualizada. Contiene la legislación nacional vigente, los tratados internacionales de la OIT y la jurisprudencia más relevante de los tribunales de Costa Rica.
+                <Typography variant="body2" color="text.secondary">
+                  Explora nuestra biblioteca con la legislación nacional vigente, tratados de la OIT y la jurisprudencia más relevante de Costa Rica.
                 </Typography>
               </CardContent>
-              <CardActions sx={{ justifyContent: 'center', pb: 6 }}>
-                <Button component={RouterLink} to="/repositorio" variant="outlined" color="primary" size="large" sx={{ fontWeight: 'bold', px: 5, py: 1.5 }}>
-                  Entrar al Buscador Legal
+              <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
+                <Button component={RouterLink} to="/repositorio" variant="outlined" color="primary" sx={{ fontWeight: 'bold', px: 4 }}>
+                  Buscador Legal
                 </Button>
               </CardActions>
             </Card>
           </Grid>
 
-          {/* Tarjeta Denuncia / Orientación */}
-          <Grid item xs={12} md={6}>
+          {/* Tarjeta Denuncia */}
+          <Grid item xs={12} md={4}>
             <Card elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #FFCC00' }}>
-              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: { xs: 4, md: 6 } }}>
-                <ForumIcon sx={{ fontSize: 70, color: 'secondary.main', mb: 3 }} />
-                <Typography variant="h4" fontWeight="bold" gutterBottom color="primary.main">
-                  Orientación y Denuncia
+              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: { xs: 3, md: 4 } }}>
+                <ForumIcon sx={{ fontSize: 60, color: 'secondary.main', mb: 2 }} />
+                <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
+                  Orientación Legal
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
-                  ¿Han vulnerado sus derechos laborales? Registre su caso de forma segura. Nuestro sistema de Inteligencia Artificial{' '}
-                  <MuiLink 
-                    href="https://pida-ai.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    sx={{ 
-                      color: 'inherit', 
-                      textDecoration: 'underline', 
-                      textDecorationStyle: 'dotted', 
-                      textUnderlineOffset: '3px', 
-                      fontWeight: 'bold',
-                      transition: '0.2s',
-                      '&:hover': { color: 'primary.main', textDecorationStyle: 'solid' } 
-                    }}
-                  >
-                    PIDA
-                  </MuiLink>
-                  {' '}y nuestro equipo de abogados analizarán su situación para enviarle una recomendación legal a su correo.
+                <Typography variant="body2" color="text.secondary">
+                  Registre su caso de forma segura. Nuestro equipo y PIDA analizarán su situación para enviarle una recomendación a su correo.
                 </Typography>
               </CardContent>
-              <CardActions sx={{ justifyContent: 'center', pb: 6 }}>
-                <Button component={RouterLink} to="/denuncia" variant="contained" color="secondary" size="large" sx={{ color: '#000', fontWeight: 'bold', px: 5, py: 1.5 }}>
-                  Iniciar Solicitud de Ayuda
+              <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
+                <Button component={RouterLink} to="/denuncia" variant="contained" color="secondary" sx={{ color: '#000', fontWeight: 'bold', px: 4 }}>
+                  Solicitar Ayuda
                 </Button>
               </CardActions>
             </Card>
           </Grid>
+
+          {/* NUEVO: Tarjeta Blog */}
+          <Grid item xs={12} md={4}>
+            <Card elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #4caf50' }}>
+              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: { xs: 3, md: 4 } }}>
+                <NewspaperIcon sx={{ fontSize: 60, color: '#4caf50', mb: 2 }} />
+                <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
+                  Blog Oficial
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Manténgase informado con análisis profundos, artículos de opinión y actualizaciones redactadas por nuestros expertos legales.
+                </Typography>
+              </CardContent>
+              <CardActions sx={{ justifyContent: 'center', pb: 4 }}>
+                <Button component={RouterLink} to="/blog" variant="outlined" color="success" sx={{ fontWeight: 'bold', px: 4 }}>
+                  Leer Artículos
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+
         </Grid>
 
         {/* --- RESPALDO INSTITUCIONAL --- */}
