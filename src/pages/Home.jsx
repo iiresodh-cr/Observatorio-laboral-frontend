@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
   Container, Typography, Paper, Box, Grid, Button, 
-  Card, CardContent, CardActions, Divider, CircularProgress, Link as MuiLink 
+  Card, CardContent, CardActions, Divider, CircularProgress, Link as MuiLink,
+  Stack 
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import GavelIcon from '@mui/icons-material/Gavel';
@@ -182,10 +183,10 @@ export default function Home() {
           </Typography>
         </Box>
 
-        {/* SOLUCIÓN: Vuelven a estar apiladas verticalmente (md={8}) y centradas */}
-        <Grid container spacing={4} justifyContent="center">
+        {/* SOLUCIÓN DEFINITIVA: Usamos Stack para forzar apilamiento vertical centrado absoluto */}
+        <Stack spacing={4} alignItems="center">
           
-          <Grid item xs={12} md={8}>
+          <Box sx={{ width: '100%', maxWidth: 800 }}>
             <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #003399' }}>
               <CardContent sx={{ textAlign: 'center', p: { xs: 3, md: 4 } }}>
                 <GavelIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
@@ -202,9 +203,9 @@ export default function Home() {
                 </Button>
               </CardActions>
             </Card>
-          </Grid>
+          </Box>
 
-          <Grid item xs={12} md={8}>
+          <Box sx={{ width: '100%', maxWidth: 800 }}>
             <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #FFCC00' }}>
               <CardContent sx={{ textAlign: 'center', p: { xs: 3, md: 4 } }}>
                 <ForumIcon sx={{ fontSize: 60, color: 'secondary.main', mb: 2 }} />
@@ -221,9 +222,9 @@ export default function Home() {
                 </Button>
               </CardActions>
             </Card>
-          </Grid>
+          </Box>
 
-          <Grid item xs={12} md={8}>
+          <Box sx={{ width: '100%', maxWidth: 800 }}>
             <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #4caf50' }}>
               <CardContent sx={{ textAlign: 'center', p: { xs: 3, md: 4 } }}>
                 <NewspaperIcon sx={{ fontSize: 60, color: '#4caf50', mb: 2 }} />
@@ -240,9 +241,9 @@ export default function Home() {
                 </Button>
               </CardActions>
             </Card>
-          </Grid>
+          </Box>
 
-        </Grid>
+        </Stack>
 
         {/* --- RESPALDO INSTITUCIONAL --- */}
         <Box sx={{ mt: 10, textAlign: 'center', p: 4, bgcolor: '#f8f9fa', borderRadius: 2 }}>
