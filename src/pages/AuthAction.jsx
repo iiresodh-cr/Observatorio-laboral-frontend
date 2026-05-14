@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, Link as RouterLink } from 'react-router-dom';
 import { Container, Paper, Typography, Box, CircularProgress, Button } from '@mui/material';
 
-// SOLUCIÓN: Importación nombrada desde la raíz del paquete
+// SOLUCIÓN: Usamos 'Error' en lugar de 'ErrorOutline' para evitar el bug de Vite/Rolldown
 import { 
   CheckCircle as CheckCircleIcon, 
-  ErrorOutline as ErrorOutlineIcon 
+  Error as ErrorIcon 
 } from '@mui/icons-material';
 
 // Firebase
@@ -81,7 +81,7 @@ export default function AuthAction() {
 
         {status === 'error' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <ErrorOutlineIcon sx={{ fontSize: 80, color: '#f44336', mb: 1 }} />
+            <ErrorIcon sx={{ fontSize: 80, color: '#f44336', mb: 1 }} />
             <Typography variant="h4" fontWeight="bold" color="text.primary">
               Error de Verificación
             </Typography>
