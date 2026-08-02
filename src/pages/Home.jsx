@@ -47,24 +47,29 @@ export default function Home() {
         getCountFromServer(collection(db, "blog"))
       ]);
 
-      const docsCount = docsRes.status === 'fulfilled' ? docsRes.value.data().count : 0;
-      const casesCount = casesRes.status === 'fulfilled' ? casesRes.value.data().count : 0;
-      const blogsCount = blogsRes.status === 'fulfilled' ? blogsRes.value.data().count : 0;
+      const docsCount = docsRes.status === 'fulfilled' ? docsRes.value.data().count : null;
+      const casesCount = casesRes.status === 'fulfilled' ? casesRes.value.data().count : null;
+      const blogsCount = blogsRes.status === 'fulfilled' ? blogsRes.value.data().count : null;
 
       // Log para diagnóstico en consola en caso de fallo de una promesa
       if (casesRes.status === 'rejected') {
-        console.error("Error al contar asesorías (posible falta de índice o permisos):", casesRes.reason);
-        // Si falla la consulta filtrada, podrías intentar contar toda la colección como fallback 
-        // si las reglas lo permiten, pero lo ideal es revisar el índice en Firebase Console.
+        console.error("Error 403/404 al contar asesorías. Revisa las Security Rules en Firebase Console:", casesRes.reason);
       }
 
       const newStats = {
-        docs: docsCount,
-        // Si la consulta falló pero sabemos que hay datos, mantenemos el estado previo o 0 con log
-        cases: casesCount || 0, 
-        blogs: blogsCount,
+        docs: docsCount ?? 0,
+        // Si falló por permisos (403), mostramos un número base o 0, pero no lo marcamos como "éxito"
+        cases: casesCount ?? 0, 
+        blogs: blogsCount ?? 0,
         loading: false
       };
+
+      // Solo guardamos en caché si al menos una consulta crítica tuvo éxito y devolvió datos
+      // Esto evita que un error de red o permisos "pise" un caché válido anterior
+      if (docsCount === null && casesCount === null) {
+        console.warn("No se pudo obtener datos de Firestore. No se actualizará el caché.");
+        return;
+      }
 
       setStats(newStats);
 
