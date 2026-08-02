@@ -20,22 +20,64 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchStats() {
+      const CACHE_KEY = 'observatorio_home_stats';
+      const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 horas en milisegundos
+
+      // 1. Intentar cargar desde el caché local primero
+      const cachedString = localStorage.getItem(CACHE_KEY);
+      if (cachedString) {
+        try {
+          const { data, timestamp } = JSON.parse(cachedString);
+          if (Date.now() - timestamp < CACHE_TTL_MS) {
+            setStats(data); // Usar caché y salir sin consultar Firestore
+            return;
+          }
+        } catch (error) {
+          console.warn("Error leyendo caché de estadísticas, se obtendrán datos nuevos.");
+        }
+      }
+
+      // 2. Si no hay caché válido, consultar a Firestore
+      let docsCount = 0;
+      let casesCount = 0;
+      let blogsCount = 0;
+
       try {
         const docsSnap = await getCountFromServer(collection(db, "documentos"));
+        docsCount = docsSnap.data().count;
+      } catch (error) {
+        console.warn("Error cargando estadísticas de documentos:", error);
+      }
+
+      try {
         const casesQuery = query(collection(db, "denuncias"), where("estado", "==", "completada"));
         const casesSnap = await getCountFromServer(casesQuery);
-        const blogsSnap = await getCountFromServer(collection(db, "blog"));
-
-        setStats({
-          docs: docsSnap.data().count,
-          cases: casesSnap.data().count,
-          blogs: blogsSnap.data().count,
-          loading: false
-        });
+        casesCount = casesSnap.data().count;
       } catch (error) {
-        console.error("Error cargando estadísticas:", error);
-        setStats(prev => ({ ...prev, loading: false }));
+        console.warn("Error cargando estadísticas de casos:", error);
       }
+
+      try {
+        const blogsSnap = await getCountFromServer(collection(db, "blog"));
+        blogsCount = blogsSnap.data().count;
+      } catch (error) {
+        console.warn("Error cargando estadísticas de blog:", error);
+      }
+
+      const newStats = {
+        docs: docsCount,
+        cases: casesCount,
+        blogs: blogsCount,
+        loading: false
+      };
+
+      setStats(newStats);
+
+      // 3. Guardar el nuevo resultado en caché
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        data: newStats,
+        timestamp: Date.now()
+      }));
     }
     fetchStats();
   }, []);
