@@ -26,7 +26,7 @@ const SUPER_ADMIN_EMAIL = 'webmaster@iiresodh.org';
 
 // Si tu backend se ejecuta en un servidor/subdominio distinto, indícalo aquí (ej: 'https://api.observatoriolaboralcr.org').
 // Si tu frontend y backend comparten el mismo dominio o usas rewrites, déjalo como string vacío ''.
-const API_BASE_URL = '';
+const API_BASE_URL = 'https://observatorio-backend-86857815411.us-central1.run.app';
 
 export default function Repositorio() {
   const [documentos, setDocumentos] = useState([]);
@@ -230,6 +230,7 @@ export default function Repositorio() {
                   </CardContent>
                   <CardActions sx={{ p: 2, pt: 0 }}>
                     <Button 
+                      component="a"
                       fullWidth 
                       variant="contained" 
                       href={doc.fileName ? `${API_BASE_URL}/documentos/${encodeURIComponent(doc.fileName)}` : doc.fileUrl} 
