@@ -56,11 +56,14 @@ export default function Home() {
         console.error("Error 403/404 al contar asesorías. Revisa las Security Rules en Firebase Console:", casesRes.reason);
       }
 
+      // Recuperamos datos previos del caché para evitar mostrar 0 si hay un error de permisos/red
+      const cachedStats = JSON.parse(sessionStorage.getItem(CACHE_KEY) || '{}')?.data || { docs: 0, cases: 0, blogs: 0 };
+
       const newStats = {
-        docs: docsCount ?? 0,
-        // Si falló por permisos (403), mostramos un número base o 0, pero no lo marcamos como "éxito"
-        cases: casesCount ?? 0, 
-        blogs: blogsCount ?? 0,
+        // Si el conteo falla (null), intentamos mantener el valor del caché; si no hay caché, usamos 0
+        docs: docsCount ?? cachedStats.docs,
+        cases: casesCount ?? cachedStats.cases, 
+        blogs: blogsCount ?? cachedStats.blogs,
         loading: false
       };
 
