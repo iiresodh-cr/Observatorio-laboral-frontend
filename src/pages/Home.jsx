@@ -24,49 +24,44 @@ export default function Home() {
       const CACHE_TTL_MS = 5 * 60 * 1000; // Reducido a 5 minutos para evitar datos desactualizados
 
       // 1. Intentar cargar desde el caché de sesión primero
-      const cachedString = sessionStorage.getItem(CACHE_KEY);
-      if (cachedString) {
-        try {
+      try {
+        const cachedString = sessionStorage.getItem(CACHE_KEY);
+        if (cachedString) {
           const { data, timestamp } = JSON.parse(cachedString);
-          if (Date.now() - timestamp < CACHE_TTL_MS) {
-            setStats(data); // Usar caché y salir sin consultar Firestore
+          // Si el caché es válido y el valor de cases no es 0 (para evitar persistir errores temporales)
+          if (Date.now() - timestamp < CACHE_TTL_MS && data.cases > 0) {
+            setStats(data);
             return;
           }
-        } catch (error) {
-          console.warn("Error leyendo caché de estadísticas, se obtendrán datos nuevos.");
         }
+      } catch (e) {
+        console.warn("Error leyendo caché:", e);
       }
 
       // 2. Si no hay caché válido, consultar a Firestore
-      let docsCount = 0;
-      let casesCount = 0;
-      let blogsCount = 0;
 
-      try {
-        const docsSnap = await getCountFromServer(collection(db, "documentos"));
-        docsCount = docsSnap.data().count;
-      } catch (error) {
-        console.warn("Error cargando estadísticas de documentos:", error);
-      }
+      // Consultas en paralelo para mejor rendimiento
+      const [docsRes, casesRes, blogsRes] = await Promise.allSettled([
+        getCountFromServer(collection(db, "documentos")),
+        getCountFromServer(query(collection(db, "denuncias"), where("estado", "==", "completada"))),
+        getCountFromServer(collection(db, "blog"))
+      ]);
 
-      try {
-        const casesQuery = query(collection(db, "denuncias"), where("estado", "==", "completada"));
-        const casesSnap = await getCountFromServer(casesQuery);
-        casesCount = casesSnap.data().count;
-      } catch (error) {
-        console.warn("Error cargando estadísticas de casos:", error);
-      }
+      const docsCount = docsRes.status === 'fulfilled' ? docsRes.value.data().count : 0;
+      const casesCount = casesRes.status === 'fulfilled' ? casesRes.value.data().count : 0;
+      const blogsCount = blogsRes.status === 'fulfilled' ? blogsRes.value.data().count : 0;
 
-      try {
-        const blogsSnap = await getCountFromServer(collection(db, "blog"));
-        blogsCount = blogsSnap.data().count;
-      } catch (error) {
-        console.warn("Error cargando estadísticas de blog:", error);
+      // Log para diagnóstico en consola en caso de fallo de una promesa
+      if (casesRes.status === 'rejected') {
+        console.error("Error al contar asesorías (posible falta de índice o permisos):", casesRes.reason);
+        // Si falla la consulta filtrada, podrías intentar contar toda la colección como fallback 
+        // si las reglas lo permiten, pero lo ideal es revisar el índice en Firebase Console.
       }
 
       const newStats = {
         docs: docsCount,
-        cases: casesCount,
+        // Si la consulta falló pero sabemos que hay datos, mantenemos el estado previo o 0 con log
+        cases: casesCount || 0, 
         blogs: blogsCount,
         loading: false
       };
