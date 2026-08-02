@@ -95,6 +95,15 @@ export default function Denuncia() {
         borradorAsesoria: borradorIA
       });
 
+      // 3. NUEVO: Ordenar al backend que sume un nuevo caso pendiente al contador
+      try {
+        await fetch('https://observatorio-backend-86857815411.us-central1.run.app/incrementar-nuevas', {
+          method: 'POST'
+        });
+      } catch (countError) {
+        console.error("Fallo actualizando contadores globales:", countError);
+      }
+
       setResultModal({
         open: true,
         title: 'Reporte Registrado Exitosamente',

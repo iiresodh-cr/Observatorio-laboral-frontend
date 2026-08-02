@@ -275,19 +275,29 @@ export default function Admin() {
   const handleSendAdvice = async () => {
     if (!selectedDenuncia) return; setIsSendingEmail(true);
     try {
+      // 1. Enviar el correo
       const response = await fetch(`${BACKEND_URL}/send-email`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to_email: selectedDenuncia.email, subject: "Observatorio Laboral: Orientación sobre su caso", body: draftReview })
       });
       if (!response.ok) throw new Error(`Error`);
 
+      // 2. Actualizar el estado de la denuncia en Firestore a 'completada'
       await updateDoc(doc(db, "denuncias", selectedDenuncia.id), {
         estado: 'completada', respuestaFinal: draftReview, respondidoPor: user.email, fechaRespuesta: serverTimestamp()
       });
-      setActionModal({ open: true, title: 'Asesoría Enviada', message: 'El ciudadano ha recibido el correo exitosamente.' });
+
+      // 3. NUEVO: Ordenar al backend que sume la estadística automáticamente
+      await fetch(`${BACKEND_URL}/incrementar-completadas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipoDenuncia: selectedDenuncia.tipoDenuncia || 'Otro' })
+      });
+
+      setActionModal({ open: true, title: 'Asesoría Enviada', message: 'El ciudadano ha recibido el correo y las estadísticas se actualizaron exitosamente.' });
       setSelectedDenuncia(null);
     } catch (error) {
-      setActionModal({ open: true, title: 'Error', message: 'No se pudo enviar el correo.' });
+      setActionModal({ open: true, title: 'Error', message: 'No se pudo procesar la solicitud.' });
     } finally { setIsSendingEmail(false); }
   };
 
