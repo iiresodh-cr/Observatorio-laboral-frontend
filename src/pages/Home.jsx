@@ -21,10 +21,10 @@ export default function Home() {
   useEffect(() => {
     async function fetchStats() {
       const CACHE_KEY = 'observatorio_home_stats';
-      const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 horas en milisegundos
+      const CACHE_TTL_MS = 5 * 60 * 1000; // Reducido a 5 minutos para evitar datos desactualizados
 
-      // 1. Intentar cargar desde el caché local primero
-      const cachedString = localStorage.getItem(CACHE_KEY);
+      // 1. Intentar cargar desde el caché de sesión primero
+      const cachedString = sessionStorage.getItem(CACHE_KEY);
       if (cachedString) {
         try {
           const { data, timestamp } = JSON.parse(cachedString);
@@ -73,8 +73,8 @@ export default function Home() {
 
       setStats(newStats);
 
-      // 3. Guardar el nuevo resultado en caché
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
+      // 3. Guardar el nuevo resultado en caché de sesión
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
         data: newStats,
         timestamp: Date.now()
       }));
