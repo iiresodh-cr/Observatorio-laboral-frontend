@@ -24,6 +24,10 @@ import { onAuthStateChanged } from 'firebase/auth';
 
 const SUPER_ADMIN_EMAIL = 'webmaster@iiresodh.org';
 
+// Si tu backend se ejecuta en un servidor/subdominio distinto, indícalo aquí (ej: 'https://api.observatoriolaboralcr.org').
+// Si tu frontend y backend comparten el mismo dominio o usas rewrites, déjalo como string vacío ''.
+const API_BASE_URL = '';
+
 export default function Repositorio() {
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -225,7 +229,15 @@ export default function Repositorio() {
                     </Typography>
                   </CardContent>
                   <CardActions sx={{ p: 2, pt: 0 }}>
-                    <Button fullWidth variant="contained" href={doc.fileUrl} target="_blank" sx={{ fontWeight: 'bold' }}>VER DOCUMENTO</Button>
+                    <Button 
+                      fullWidth 
+                      variant="contained" 
+                      href={doc.fileName ? `${API_BASE_URL}/documentos/${encodeURIComponent(doc.fileName)}` : doc.fileUrl} 
+                      target="_blank" 
+                      sx={{ fontWeight: 'bold' }}
+                    >
+                      VER DOCUMENTO
+                    </Button>
                   </CardActions>
                 </Card>
               </Grid>
