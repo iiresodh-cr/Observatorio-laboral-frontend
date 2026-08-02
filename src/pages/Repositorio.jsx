@@ -233,7 +233,7 @@ export default function Repositorio() {
                       component="a"
                       fullWidth 
                       variant="contained" 
-                      href={doc.fileName ? `${API_BASE_URL}/documentos/${encodeURIComponent(doc.fileName)}` : doc.fileUrl} 
+                      href={doc.fileName ? `${API_BASE_URL}/documentos/${encodeURIComponent(doc.fileName.includes('_') ? doc.fileName.split('_').slice(1).join('_') : doc.fileName)}` : doc.fileUrl}
                       target="_blank" 
                       sx={{ fontWeight: 'bold' }}
                     >
