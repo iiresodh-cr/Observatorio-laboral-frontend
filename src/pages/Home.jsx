@@ -13,7 +13,8 @@ import NewspaperIcon from '@mui/icons-material/Newspaper';
 
 // Firebase Services
 import { db } from '../services/firebaseConfig';
-import { collection, query, where, getCountFromServer } from 'firebase/firestore';
+// CAMBIO: Importamos doc y getDoc para leer el contador global público
+import { collection, getCountFromServer, doc, getDoc } from 'firebase/firestore';
 
 export default function Home() {
   const [stats, setStats] = useState({ docs: 0, cases: 0, blogs: 0, loading: true });
@@ -28,7 +29,7 @@ export default function Home() {
         const cachedString = sessionStorage.getItem(CACHE_KEY);
         if (cachedString) {
           const { data, timestamp } = JSON.parse(cachedString);
-          // Si el caché es válido y el valor de cases no es 0 (para evitar persistir errores temporales)
+          // Si el caché es válido y el valor de cases no es 0
           if (Date.now() - timestamp < CACHE_TTL_MS && data.cases > 0) {
             setStats(data);
             return;
@@ -39,36 +40,38 @@ export default function Home() {
       }
 
       // 2. Si no hay caché válido, consultar a Firestore
-
-      // Consultas en paralelo para mejor rendimiento
-      const [docsRes, casesRes, blogsRes] = await Promise.allSettled([
+      // CAMBIO: Ahora consultamos el documento público 'stats/global_counters' en lugar de la colección 'denuncias'
+      const [docsRes, statsDocRes, blogsRes] = await Promise.allSettled([
         getCountFromServer(collection(db, "documentos")),
-        getCountFromServer(query(collection(db, "denuncias"), where("estado", "==", "completada"))),
+        getDoc(doc(db, "stats", "global_counters")),
         getCountFromServer(collection(db, "blog"))
       ]);
 
       const docsCount = docsRes.status === 'fulfilled' ? docsRes.value.data().count : null;
-      const casesCount = casesRes.status === 'fulfilled' ? casesRes.value.data().count : null;
+      
+      // Obtenemos el contador 'completadas' del documento global
+      const casesCount = (statsDocRes.status === 'fulfilled' && statsDocRes.value.exists()) 
+        ? (statsDocRes.value.data().completadas || 0) 
+        : null;
+
       const blogsCount = blogsRes.status === 'fulfilled' ? blogsRes.value.data().count : null;
 
-      // Log para diagnóstico en consola en caso de fallo de una promesa
-      if (casesRes.status === 'rejected') {
-        console.error("Error 403/404 al contar asesorías. Revisa las Security Rules en Firebase Console:", casesRes.reason);
+      // Log para diagnóstico en consola en caso de fallo
+      if (statsDocRes.status === 'rejected') {
+        console.error("Error al obtener estadísticas desde 'stats/global_counters':", statsDocRes.reason);
       }
 
       // Recuperamos datos previos del caché para evitar mostrar 0 si hay un error de permisos/red
       const cachedStats = JSON.parse(sessionStorage.getItem(CACHE_KEY) || '{}')?.data || { docs: 0, cases: 0, blogs: 0 };
 
       const newStats = {
-        // Si el conteo falla (null), intentamos mantener el valor del caché; si no hay caché, usamos 0
         docs: docsCount ?? cachedStats.docs,
         cases: casesCount ?? cachedStats.cases, 
         blogs: blogsCount ?? cachedStats.blogs,
         loading: false
       };
 
-      // Solo guardamos en caché si al menos una consulta crítica tuvo éxito y devolvió datos
-      // Esto evita que un error de red o permisos "pise" un caché válido anterior
+      // Guardamos sólo si pudimos obtener datos de las fuentes principales
       if (docsCount === null && casesCount === null) {
         console.warn("No se pudo obtener datos de Firestore. No se actualizará el caché.");
         return;
@@ -82,6 +85,7 @@ export default function Home() {
         timestamp: Date.now()
       }));
     }
+    
     fetchStats();
   }, []);
 
@@ -227,7 +231,6 @@ export default function Home() {
           </Typography>
         </Box>
 
-        {/* SOLUCIÓN INFALIBLE: Contenedor con márgenes automáticos (mx: 'auto') y ancho máximo fijo */}
         <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
           
           <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, box-shadow 0.3s ease', '&:hover': { transform: 'translateY(-8px)', boxShadow: 10 }, borderRadius: 2, borderTop: '6px solid #003399' }}>
