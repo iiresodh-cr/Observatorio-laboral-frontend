@@ -8,6 +8,14 @@
     ],
     "rewrites": [
       {
+        "source": "/documentos",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/documentos/",
+        "destination": "/index.html"
+      },
+      {
         "source": "/documentos/**",
         "run": {
           "serviceId": "observatorio-backend",
