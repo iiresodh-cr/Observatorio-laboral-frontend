@@ -26,7 +26,7 @@ const SUPER_ADMIN_EMAIL = 'webmaster@iiresodh.org';
 
 // Si tu backend se ejecuta en un servidor/subdominio distinto, indícalo aquí (ej: 'https://api.observatoriolaboralcr.org').
 // Si tu frontend y backend comparten el mismo dominio o usas rewrites, déjalo como string vacío ''.
-const API_BASE_URL = 'https://observatorio-backend-86857815411.us-central1.run.app';
+const API_BASE_URL = '';
 
 export default function Repositorio() {
   const [documentos, setDocumentos] = useState([]);
