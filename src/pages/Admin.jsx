@@ -83,7 +83,7 @@ export default function Admin() {
   const [generatingReport, setGeneratingReport] = useState(false);
 
   // Artículos de Blog
-  const [blogData, setBlogData] = useState({ titulo: '', contenido: '' });
+  const [blogData, setBlogData] = useState({ titulo: '', subtitulo: '', contenido: '' });
   const [blogPosts, setBlogPosts] = useState([]);
   const [publishing, setPublishing] = useState(false);
 
@@ -319,12 +319,13 @@ export default function Admin() {
     try {
       await addDoc(collection(db, "blog"), {
         titulo: blogData.titulo,
+        subtitulo: blogData.subtitulo || '',
         contenido: blogData.contenido,
         autorEmail: user.email,
         autorNombre: nombreAutor,
         fechaCreacion: serverTimestamp()
       });
-      setBlogData({ titulo: '', contenido: '' });
+      setBlogData({ titulo: '', subtitulo: '', contenido: '' });
       setActionModal({ open: true, title: 'Publicado', message: 'El artículo se ha publicado en el blog exitosamente.' });
     } catch (error) {
       setActionModal({ open: true, title: 'Error', message: 'No se pudo publicar el artículo.' });
@@ -574,6 +575,10 @@ export default function Admin() {
                 <TextField 
                   fullWidth label="Título del Artículo" value={blogData.titulo} 
                   onChange={(e) => setBlogData({...blogData, titulo: e.target.value})} required 
+                />
+                <TextField 
+                  fullWidth label="Subtítulo del Artículo (Opcional)" value={blogData.subtitulo} 
+                  onChange={(e) => setBlogData({...blogData, subtitulo: e.target.value})} 
                 />
                 <TextField 
                   fullWidth multiline minRows={8} label="Contenido del Artículo (Soporta Markdown)" 

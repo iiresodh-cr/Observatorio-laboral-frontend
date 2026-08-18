@@ -51,10 +51,15 @@ export default function Blog() {
             <Card key={post.id} elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
               <CardContent sx={{ p: { xs: 3, md: 5 } }}>
                 
-                {/* Título y Fecha */}
+                {/* Título y Subtítulo */}
                 <Typography variant="h4" fontWeight="bold" color="primary.main" gutterBottom>
                   {post.titulo}
                 </Typography>
+                {post.subtitulo && (
+                  <Typography variant="h6" color="text.secondary" sx={{ mb: 2, fontStyle: 'italic', fontWeight: 400 }}>
+                    {post.subtitulo}
+                  </Typography>
+                )}
                 
                 {/* Información del Autor */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, mt: 2 }}>
@@ -62,8 +67,8 @@ export default function Blog() {
                     {post.autorNombre ? post.autorNombre.charAt(0).toUpperCase() : 'O'}
                   </Avatar>
                   <Box>
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      {post.autorNombre || 'Redactor Especializado'}
+                    <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
+                      Por: {post.autorNombre || 'Redactor Especializado'}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {post.fechaCreacion ? post.fechaCreacion.toDate().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Publicación reciente'}
@@ -82,10 +87,33 @@ export default function Blog() {
                   '& h3': { fontSize: '1.25rem' },
                   '& p': { lineHeight: 1.8, mb: 2, color: '#333', fontSize: '1.05rem' },
                   '& strong': { color: '#000' },
+                  '& em, & i': { fontStyle: 'italic', color: '#555' },
                   '& blockquote': { borderLeft: '4px solid #FFCC00', bgcolor: '#f9f9f9', m: 0, p: 2, fontStyle: 'italic', color: '#555' },
                   '& ul, & ol': { pl: 4, mb: 2, color: '#333', fontSize: '1.05rem' },
                   '& li': { mb: 1, lineHeight: 1.6 },
-                  '& a': { color: '#003399', textDecoration: 'none', fontWeight: 'bold' }
+                  '& a': { color: '#003399', textDecoration: 'none', fontWeight: 'bold' },
+                  '& code': {
+                    fontFamily: 'monospace',
+                    bgcolor: '#f4f6f8',
+                    px: 1,
+                    py: 0.5,
+                    borderRadius: 1,
+                    color: '#d32f2f',
+                    fontSize: '0.95rem'
+                  },
+                  '& pre': {
+                    bgcolor: '#f4f6f8',
+                    p: 2,
+                    borderRadius: 2,
+                    overflowX: 'auto',
+                    border: '1px solid #e0e0e0',
+                    '& code': {
+                      bgcolor: 'transparent',
+                      color: 'inherit',
+                      p: 0,
+                      fontSize: '0.9rem'
+                    }
+                  }
                 }}>
                   <ReactMarkdown>{post.contenido}</ReactMarkdown>
                 </Box>
