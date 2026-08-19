@@ -317,37 +317,55 @@ export default function Admin() {
   const handleSendAdvice = async () => {
     if (!selectedDenuncia) return; setIsSendingEmail(true);
     try {
-      // 1. Enviar el correo
-      const responseMail = await authFetch(`${BACKEND_URL}/send-email`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to_email: selectedDenuncia.email, subject: "Observatorio Laboral: Orientación sobre su caso", body: draftReview })
-      });
-      if (!responseMail.ok) throw new Error(`Error al enviar el correo.`);
+      const tieneEmail = Boolean(selectedDenuncia.email && selectedDenuncia.email.trim() !== '');
 
-      // 2. Actualizar el estado de la denuncia en Firestore a 'completada'
+      // 1. Enviar el correo SOLO si no es anónimo y tiene email
+      if (tieneEmail) {
+        const responseMail = await authFetch(`${BACKEND_URL}/send-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to_email: selectedDenuncia.email,
+            subject: "Observatorio Laboral: Orientación sobre su caso",
+            body: draftReview
+          })
+        });
+        if (!responseMail.ok) throw new Error("Error al enviar el correo al ciudadano.");
+      }
+
+      // 2. Actualizar el documento en Firestore
       await updateDoc(doc(db, "denuncias", selectedDenuncia.id), {
-        estado: 'completada', respuestaFinal: draftReview, respondidoPor: user.email, fechaRespuesta: serverTimestamp()
+        estado: 'completada',
+        respuestaFinal: draftReview,
+        respondidoPor: user.email,
+        fechaRespuesta: serverTimestamp()
       });
 
-      // 3. Ordenar al backend que sume la estadística
+      // 3. Incrementar las estadísticas en el backend
       const resIncrement = await authFetch(`${BACKEND_URL}/incrementar-completadas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tipoDenuncia: selectedDenuncia.tipoDenuncia || 'Otro' })
       });
 
-      // ESTA ES LA VALIDACIÓN QUE FALTABA
       if (!resIncrement.ok) {
         const errorDetail = await resIncrement.text();
-        throw new Error(`El correo se envió, pero el contador en el servidor falló (Error ${resIncrement.status}): ${errorDetail}`);
+        throw new Error(`Error actualizando contadores globales: ${errorDetail}`);
       }
 
-      setActionModal({ open: true, title: 'Asesoría Enviada', message: 'El ciudadano ha recibido el correo y las estadísticas se actualizaron exitosamente.' });
+      setActionModal({
+        open: true,
+        title: tieneEmail ? 'Asesoría Enviada' : 'Caso Anónimo Completado',
+        message: tieneEmail 
+          ? 'El ciudadano ha recibido el correo y el caso se marcó como completado.' 
+          : 'El caso anónimo ha sido procesado y las estadísticas se actualizaron exitosamente.'
+      });
       setSelectedDenuncia(null);
     } catch (error) {
-      // Ahora sí veremos exactamente por qué falla el contador
       setActionModal({ open: true, title: 'Error en el proceso', message: error.message });
-    } finally { setIsSendingEmail(false); }
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   const handlePublishBlog = async (e) => {
@@ -720,8 +738,17 @@ export default function Admin() {
             <DialogActions sx={{ p: 2 }}>
               <Button onClick={() => setSelectedDenuncia(null)} color="inherit" disabled={isSendingEmail}>Cerrar</Button>
               {subTabDenuncias === 'pendiente' && (
-                <Button onClick={handleSendAdvice} variant="contained" color="secondary" sx={{ color: '#000', fontWeight: 'bold' }} disabled={isSendingEmail} startIcon={isSendingEmail ? <CircularProgress size={20} color="inherit" /> : <CheckCircle size={20} />}>
-                  {isSendingEmail ? 'Enviando...' : 'Aprobar y Enviar Correo'}
+                <Button 
+                  onClick={handleSendAdvice} 
+                  variant="contained" 
+                  color="secondary" 
+                  sx={{ color: '#000', fontWeight: 'bold' }} 
+                  disabled={isSendingEmail} 
+                  startIcon={isSendingEmail ? <CircularProgress size={20} color="inherit" /> : <CheckCircle size={20} />}
+                >
+                  {isSendingEmail 
+                    ? 'Procesando...' 
+                    : (selectedDenuncia?.email && selectedDenuncia.email.trim() !== '' ? 'Aprobar y Enviar Correo' : 'Marcar Caso como Completado')}
                 </Button>
               )}
             </DialogActions>
