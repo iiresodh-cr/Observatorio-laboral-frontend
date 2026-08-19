@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress } from '@mui/material';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 // Lazy loaded pages
 const Home = lazy(() => import('./pages/Home'));
@@ -38,24 +39,29 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline /> 
       <Router>
-        <Navbar />
-        <Suspense fallback={
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-            <CircularProgress />
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <Navbar />
+          <Box component="main" sx={{ flexGrow: 1 }}>
+            <Suspense fallback={
+              <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+                <CircularProgress />
+              </Box>
+            }>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/repositorio" element={<Repositorio />} />
+                <Route path="/denuncia" element={<Denuncia />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/auth-action" element={<AuthAction />} />
+                <Route path="/privacidad" element={<Privacidad />} />
+                <Route path="/terminos" element={<Terminos />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </Box>
-        }>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/repositorio" element={<Repositorio />} />
-            <Route path="/denuncia" element={<Denuncia />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/auth-action" element={<AuthAction />} />
-            <Route path="/privacidad" element={<Privacidad />} />
-            <Route path="/terminos" element={<Terminos />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+          <Footer />
+        </Box>
       </Router>
     </ThemeProvider>
   );
