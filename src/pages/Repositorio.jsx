@@ -12,11 +12,9 @@ import {
   BookOpen,
   ClipboardList,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Scale
 } from 'lucide-react';
-
-// Local Assets
-import balanzaImg from '../assets/balanza.png';
 
 // Importación de Firebase
 import { db, storage, auth } from '../services/firebaseConfig';
@@ -109,7 +107,7 @@ export default function Repositorio() {
       case 'leyes': return <FileText size={18} />;
       case 'reglamentos': return <ClipboardList size={18} />;
       case 'tratados': return <Globe size={18} />;
-      case 'jurisprudencia': return <Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 20, height: 20, objectFit: 'contain' }} />;
+      case 'jurisprudencia': return <Scale size={18} />;
       case 'articulos': return <BookOpen size={18} />;
       default: return <FileText size={18} />;
     }
@@ -187,7 +185,7 @@ export default function Repositorio() {
           <Tab label="Leyes" value="leyes" icon={<FileText size={20} />} iconPosition="start" />
           <Tab label="Reglamentos" value="reglamentos" icon={<ClipboardList size={20} />} iconPosition="start" />
           <Tab label="Tratados" value="tratados" icon={<Globe size={20} />} iconPosition="start" />
-          <Tab label="Jurisprudencia" value="jurisprudencia" icon={<Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 24, height: 24, objectFit: 'contain' }} />} iconPosition="start" />
+          <Tab label="Jurisprudencia" value="jurisprudencia" icon={<Scale size={20} />} iconPosition="start" />
           <Tab label="Libros" value="articulos" icon={<BookOpen size={20} />} iconPosition="start" />
         </Tabs>
       </Box>
