@@ -11,6 +11,9 @@ import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 
+// Local Assets
+import fondoManos from '../assets/fondo-manos.webp';
+
 // Firebase Services
 import { db } from '../services/firebaseConfig';
 import { collection, getCountFromServer, doc, getDoc } from 'firebase/firestore';
@@ -79,7 +82,7 @@ export default function Home() {
       {/* --- SECCIÓN HERO --- */}
       <Box 
         sx={{ 
-          background: 'linear-gradient(180deg, rgba(8, 26, 61, 0.88) 0%, rgba(4, 15, 38, 0.95) 100%), url("https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=1920&q=80")',
+          background: `linear-gradient(180deg, rgba(8, 26, 61, 0.88) 0%, rgba(4, 15, 38, 0.95) 100%), url(${fondoManos})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           color: 'white',
