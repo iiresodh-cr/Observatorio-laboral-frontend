@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, Link as RouterLink } from 'react-router-dom';
 import { Container, Paper, Typography, Box, CircularProgress, Button } from '@mui/material';
 
-// SOLUCIÓN: Usamos 'Error' en lugar de 'ErrorOutline' para evitar el bug de Vite/Rolldown
 import { 
   CheckCircle as CheckCircleIcon, 
-  Error as ErrorIcon 
-} from '@mui/icons-material';
+  AlertCircle as ErrorIcon 
+} from 'lucide-react';
 
 // Firebase
 import { auth } from '../services/firebaseConfig';
@@ -63,7 +62,7 @@ export default function AuthAction() {
 
         {status === 'success' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <CheckCircleIcon sx={{ fontSize: 80, color: '#4caf50', mb: 1 }} />
+            <Box sx={{ mb: 1 }}><CheckCircleIcon size={80} color="#4caf50" /></Box>
             <Typography variant="h4" fontWeight="bold" color="text.primary">
               ¡Correo Verificado!
             </Typography>
@@ -81,7 +80,7 @@ export default function AuthAction() {
 
         {status === 'error' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <ErrorIcon sx={{ fontSize: 80, color: '#f44336', mb: 1 }} />
+            <Box sx={{ mb: 1 }}><ErrorIcon size={80} color="#f44336" /></Box>
             <Typography variant="h4" fontWeight="bold" color="text.primary">
               Error de Verificación
             </Typography>

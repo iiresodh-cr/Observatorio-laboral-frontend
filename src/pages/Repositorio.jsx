@@ -6,14 +6,14 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import {
-  Search as SearchIcon,
-  PictureAsPdf as PictureAsPdfIcon,
-  Public as PublicIcon,
-  MenuBook as MenuBookIcon,
-  Assignment as AssignmentIcon,
-  Delete as DeleteIcon,
-  WarningAmber as WarningAmberIcon
-} from '@mui/icons-material';
+  Search,
+  FileText,
+  Globe,
+  BookOpen,
+  ClipboardList,
+  Trash2,
+  AlertTriangle
+} from 'lucide-react';
 
 // Local Assets
 import balanzaImg from '../assets/balanza.png';

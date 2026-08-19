@@ -19,6 +19,7 @@
     "@tiptap/starter-kit": "^3.30.2",
     "dompurify": "^3.4.13",
     "firebase": "^12.12.1",
+    "lucide-react": "^1.33.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-markdown": "^10.1.0",

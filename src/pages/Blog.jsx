@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Container, Typography, Box, Card, CardContent, CircularProgress, Divider, Avatar, TextField, InputAdornment } from '@mui/material';
 import DOMPurify from 'dompurify';
-import NewspaperIcon from '@mui/icons-material/Newspaper';
-import SearchIcon from '@mui/icons-material/Search';
+import { Newspaper, Search } from 'lucide-react';
 
 // Firebase
 import { db } from '../services/firebaseConfig';
@@ -40,7 +39,9 @@ export default function Blog() {
   return (
     <Container maxWidth="md" sx={{ mt: 6, mb: 8 }}>
       <Box sx={{ textAlign: 'center', mb: 6 }}>
-        <NewspaperIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+        <Box sx={{ color: 'primary.main', mb: 2, display: 'flex', justifyContent: 'center' }}>
+          <Newspaper size={60} strokeWidth={1.5} />
+        </Box>
         <Typography variant="h3" color="primary" fontWeight="900" gutterBottom>
           Blog Oficial
         </Typography>
@@ -59,7 +60,9 @@ export default function Blog() {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon color="primary" />
+                <Box sx={{ display: 'flex', color: 'primary.main' }}>
+                  <Search size={24} />
+                </Box>
               </InputAdornment>
             ),
             sx: { bgcolor: 'white', borderRadius: 2 }

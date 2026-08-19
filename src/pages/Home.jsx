@@ -4,11 +4,7 @@ import {
   Card, CardContent, CardActions, CircularProgress, Link as MuiLink, Chip
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import ForumIcon from '@mui/icons-material/Forum';
-import BalanceIcon from '@mui/icons-material/Balance';
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import NewspaperIcon from '@mui/icons-material/Newspaper';
+import { MessageSquare, Headset, Sparkles, Newspaper } from 'lucide-react';
 
 // Local Assets
 import fondoManos from '../assets/fondo-manos.webp';
@@ -205,8 +201,8 @@ export default function Home() {
 
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 56, height: 56, mb: 2, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <SupportAgentIcon sx={{ color: '#d97706', fontSize: 28 }} />
+              <Box sx={{ width: 56, height: 56, mb: 2, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+                <Headset size={28} />
               </Box>
               {stats.loading ? <CircularProgress size={32} sx={{ my: 1, color: '#b45309' }} /> : (
                 <Typography variant="h3" fontWeight="900" sx={{ color: '#b45309', mb: 0.5 }}>{stats.cases}</Typography>
@@ -218,8 +214,8 @@ export default function Home() {
 
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 56, height: 56, mb: 2, bgcolor: '#ecfdf5', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <NewspaperIcon sx={{ color: '#059669', fontSize: 28 }} />
+              <Box sx={{ width: 56, height: 56, mb: 2, bgcolor: '#ecfdf5', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                <Newspaper size={28} />
               </Box>
               {stats.loading ? <CircularProgress size={32} sx={{ my: 1, color: '#047857' }} /> : (
                 <Typography variant="h3" fontWeight="900" sx={{ color: '#047857', mb: 0.5 }}>{stats.blogs}</Typography>
@@ -267,8 +263,8 @@ export default function Home() {
 
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <SupportAgentIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+              <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'primary.main' }}>
+                <Headset size={28} />
               </Box>
               <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                 ACOMPAÑAMIENTO
@@ -284,8 +280,8 @@ export default function Home() {
 
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <AutoAwesomeIcon sx={{ color: '#d97706', fontSize: 28 }} />
+              <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+                <Sparkles size={28} />
               </Box>
               <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                 INTELIGENCIA ARTIFICIAL
@@ -366,8 +362,8 @@ export default function Home() {
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ForumIcon sx={{ color: '#d97706', fontSize: 28 }} />
+                <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+                  <MessageSquare size={28} />
                 </Box>
                 <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                   SOPORTE
@@ -407,8 +403,8 @@ export default function Home() {
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#ecfdf5', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <NewspaperIcon sx={{ color: '#059669', fontSize: 28 }} />
+                <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#ecfdf5', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                  <Newspaper size={28} />
                 </Box>
                 <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                   CONTENIDO

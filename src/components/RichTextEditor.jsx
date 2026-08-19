@@ -4,9 +4,9 @@ import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
 import { Box, ToggleButton, ToggleButtonGroup, Divider } from '@mui/material';
 import {
-  FormatBold, FormatItalic, FormatQuote, FormatListBulleted,
-  FormatAlignLeft, FormatAlignCenter, FormatAlignJustify, Title
-} from '@mui/icons-material';
+  Bold, Italic, Quote, List,
+  AlignLeft, AlignCenter, AlignJustify, Heading
+} from 'lucide-react';
 
 const MenuBar = ({ editor }) => {
   if (!editor) return null;
@@ -19,14 +19,14 @@ const MenuBar = ({ editor }) => {
           selected={editor.isActive('bold')} 
           onClick={() => editor.chain().focus().toggleBold().run()}
         >
-          <FormatBold />
+          <Bold size={20} />
         </ToggleButton>
         <ToggleButton 
           value="italic" 
           selected={editor.isActive('italic')} 
           onClick={() => editor.chain().focus().toggleItalic().run()}
         >
-          <FormatItalic />
+          <Italic size={20} />
         </ToggleButton>
       </ToggleButtonGroup>
       
@@ -39,7 +39,7 @@ const MenuBar = ({ editor }) => {
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           title="Subtítulo Principal"
         >
-          <Title sx={{ fontSize: '1.2rem' }} /> <span style={{fontSize: '0.8rem', marginLeft: '2px', fontWeight: 'bold'}}>H2</span>
+          <Heading size={20} /> <span style={{fontSize: '0.8rem', marginLeft: '4px', fontWeight: 'bold'}}>H2</span>
         </ToggleButton>
         <ToggleButton 
           value="h3" 
@@ -47,7 +47,7 @@ const MenuBar = ({ editor }) => {
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           title="Subtítulo Secundario"
         >
-          <Title sx={{ fontSize: '1rem' }} /> <span style={{fontSize: '0.8rem', marginLeft: '2px', fontWeight: 'bold'}}>H3</span>
+          <Heading size={18} /> <span style={{fontSize: '0.8rem', marginLeft: '4px', fontWeight: 'bold'}}>H3</span>
         </ToggleButton>
       </ToggleButtonGroup>
       
@@ -59,14 +59,14 @@ const MenuBar = ({ editor }) => {
           selected={editor.isActive('bulletList')} 
           onClick={() => editor.chain().focus().toggleBulletList().run()}
         >
-          <FormatListBulleted />
+          <List size={20} />
         </ToggleButton>
         <ToggleButton 
           value="blockquote" 
           selected={editor.isActive('blockquote')} 
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
         >
-          <FormatQuote />
+          <Quote size={20} />
         </ToggleButton>
       </ToggleButtonGroup>
       
@@ -78,21 +78,21 @@ const MenuBar = ({ editor }) => {
           selected={editor.isActive({ textAlign: 'left' })} 
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
         >
-          <FormatAlignLeft />
+          <AlignLeft size={20} />
         </ToggleButton>
         <ToggleButton 
           value="center" 
           selected={editor.isActive({ textAlign: 'center' })} 
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
         >
-          <FormatAlignCenter />
+          <AlignCenter size={20} />
         </ToggleButton>
         <ToggleButton 
           value="justify" 
           selected={editor.isActive({ textAlign: 'justify' })} 
           onClick={() => editor.chain().focus().setTextAlign('justify').run()}
         >
-          <FormatAlignJustify />
+          <AlignJustify size={20} />
         </ToggleButton>
       </ToggleButtonGroup>
     </Box>

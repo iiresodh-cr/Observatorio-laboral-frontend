@@ -1,6 +1,6 @@
 import { Container, Typography, Button, Box } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
+import { AlertCircle } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -16,7 +16,9 @@ export default function NotFound() {
           mt: 4
         }}
       >
-        <ErrorOutlineIcon sx={{ fontSize: 120, mb: 2, color: 'secondary.main' }} />
+        <Box sx={{ color: 'secondary.main', mb: 2 }}>
+          <AlertCircle size={120} strokeWidth={1.5} />
+        </Box>
         <Typography variant="h1" component="h1" fontWeight="bold" color="primary.main">
           404
         </Typography>

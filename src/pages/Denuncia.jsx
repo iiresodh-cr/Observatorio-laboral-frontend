@@ -5,10 +5,7 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   FormControlLabel, Checkbox, CircularProgress
 } from '@mui/material';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import InfoIcon from '@mui/icons-material/Info';
-import BusinessIcon from '@mui/icons-material/Business';
-import PersonIcon from '@mui/icons-material/Person';
+import { ClipboardList, Info, Building2, User } from 'lucide-react';
 
 import { db } from '../services/firebaseConfig';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -129,7 +126,7 @@ export default function Denuncia() {
     <Container maxWidth="md" sx={{ mt: 5, mb: 8 }}>
       <Dialog open={openModal} onClose={() => setOpenModal(false)} PaperProps={{ sx: { borderRadius: 1 } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: 'primary.main', fontWeight: 'bold' }}>
-          <InfoIcon /> Marco de Confidencialidad
+          <Info size={24} /> Marco de Confidencialidad
         </DialogTitle>
         <DialogContent dividers>
           <Typography variant="body1" paragraph sx={{ fontWeight: 500 }}>
@@ -165,7 +162,7 @@ export default function Denuncia() {
 
       <Paper elevation={3} sx={{ borderRadius: 1, overflow: 'hidden', border: '1px solid #e0e0e0' }}>
         <Box sx={{ p: 3, bgcolor: '#081A3D', color: 'white', display: 'flex', alignItems: 'center', gap: 2 }}>
-          <AssignmentIcon fontSize="large" />
+          <ClipboardList size={36} />
           <Typography variant="h6" fontWeight="bold">FORMULARIO DE REPORTE Y ASESORÍA</Typography>
         </Box>
 
@@ -174,7 +171,7 @@ export default function Denuncia() {
             
             <Box>
               <Typography variant="subtitle1" color="primary" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <PersonIcon /> 1. IDENTIFICACIÓN Y DATOS DEMOGRÁFICOS
+                <User size={24} /> 1. IDENTIFICACIÓN Y DATOS DEMOGRÁFICOS
               </Typography>
               
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' }, gap: 3 }}>
@@ -239,7 +236,7 @@ export default function Denuncia() {
 
             <Box>
               <Typography variant="subtitle1" color="primary" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <BusinessIcon /> 2. INFORMACIÓN DEL CASO
+                <Building2 size={24} /> 2. INFORMACIÓN DEL CASO
               </Typography>
               
               <Stack spacing={3}>
