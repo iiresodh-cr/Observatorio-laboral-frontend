@@ -20,7 +20,8 @@ import ReactMarkdown from 'react-markdown';
 import RichTextEditor from '../components/RichTextEditor';
 
 // Firebase Services
-import { db, storage, auth, googleProvider } from '../services/firebaseConfig';
+import { analytics, db, storage, auth, googleProvider } from '../services/firebaseConfig';
+import { logEvent } from 'firebase/analytics';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, serverTimestamp, getDocs, query, where, deleteDoc, doc, setDoc, onSnapshot, orderBy, updateDoc } from 'firebase/firestore';
 import { signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
@@ -165,8 +166,27 @@ export default function Admin() {
     }
   }, [isAdmin, isAuthor]);
 
-  const handleLoginGoogle = async () => { setLoginError(''); try { await signInWithPopup(auth, googleProvider); } catch (e) { setLoginError('Fallo en la conexión.'); } };
-  const handleLoginManual = async (e) => { e.preventDefault(); setLoginError(''); try { await signInWithEmailAndPassword(auth, email, password); } catch (e) { setLoginError('Credenciales incorrectas.'); } };
+  const handleLoginGoogle = async () => { 
+    setLoginError(''); 
+    try { 
+      await signInWithPopup(auth, googleProvider); 
+      if (analytics) logEvent(analytics, 'login', { method: 'google' });
+    } catch (e) { 
+      setLoginError('Fallo en la conexión.'); 
+    } 
+  };
+
+  const handleLoginManual = async (e) => { 
+    e.preventDefault(); 
+    setLoginError(''); 
+    try { 
+      await signInWithEmailAndPassword(auth, email, password); 
+      if (analytics) logEvent(analytics, 'login', { method: 'email' });
+    } catch (e) { 
+      setLoginError('Credenciales incorrectas.'); 
+    } 
+  };
+
   const handleLogout = () => signOut(auth);
 
   // NUEVO: Funciones que llaman al backend para crear usuario, verificar y notificar
@@ -265,6 +285,7 @@ export default function Admin() {
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
           await addDoc(collection(db, "documentos"), { ...docData, fileUrl: downloadURL, fileName: nombreArchivo, fechaCreacion: serverTimestamp(), subidoPor: user.email });
+          if (analytics) logEvent(analytics, 'upload_document', { category: docData.categoria, title: docData.titulo });
           setUploading(false); setProgress(0); setActionModal({ open: true, title: 'Éxito', message: 'Cargado.' });
           setDocData({ titulo: '', categoria: '', anio: '', descripcion: '' }); setArchivo(null);
         }
@@ -334,6 +355,7 @@ export default function Admin() {
         autorNombre: blogData.autor || nombreAutor,
         fechaCreacion: serverTimestamp()
       });
+      if (analytics) logEvent(analytics, 'publish_blog_post', { title: blogData.titulo });
       setBlogData({ titulo: '', subtitulo: '', autor: '', contenido: '' });
       setActionModal({ open: true, title: 'Publicado', message: 'El artículo se ha publicado en el blog exitosamente.' });
     } catch (error) {
