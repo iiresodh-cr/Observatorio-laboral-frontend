@@ -3,7 +3,7 @@ import {
   Container, Paper, Box, Typography, TextField, Button, 
   Tabs, Tab, MenuItem, Grid, Card, CardContent, Stack,
   Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress,
-  Alert, List, ListItem, ListItemText, IconButton, Divider, CircularProgress, Chip,
+  Alert, List, ListItem, ListItemText, IconButton, Divider, CircularProgress, Chip, Checkbox, FormControlLabel,
   ToggleButton, ToggleButtonGroup
 } from '@mui/material';
 import { 
@@ -58,6 +58,9 @@ export default function Admin() {
   const [newAutorName, setNewAutorName] = useState('');
   const [newAutorEmail, setNewAutorEmail] = useState('');
   
+  // Consentimiento GDPR
+  const [gdprConsent, setGdprConsent] = useState(false);
+
   // Estado general de creación de usuarios para bloqueo de botones
   const [isCreatingUser, setIsCreatingUser] = useState(false);
 
@@ -172,6 +175,10 @@ export default function Admin() {
       setActionModal({ open: true, title: 'Campos incompletos', message: 'Debe ingresar nombre y correo del administrador.' });
       return;
     }
+    if (!gdprConsent) {
+      setActionModal({ open: true, title: 'Consentimiento requerido', message: 'Debe confirmar que ha informado al usuario sobre el tratamiento de sus datos según la política de privacidad.' });
+      return;
+    }
     setIsCreatingUser(true);
     try {
       const response = await fetch(`${BACKEND_URL}/create-user`, {
@@ -180,7 +187,7 @@ export default function Admin() {
       });
       if (!response.ok) throw new Error("Error creando usuario en el backend");
       
-      setNewAdminName(''); setNewAdminEmail(''); 
+      setNewAdminName(''); setNewAdminEmail(''); setGdprConsent(false);
       setActionModal({ open: true, title: 'Administrador Registrado', message: `Cuenta creada. Se ha enviado un correo con la contraseña temporal y el link de verificación a ${newAdminEmail}.` });
     } catch (e) {
       setActionModal({ open: true, title: 'Error', message: 'No se pudo crear la cuenta de usuario.' });
@@ -192,6 +199,10 @@ export default function Admin() {
       setActionModal({ open: true, title: 'Campos incompletos', message: 'Debe ingresar nombre y correo del redactor.' });
       return;
     }
+    if (!gdprConsent) {
+      setActionModal({ open: true, title: 'Consentimiento requerido', message: 'Debe confirmar que ha informado al usuario sobre el tratamiento de sus datos.' });
+      return;
+    }
     setIsCreatingUser(true);
     try {
       const response = await fetch(`${BACKEND_URL}/create-user`, {
@@ -200,7 +211,7 @@ export default function Admin() {
       });
       if (!response.ok) throw new Error("Error creando usuario en el backend");
 
-      setNewAutorName(''); setNewAutorEmail(''); 
+      setNewAutorName(''); setNewAutorEmail(''); setGdprConsent(false);
       setActionModal({ open: true, title: 'Redactor Registrado', message: `Cuenta creada. Se ha enviado un correo con la contraseña temporal y el link de verificación a ${newAutorEmail}.` });
     } catch (e) {
       setActionModal({ open: true, title: 'Error', message: 'No se pudo crear la cuenta de usuario.' });
@@ -524,10 +535,18 @@ export default function Admin() {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
               <TextField label="Nombre Completo" size="small" sx={{ flexGrow: 1 }} value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} disabled={isCreatingUser} />
               <TextField label="Correo Electrónico" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} disabled={isCreatingUser} />
+            </Stack>
+            <Box sx={{ mb: 2 }}>
+              <FormControlLabel
+                control={<Checkbox checked={gdprConsent} onChange={(e) => setGdprConsent(e.target.checked)} size="small" />}
+                label={<Typography variant="caption">Confirmo que el tratamiento de estos datos cumple con la política de privacidad y protección de datos personales.</Typography>}
+              />
+            </Box>
+            <Box sx={{ mb: 3 }}>
               <Button variant="contained" startIcon={isCreatingUser ? <CircularProgress size={20} color="inherit" /> : <UserPlus size={20} />} onClick={handleAddAdmin} sx={{ minWidth: '150px' }} disabled={isCreatingUser}>
                 {isCreatingUser ? 'Procesando...' : 'Autorizar Admin'}
               </Button>
-            </Stack>
+            </Box>
             <List sx={{ bgcolor: '#f9f9f9', borderRadius: 1, mb: 6 }}>
               <ListItem divider secondaryAction={<Chip label="Inamovible" size="small" color="primary" sx={{ fontWeight: 'bold' }} />}>
                 <ListItemText primary={<Typography variant="body1"><strong>Super Administrador</strong> ({SUPER_ADMIN_EMAIL})</Typography>} secondary="Acceso total al sistema (Predeterminado)" />
@@ -546,10 +565,18 @@ export default function Admin() {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
               <TextField label="Nombre del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorName} onChange={(e) => setNewAutorName(e.target.value)} disabled={isCreatingUser} />
               <TextField label="Correo del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorEmail} onChange={(e) => setNewAutorEmail(e.target.value)} disabled={isCreatingUser} />
+            </Stack>
+            <Box sx={{ mb: 2 }}>
+              <FormControlLabel
+                control={<Checkbox checked={gdprConsent} onChange={(e) => setGdprConsent(e.target.checked)} size="small" />}
+                label={<Typography variant="caption">Confirmo que el tratamiento de estos datos cumple con la política de privacidad y protección de datos personales.</Typography>}
+              />
+            </Box>
+            <Box sx={{ mb: 3 }}>
               <Button variant="contained" color="secondary" startIcon={isCreatingUser ? <CircularProgress size={20} color="inherit" /> : <Edit size={20} />} onClick={handleAddAutor} sx={{ minWidth: '150px', color: 'black' }} disabled={isCreatingUser}>
                 {isCreatingUser ? 'Procesando...' : 'Autorizar Autor'}
               </Button>
-            </Stack>
+            </Box>
             <List sx={{ bgcolor: '#fffde7', borderRadius: 1 }}>
               {autorList.length === 0 && <Typography variant="body2" sx={{ p: 2, color: 'text.secondary' }}>No hay redactores autorizados aún.</Typography>}
               {autorList.map((autor) => (
