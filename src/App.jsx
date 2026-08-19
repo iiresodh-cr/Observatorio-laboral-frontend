@@ -10,6 +10,8 @@ const Admin = lazy(() => import('./pages/Admin'));
 const Repositorio = lazy(() => import('./pages/Repositorio'));
 const Blog = lazy(() => import('./pages/Blog'));
 const AuthAction = lazy(() => import('./pages/AuthAction'));
+const Privacidad = lazy(() => import('./pages/Privacidad'));
+const Terminos = lazy(() => import('./pages/Terminos'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Tema visual con los colores de la Unión Europea
@@ -49,6 +51,8 @@ function App() {
             <Route path="/blog" element={<Blog />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/auth-action" element={<AuthAction />} />
+            <Route path="/privacidad" element={<Privacidad />} />
+            <Route path="/terminos" element={<Terminos />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
