@@ -115,7 +115,7 @@ export default function Blog() {
                 {/* Contenido Renderizado con Markdown */}
                 <Box sx={{ 
                   fontFamily: 'inherit',
-                  '& h1, & h2, & h3': { color: '#003399', mt: 4, mb: 2, fontWeight: 'bold' }, 
+                  '& h1, & h2, & h3': { color: '#081A3D', mt: 4, mb: 2, fontWeight: 'bold' }, 
                   '& h1': { fontSize: '1.8rem', borderBottom: '1px solid #e0e0e0', pb: 1 },
                   '& h2': { fontSize: '1.5rem' },
                   '& h3': { fontSize: '1.25rem' },
@@ -125,7 +125,7 @@ export default function Blog() {
                   '& blockquote': { borderLeft: '4px solid #FFCC00', bgcolor: '#f9f9f9', m: 0, p: 2, fontStyle: 'italic', color: '#555' },
                   '& ul, & ol': { pl: 4, mb: 2, color: '#333', fontSize: '1.05rem' },
                   '& li': { mb: 1, lineHeight: 1.6 },
-                  '& a': { color: '#003399', textDecoration: 'none', fontWeight: 'bold' },
+                  '& a': { color: '#081A3D', textDecoration: 'none', fontWeight: 'bold' },
                   '& code': {
                     fontFamily: 'monospace',
                     bgcolor: '#f4f6f8',

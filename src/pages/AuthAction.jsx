@@ -49,7 +49,7 @@ export default function AuthAction() {
 
   return (
     <Container maxWidth="sm" sx={{ mt: 10, mb: 10 }}>
-      <Paper elevation={4} sx={{ p: 5, textAlign: 'center', borderRadius: 3, borderTop: status === 'success' ? '6px solid #4caf50' : status === 'error' ? '6px solid #f44336' : '6px solid #003399' }}>
+      <Paper elevation={4} sx={{ p: 5, textAlign: 'center', borderRadius: 3, borderTop: status === 'success' ? '6px solid #4caf50' : status === 'error' ? '6px solid #f44336' : '6px solid #081A3D' }}>
         
         {status === 'loading' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>

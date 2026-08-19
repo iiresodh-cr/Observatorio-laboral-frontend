@@ -164,7 +164,7 @@ export default function Denuncia() {
       </Box>
 
       <Paper elevation={3} sx={{ borderRadius: 1, overflow: 'hidden', border: '1px solid #e0e0e0' }}>
-        <Box sx={{ p: 3, bgcolor: '#003399', color: 'white', display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ p: 3, bgcolor: '#081A3D', color: 'white', display: 'flex', alignItems: 'center', gap: 2 }}>
           <AssignmentIcon fontSize="large" />
           <Typography variant="h6" fontWeight="bold">FORMULARIO DE REPORTE Y ASESORÍA</Typography>
         </Box>
