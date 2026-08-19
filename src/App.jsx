@@ -24,7 +24,7 @@ const theme = createTheme({
   },
   typography: {
     // Puedes ajustar detalles de la fuente aquí si lo necesitas en el futuro
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter", "Helvetica", "Arial", sans-serif',
   }
 });
 
