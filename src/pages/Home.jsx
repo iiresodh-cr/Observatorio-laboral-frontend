@@ -183,7 +183,7 @@ export default function Home() {
       </Box>
 
       {/* --- SECCIÓN: CONTADORES DINÁMICOS --- */}
-      <Container maxWidth="lg" sx={{ mt: -6, position: 'relative', zIndex: 3 }}>
+      <Container maxWidth="md" sx={{ mt: -6, position: 'relative', zIndex: 3 }}>
         <Grid container spacing={3} justifyContent="center">
           
           <Grid item xs={12} sm={4}>
@@ -229,7 +229,7 @@ export default function Home() {
       </Container>
 
       {/* --- SECCIÓN EXPLICATIVA (MISIÓN) --- */}
-      <Container maxWidth="lg" sx={{ mt: 14 }}>
+      <Container maxWidth="md" sx={{ mt: 14 }}>
         <Box sx={{ mb: 6, textAlign: 'center' }}>
           <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase', display: 'block', mb: 1 }}>
             NUESTRA MISIÓN
@@ -245,7 +245,7 @@ export default function Home() {
         <Grid container spacing={3} justifyContent="center">
           
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 4, height: '100%', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6' }}>
+            <Card elevation={0} sx={{ p: 4, height: '100%', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ width: 52, height: 52, mx: 'auto', mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <BalanceIcon sx={{ color: '#3b82f6', fontSize: 26 }} />
               </Box>
@@ -262,7 +262,7 @@ export default function Home() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 4, height: '100%', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6' }}>
+            <Card elevation={0} sx={{ p: 4, height: '100%', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ width: 52, height: 52, mx: 'auto', mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <SupportAgentIcon sx={{ color: '#3b82f6', fontSize: 26 }} />
               </Box>
@@ -279,7 +279,7 @@ export default function Home() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 4, height: '100%', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6' }}>
+            <Card elevation={0} sx={{ p: 4, height: '100%', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ width: 52, height: 52, mx: 'auto', mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <AutoAwesomeIcon sx={{ color: '#d97706', fontSize: 26 }} />
               </Box>
@@ -303,7 +303,7 @@ export default function Home() {
       </Container>
 
       {/* --- SECCIÓN: NUESTROS SERVICIOS --- */}
-      <Container maxWidth="lg" sx={{ mt: 14 }}>
+      <Container maxWidth="md" sx={{ mt: 14 }}>
         <Box sx={{ mb: 6, textAlign: 'center' }}>
           <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase', display: 'block', mb: 1 }}>
             SERVICIOS
@@ -320,7 +320,7 @@ export default function Home() {
           
           {/* Card 1: Repositorio */}
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', textAlign: 'center' }}>
+            <Card elevation={0} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <CardContent sx={{ flexGrow: 1, p: 2 }}>
                 <Box sx={{ width: 56, height: 56, mx: 'auto', mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <GavelIcon sx={{ color: '#3b82f6', fontSize: 28 }} />
@@ -360,7 +360,7 @@ export default function Home() {
 
           {/* Card 2: Orientación Legal */}
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', textAlign: 'center' }}>
+            <Card elevation={0} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <CardContent sx={{ flexGrow: 1, p: 2 }}>
                 <Box sx={{ width: 56, height: 56, mx: 'auto', mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <ForumIcon sx={{ color: '#d97706', fontSize: 28 }} />
@@ -401,7 +401,7 @@ export default function Home() {
 
           {/* Card 3: Blog */}
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', textAlign: 'center' }}>
+            <Card elevation={0} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <CardContent sx={{ flexGrow: 1, p: 2 }}>
                 <Box sx={{ width: 56, height: 56, mx: 'auto', mb: 3, bgcolor: '#ecfdf5', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <NewspaperIcon sx={{ color: '#059669', fontSize: 28 }} />
