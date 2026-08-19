@@ -193,7 +193,7 @@ export default function Home() {
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ width: 56, height: 56, mb: 2, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 28, height: 28, objectFit: 'contain' }} />
+                <Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 40, height: 40, objectFit: 'contain' }} />
               </Box>
               {stats.loading ? <CircularProgress size={32} sx={{ my: 1, color: 'primary.main' }} /> : (
                 <Typography variant="h3" fontWeight="900" sx={{ color: 'primary.main', mb: 0.5 }}>{stats.docs}</Typography>
@@ -251,7 +251,7 @@ export default function Home() {
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BalanceIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+                <Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 40, height: 40, objectFit: 'contain' }} />
               </Box>
               <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                 ACCESO LEGAL
@@ -327,7 +327,7 @@ export default function Home() {
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 28, height: 28, objectFit: 'contain' }} />
+                  <Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 40, height: 40, objectFit: 'contain' }} />
                 </Box>
                 <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                   HERRAMIENTA
