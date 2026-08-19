@@ -225,7 +225,7 @@ export default function Repositorio() {
                       </Box>
                     </Box>
 
-                    <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{doc.titulo}</Typography>
+                    <Typography variant="h6" color="primary" sx={{ mb: 1, fontWeight: 'bold' }}>{doc.titulo}</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {doc.descripcion}
                     </Typography>
