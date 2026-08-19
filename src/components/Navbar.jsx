@@ -4,12 +4,24 @@ import GavelIcon from '@mui/icons-material/Gavel';
 
 export default function Navbar() {
   return (
-    <AppBar position="static" elevation={2}>
+    <AppBar position="static" elevation={2} sx={{ bgcolor: '#081a3d' }}>
       <Toolbar>
-        <GavelIcon sx={{ mr: 2 }} />
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-          Observatorio Laboral CR
-        </Typography>
+        <Box 
+          component={RouterLink} 
+          to="/" 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            textDecoration: 'none', 
+            color: 'inherit', 
+            flexGrow: 1 
+          }}
+        >
+          <GavelIcon sx={{ mr: 2 }} />
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+            Observatorio Laboral CR
+          </Typography>
+        </Box>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button color="inherit" component={RouterLink} to="/">Inicio</Button>
