@@ -20,9 +20,9 @@ const app = initializeApp(firebaseConfig);
 // Inicializar Analytics (solo funciona en el navegador)
 const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-export const googleProvider = new GoogleAuthProvider();
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const googleProvider = new GoogleAuthProvider();
 
 export { app, analytics, db, storage, auth, googleProvider };
