@@ -16,7 +16,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#003399', // Azul institucional de la Unión Europea
+      main: '#081a3d', // Azul oscuro (Hero/Navbar)
     },
     secondary: {
       main: '#FFCC00', // Amarillo/Dorado de las estrellas de la UE

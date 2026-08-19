@@ -193,10 +193,10 @@ export default function Home() {
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ width: 56, height: 56, mb: 2, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <GavelIcon sx={{ color: '#3b82f6', fontSize: 28 }} />
+                <GavelIcon sx={{ color: 'primary.main', fontSize: 28 }} />
               </Box>
-              {stats.loading ? <CircularProgress size={32} sx={{ my: 1, color: '#1e3a8a' }} /> : (
-                <Typography variant="h3" fontWeight="900" sx={{ color: '#1e3a8a', mb: 0.5 }}>{stats.docs}</Typography>
+              {stats.loading ? <CircularProgress size={32} sx={{ my: 1, color: 'primary.main' }} /> : (
+                <Typography variant="h3" fontWeight="900" sx={{ color: 'primary.main', mb: 0.5 }}>{stats.docs}</Typography>
               )}
               <Typography variant="subtitle1" fontWeight="800" sx={{ color: '#0f172a' }}>Documentos Legales</Typography>
               <Typography variant="caption" sx={{ color: '#64748b' }}>Leyes, Tratados y Jurisprudencia</Typography>
@@ -235,7 +235,7 @@ export default function Home() {
       {/* --- SECCIÓN EXPLICATIVA (MISIÓN) --- */}
       <Container maxWidth="lg" sx={{ mt: 14 }}>
         <Box sx={{ mb: 6, textAlign: 'center' }}>
-          <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase', display: 'block', mb: 1 }}>
+          <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase', display: 'block', mb: 1 }}>
             NUESTRA MISIÓN
           </Typography>
           <Typography variant="h4" fontWeight="900" sx={{ color: '#0f172a', letterSpacing: '-0.5px', mb: 2 }}>
@@ -251,9 +251,9 @@ export default function Home() {
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BalanceIcon sx={{ color: '#3b82f6', fontSize: 28 }} />
+                <BalanceIcon sx={{ color: 'primary.main', fontSize: 28 }} />
               </Box>
-              <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+              <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                 ACCESO LEGAL
               </Typography>
               <Typography variant="h6" fontWeight="800" sx={{ color: '#0f172a', mb: 1.5 }}>
@@ -268,9 +268,9 @@ export default function Home() {
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <SupportAgentIcon sx={{ color: '#3b82f6', fontSize: 28 }} />
+                <SupportAgentIcon sx={{ color: 'primary.main', fontSize: 28 }} />
               </Box>
-              <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+              <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                 ACOMPAÑAMIENTO
               </Typography>
               <Typography variant="h6" fontWeight="800" sx={{ color: '#0f172a', mb: 1.5 }}>
@@ -309,7 +309,7 @@ export default function Home() {
       {/* --- SECCIÓN: NUESTROS SERVICIOS --- */}
       <Container maxWidth="lg" sx={{ mt: 14 }}>
         <Box sx={{ mb: 6, textAlign: 'center' }}>
-          <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase', display: 'block', mb: 1 }}>
+          <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase', display: 'block', mb: 1 }}>
             SERVICIOS
           </Typography>
           <Typography variant="h4" fontWeight="900" sx={{ color: '#0f172a', letterSpacing: '-0.5px', mb: 2 }}>
@@ -329,7 +329,7 @@ export default function Home() {
                 <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <GavelIcon sx={{ color: '#3b82f6', fontSize: 28 }} />
                 </Box>
-                <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+                <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                   HERRAMIENTA
                 </Typography>
                 <Typography variant="h6" fontWeight="800" sx={{ color: '#0f172a', mb: 1.5 }}>
@@ -346,14 +346,14 @@ export default function Home() {
                   variant="outlined" 
                   fullWidth
                   sx={{ 
-                    color: '#2563eb', 
+                    color: 'primary.main', 
                     borderColor: '#cbd5e1', 
                     fontWeight: 700, 
                     py: 1, 
                     borderRadius: 2,
                     fontSize: '0.82rem',
                     textTransform: 'uppercase',
-                    '&:hover': { borderColor: '#2563eb', bgcolor: 'transparent' }
+                    '&:hover': { borderColor: 'primary.main', bgcolor: 'transparent' }
                   }}
                 >
                   Buscador Legal
@@ -369,7 +369,7 @@ export default function Home() {
                 <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <ForumIcon sx={{ color: '#d97706', fontSize: 28 }} />
                 </Box>
-                <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+                <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                   SOPORTE
                 </Typography>
                 <Typography variant="h6" fontWeight="800" sx={{ color: '#0f172a', mb: 1.5 }}>
@@ -410,7 +410,7 @@ export default function Home() {
                 <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#ecfdf5', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <NewspaperIcon sx={{ color: '#059669', fontSize: 28 }} />
                 </Box>
-                <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+                <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                   CONTENIDO
                 </Typography>
                 <Typography variant="h6" fontWeight="800" sx={{ color: '#0f172a', mb: 1.5 }}>
@@ -427,14 +427,14 @@ export default function Home() {
                   variant="outlined" 
                   fullWidth
                   sx={{ 
-                    color: '#2563eb', 
+                    color: 'primary.main', 
                     borderColor: '#cbd5e1', 
                     fontWeight: 700, 
                     py: 1, 
                     borderRadius: 2,
                     fontSize: '0.82rem',
                     textTransform: 'uppercase',
-                    '&:hover': { borderColor: '#2563eb', bgcolor: 'transparent' }
+                    '&:hover': { borderColor: 'primary.main', bgcolor: 'transparent' }
                   }}
                 >
                   Leer Artículos
