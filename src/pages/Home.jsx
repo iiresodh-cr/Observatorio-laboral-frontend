@@ -183,12 +183,12 @@ export default function Home() {
       </Box>
 
       {/* --- SECCIÓN: CONTADORES DINÁMICOS --- */}
-      <Container maxWidth="md" sx={{ mt: -6, position: 'relative', zIndex: 3 }}>
-        <Grid container spacing={3} justifyContent="center">
+      <Container maxWidth="lg" sx={{ mt: -6, position: 'relative', zIndex: 3 }}>
+        <Grid container spacing={4} justifyContent="center" alignItems="stretch">
           
-          <Grid item xs={12} sm={4}>
-            <Card elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 56, height: 56, mx: 'auto', mb: 2, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Grid item xs={12} md={4}>
+            <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ width: 56, height: 56, mb: 2, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <GavelIcon sx={{ color: '#3b82f6', fontSize: 28 }} />
               </Box>
               {stats.loading ? <CircularProgress size={32} sx={{ my: 1, color: '#1e3a8a' }} /> : (
@@ -199,9 +199,9 @@ export default function Home() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={4}>
-            <Card elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 56, height: 56, mx: 'auto', mb: 2, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Grid item xs={12} md={4}>
+            <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ width: 56, height: 56, mb: 2, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <SupportAgentIcon sx={{ color: '#d97706', fontSize: 28 }} />
               </Box>
               {stats.loading ? <CircularProgress size={32} sx={{ my: 1, color: '#b45309' }} /> : (
@@ -212,9 +212,9 @@ export default function Home() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={4}>
-            <Card elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 56, height: 56, mx: 'auto', mb: 2, bgcolor: '#ecfdf5', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Grid item xs={12} md={4}>
+            <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ width: 56, height: 56, mb: 2, bgcolor: '#ecfdf5', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <NewspaperIcon sx={{ color: '#059669', fontSize: 28 }} />
               </Box>
               {stats.loading ? <CircularProgress size={32} sx={{ my: 1, color: '#047857' }} /> : (
@@ -229,7 +229,7 @@ export default function Home() {
       </Container>
 
       {/* --- SECCIÓN EXPLICATIVA (MISIÓN) --- */}
-      <Container maxWidth="md" sx={{ mt: 14 }}>
+      <Container maxWidth="lg" sx={{ mt: 14 }}>
         <Box sx={{ mb: 6, textAlign: 'center' }}>
           <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase', display: 'block', mb: 1 }}>
             NUESTRA MISIÓN
@@ -242,12 +242,12 @@ export default function Home() {
           </Typography>
         </Box>
 
-        <Grid container spacing={3} justifyContent="center">
+        <Grid container spacing={4} justifyContent="center" alignItems="stretch">
           
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 4, height: '100%', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 52, height: 52, mx: 'auto', mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BalanceIcon sx={{ color: '#3b82f6', fontSize: 26 }} />
+            <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <BalanceIcon sx={{ color: '#3b82f6', fontSize: 28 }} />
               </Box>
               <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                 ACCESO LEGAL
@@ -262,9 +262,9 @@ export default function Home() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 4, height: '100%', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 52, height: 52, mx: 'auto', mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <SupportAgentIcon sx={{ color: '#3b82f6', fontSize: 26 }} />
+            <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <SupportAgentIcon sx={{ color: '#3b82f6', fontSize: 28 }} />
               </Box>
               <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                 ACOMPAÑAMIENTO
@@ -279,9 +279,9 @@ export default function Home() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 4, height: '100%', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 52, height: 52, mx: 'auto', mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <AutoAwesomeIcon sx={{ color: '#d97706', fontSize: 26 }} />
+            <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AutoAwesomeIcon sx={{ color: '#d97706', fontSize: 28 }} />
               </Box>
               <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                 INTELIGENCIA ARTIFICIAL
@@ -303,7 +303,7 @@ export default function Home() {
       </Container>
 
       {/* --- SECCIÓN: NUESTROS SERVICIOS --- */}
-      <Container maxWidth="md" sx={{ mt: 14 }}>
+      <Container maxWidth="lg" sx={{ mt: 14 }}>
         <Box sx={{ mb: 6, textAlign: 'center' }}>
           <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase', display: 'block', mb: 1 }}>
             SERVICIOS
@@ -316,13 +316,13 @@ export default function Home() {
           </Typography>
         </Box>
 
-        <Grid container spacing={3} justifyContent="center">
+        <Grid container spacing={4} justifyContent="center" alignItems="stretch">
           
           {/* Card 1: Repositorio */}
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                <Box sx={{ width: 56, height: 56, mx: 'auto', mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#eef4ff', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <GavelIcon sx={{ color: '#3b82f6', fontSize: 28 }} />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
@@ -334,8 +334,8 @@ export default function Home() {
                 <Typography variant="body2" sx={{ color: '#64748b', lineHeight: 1.6, fontSize: '0.88rem' }}>
                   Explora nuestra biblioteca con la legislación nacional vigente, tratados de la OIT y la jurisprudencia más relevante de Costa Rica.
                 </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+              </Box>
+              <Box sx={{ width: '100%', mt: 3 }}>
                 <Button 
                   component={RouterLink} 
                   to="/repositorio" 
@@ -354,15 +354,15 @@ export default function Home() {
                 >
                   Buscador Legal
                 </Button>
-              </CardActions>
+              </Box>
             </Card>
           </Grid>
 
           {/* Card 2: Orientación Legal */}
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                <Box sx={{ width: 56, height: 56, mx: 'auto', mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <ForumIcon sx={{ color: '#d97706', fontSize: 28 }} />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
@@ -374,8 +374,8 @@ export default function Home() {
                 <Typography variant="body2" sx={{ color: '#64748b', lineHeight: 1.6, fontSize: '0.88rem' }}>
                   Registre su caso de forma segura. Nuestro equipo y PIDA analizarán su situación para enviarle una recomendación a su correo.
                 </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+              </Box>
+              <Box sx={{ width: '100%', mt: 3 }}>
                 <Button 
                   component={RouterLink} 
                   to="/denuncia" 
@@ -395,15 +395,15 @@ export default function Home() {
                 >
                   Solicitar Ayuda
                 </Button>
-              </CardActions>
+              </Box>
             </Card>
           </Grid>
 
           {/* Card 3: Blog */}
           <Grid item xs={12} md={4}>
-            <Card elevation={0} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                <Box sx={{ width: 56, height: 56, mx: 'auto', mb: 3, bgcolor: '#ecfdf5', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+              <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#ecfdf5', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <NewspaperIcon sx={{ color: '#059669', fontSize: 28 }} />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
@@ -415,8 +415,8 @@ export default function Home() {
                 <Typography variant="body2" sx={{ color: '#64748b', lineHeight: 1.6, fontSize: '0.88rem' }}>
                   Manténgase informado con análisis profundos, artículos de opinión y actualizaciones redactadas por nuestros expertos legales.
                 </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+              </Box>
+              <Box sx={{ width: '100%', mt: 3 }}>
                 <Button 
                   component={RouterLink} 
                   to="/blog" 
@@ -435,7 +435,7 @@ export default function Home() {
                 >
                   Leer Artículos
                 </Button>
-              </CardActions>
+              </Box>
             </Card>
           </Grid>
 
