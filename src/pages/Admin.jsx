@@ -20,6 +20,7 @@ import {
   Assessment as AssessmentIcon, Newspaper as NewspaperIcon, Edit as EditIcon
 } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
+import RichTextEditor from '../components/RichTextEditor';
 
 // Firebase Services
 import { db, storage, auth, googleProvider } from '../services/firebaseConfig';
@@ -567,7 +568,7 @@ export default function Admin() {
           <Box sx={{ p: 4, bgcolor: '#fafafa' }}>
             <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>Redactar Nuevo Artículo</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-              Puede utilizar formato <strong>Markdown</strong> en el contenido para añadir negritas (**texto**), títulos (# Título), listas y enlaces.
+              Puede utilizar el editor para redactar su contenido, añadir negritas, títulos, citas y enlaces de forma visual.
             </Typography>
             
             <Paper elevation={2} sx={{ p: 3, mb: 6 }}>
@@ -585,22 +586,20 @@ export default function Admin() {
                   onChange={(e) => setBlogData({...blogData, autor: e.target.value})} 
                   helperText="Si se deja en blanco, se usará el nombre de tu usuario."
                 />
-                <TextField 
-                  fullWidth multiline minRows={8} label="Contenido del Artículo (Soporta Markdown)" 
-                  value={blogData.contenido} onChange={(e) => setBlogData({...blogData, contenido: e.target.value})} required 
-                  sx={{ fontFamily: 'monospace' }}
-                />
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button type="submit" variant="contained" color="primary" size="large" disabled={publishing}>
-                    {publishing ? 'Publicando...' : 'Publicar en el Blog Oficial'}
-                  </Button>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1, ml: 1, fontWeight: 'bold' }}>Contenido del Artículo</Typography>
+                  <RichTextEditor 
+                    value={blogData.contenido} 
+                    onChange={(html) => setBlogData({...blogData, contenido: html}) } 
+                  />
                 </Box>
+                <Button type="submit" variant="contained" disabled={publishing} size="large" sx={{ mt: 2 }}>
+                  {publishing ? 'Publicando...' : 'Publicar Artículo'}
+                </Button>
               </Stack>
             </Paper>
 
-            <Divider sx={{ mb: 4 }} />
-            
-            <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>Tus Artículos Publicados</Typography>
+            <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>Mis Artículos Publicados</Typography>
             <List sx={{ bgcolor: 'white', borderRadius: 1, border: '1px solid #e0e0e0' }}>
               {blogPosts.filter(p => isAdmin || p.autorEmail === user.email).length === 0 && (
                 <Typography sx={{ p: 2, color: 'text.secondary' }}>No tienes artículos publicados aún.</Typography>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Typography, Box, Card, CardContent, CircularProgress, Divider, Avatar } from '@mui/material';
-import ReactMarkdown from 'react-markdown';
+import DOMPurify from 'dompurify';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 
 // Firebase
@@ -115,7 +115,7 @@ export default function Blog() {
                     }
                   }
                 }}>
-                  <ReactMarkdown>{post.contenido}</ReactMarkdown>
+                  <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.contenido) }} />
                 </Box>
 
               </CardContent>
