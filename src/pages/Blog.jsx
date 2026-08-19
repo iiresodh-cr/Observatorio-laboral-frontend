@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Container, Typography, Box, Card, CardContent, CircularProgress, Divider, Avatar } from '@mui/material';
+import { Container, Typography, Box, Card, CardContent, CircularProgress, Divider, Avatar, TextField, InputAdornment } from '@mui/material';
 import DOMPurify from 'dompurify';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
+import SearchIcon from '@mui/icons-material/Search';
 
 // Firebase
 import { db } from '../services/firebaseConfig';
@@ -10,6 +11,7 @@ import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 export default function Blog() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const q = query(collection(db, "blog"), orderBy("fechaCreacion", "desc"));
@@ -25,6 +27,16 @@ export default function Blog() {
     return () => unsubscribe();
   }, []);
 
+  const filteredPosts = posts.filter(post => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      (post.titulo && post.titulo.toLowerCase().includes(searchLower)) ||
+      (post.subtitulo && post.subtitulo.toLowerCase().includes(searchLower)) ||
+      (post.autorNombre && post.autorNombre.toLowerCase().includes(searchLower)) ||
+      (post.contenido && post.contenido.toLowerCase().includes(searchLower))
+    );
+  });
+
   return (
     <Container maxWidth="md" sx={{ mt: 6, mb: 8 }}>
       <Box sx={{ textAlign: 'center', mb: 6 }}>
@@ -37,6 +49,24 @@ export default function Blog() {
         </Typography>
       </Box>
 
+      <Box sx={{ mb: 4 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Buscar por título, autor, o contenido..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="primary" />
+              </InputAdornment>
+            ),
+            sx: { bgcolor: 'white', borderRadius: 2 }
+          }}
+        />
+      </Box>
+
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
           <CircularProgress />
@@ -45,9 +75,13 @@ export default function Blog() {
         <Box sx={{ textAlign: 'center', py: 10, bgcolor: 'white', borderRadius: 2, border: '1px dashed #ccc' }}>
           <Typography color="text.secondary">Aún no hay artículos publicados en el blog.</Typography>
         </Box>
+      ) : filteredPosts.length === 0 ? (
+        <Box sx={{ textAlign: 'center', py: 10, bgcolor: 'white', borderRadius: 2, border: '1px dashed #ccc' }}>
+          <Typography color="text.secondary">No se encontraron artículos que coincidan con su búsqueda.</Typography>
+        </Box>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {posts.map((post) => (
+          {filteredPosts.map((post) => (
             <Card key={post.id} elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
               <CardContent sx={{ p: { xs: 3, md: 5 } }}>
                 
