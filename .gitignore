@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Firebase
+.firebase/
+
+# AI Tools
+.agents/
+
+# Env
+.env
+.env.local
