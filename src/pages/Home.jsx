@@ -113,11 +113,12 @@ export default function Home() {
             component="h1" 
             gutterBottom 
             sx={{ 
-              fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4.2rem' }, 
+              fontSize: { xs: '3rem', sm: '4rem', md: '5rem' }, 
               fontWeight: 900,
               letterSpacing: '-1.5px',
               lineHeight: 1.1,
-              mb: 3
+              mb: 3,
+              textShadow: '0px 2px 4px rgba(0,0,0,0.5)' // Added text shadow for more emphasis
             }}
           >
             Observatorio de<br />Derechos Laborales
