@@ -1,6 +1,6 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import GavelIcon from '@mui/icons-material/Gavel'; 
+import balanzaImg from '../assets/balanza.png';
 
 export default function Navbar() {
   return (
@@ -17,7 +17,7 @@ export default function Navbar() {
             flexGrow: 1 
           }}
         >
-          <GavelIcon sx={{ mr: 2 }} />
+          <Box component="img" src={balanzaImg} alt="Logo Balanza" sx={{ width: 28, height: 28, mr: 2, objectFit: 'contain' }} />
           <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
             Observatorio Laboral CR
           </Typography>

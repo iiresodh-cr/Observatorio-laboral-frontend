@@ -9,12 +9,14 @@ import {
   Search as SearchIcon,
   PictureAsPdf as PictureAsPdfIcon,
   Public as PublicIcon,
-  Gavel as GavelIcon,
   MenuBook as MenuBookIcon,
   Assignment as AssignmentIcon,
   Delete as DeleteIcon,
   WarningAmber as WarningAmberIcon
 } from '@mui/icons-material';
+
+// Local Assets
+import balanzaImg from '../assets/balanza.png';
 
 // Importación de Firebase
 import { db, storage, auth } from '../services/firebaseConfig';
@@ -107,7 +109,7 @@ export default function Repositorio() {
       case 'leyes': return <PictureAsPdfIcon fontSize="small" />;
       case 'reglamentos': return <AssignmentIcon fontSize="small" />;
       case 'tratados': return <PublicIcon fontSize="small" />;
-      case 'jurisprudencia': return <GavelIcon fontSize="small" />;
+      case 'jurisprudencia': return <Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 20, height: 20, objectFit: 'contain' }} />;
       case 'articulos': return <MenuBookIcon fontSize="small" />;
       default: return <PictureAsPdfIcon fontSize="small" />;
     }
@@ -185,7 +187,7 @@ export default function Repositorio() {
           <Tab label="Leyes" value="leyes" icon={<PictureAsPdfIcon />} iconPosition="start" />
           <Tab label="Reglamentos" value="reglamentos" icon={<AssignmentIcon />} iconPosition="start" />
           <Tab label="Tratados" value="tratados" icon={<PublicIcon />} iconPosition="start" />
-          <Tab label="Jurisprudencia" value="jurisprudencia" icon={<GavelIcon />} iconPosition="start" />
+          <Tab label="Jurisprudencia" value="jurisprudencia" icon={<Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 24, height: 24, objectFit: 'contain' }} />} iconPosition="start" />
           <Tab label="Libros" value="articulos" icon={<MenuBookIcon />} iconPosition="start" />
         </Tabs>
       </Box>
