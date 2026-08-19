@@ -106,12 +106,12 @@ export default function Repositorio() {
 
   const getCategoryIcon = (category) => {
     switch(category) {
-      case 'leyes': return <PictureAsPdfIcon fontSize="small" />;
-      case 'reglamentos': return <AssignmentIcon fontSize="small" />;
-      case 'tratados': return <PublicIcon fontSize="small" />;
+      case 'leyes': return <FileText size={18} />;
+      case 'reglamentos': return <ClipboardList size={18} />;
+      case 'tratados': return <Globe size={18} />;
       case 'jurisprudencia': return <Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 20, height: 20, objectFit: 'contain' }} />;
-      case 'articulos': return <MenuBookIcon fontSize="small" />;
-      default: return <PictureAsPdfIcon fontSize="small" />;
+      case 'articulos': return <BookOpen size={18} />;
+      default: return <FileText size={18} />;
     }
   };
 
@@ -158,7 +158,7 @@ export default function Repositorio() {
           placeholder="Buscar norma o palabra clave..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon color="primary" /></InputAdornment>) }}
+          InputProps={{ startAdornment: (<InputAdornment position="start"><Search size={20} color="#2563eb" /></InputAdornment>) }}
         />
         <TextField
           select
@@ -184,11 +184,11 @@ export default function Repositorio() {
           indicatorColor="secondary"
         >
           <Tab label="Todos" value="todos" />
-          <Tab label="Leyes" value="leyes" icon={<PictureAsPdfIcon />} iconPosition="start" />
-          <Tab label="Reglamentos" value="reglamentos" icon={<AssignmentIcon />} iconPosition="start" />
-          <Tab label="Tratados" value="tratados" icon={<PublicIcon />} iconPosition="start" />
+          <Tab label="Leyes" value="leyes" icon={<FileText size={20} />} iconPosition="start" />
+          <Tab label="Reglamentos" value="reglamentos" icon={<ClipboardList size={20} />} iconPosition="start" />
+          <Tab label="Tratados" value="tratados" icon={<Globe size={20} />} iconPosition="start" />
           <Tab label="Jurisprudencia" value="jurisprudencia" icon={<Box component="img" src={balanzaImg} alt="Balanza" sx={{ width: 24, height: 24, objectFit: 'contain' }} />} iconPosition="start" />
-          <Tab label="Libros" value="articulos" icon={<MenuBookIcon />} iconPosition="start" />
+          <Tab label="Libros" value="articulos" icon={<BookOpen size={20} />} iconPosition="start" />
         </Tabs>
       </Box>
 
@@ -219,7 +219,7 @@ export default function Repositorio() {
                             onClick={() => handleOpenDelete(doc)}
                             title="Eliminar documento"
                           >
-                            <DeleteIcon fontSize="small" />
+                            <Trash2 size={18} />
                           </IconButton>
                         )}
                       </Box>
@@ -264,7 +264,7 @@ export default function Repositorio() {
       {/* MODAL DE CONFIRMACIÓN DE BORRADO */}
       <Dialog open={deleteModal.open} onClose={() => !isDeleting && setDeleteModal({...deleteModal, open: false})}>
         <DialogTitle sx={{ color: 'error.main', display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'bold' }}>
-          <WarningAmberIcon /> Confirmar Eliminación
+          <AlertTriangle size={24} /> Confirmar Eliminación
         </DialogTitle>
         <DialogContent>
           <Typography paragraph>¿Estás seguro de que deseas eliminar el documento <strong>{deleteModal.titulo}</strong>?</Typography>

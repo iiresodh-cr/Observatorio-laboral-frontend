@@ -7,18 +7,15 @@ import {
   ToggleButton, ToggleButtonGroup
 } from '@mui/material';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, Legend 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  Cell
 } from 'recharts';
 import { 
-  CloudUpload as CloudUploadIcon, PictureAsPdf as PictureAsPdfIcon,
-  InsertChart as InsertChartIcon, Group as GroupIcon, Logout as LogoutIcon,
-  Lock as LockIcon, PersonAdd as PersonAddIcon, Delete as DeleteIcon,
-  Google as GoogleIcon, AssignmentLate as AssignmentLateIcon,
-  AutoAwesome as AutoAwesomeIcon, Email as EmailIcon, CheckCircle as CheckCircleIcon,
-  History as HistoryIcon, PendingActions as PendingActionsIcon,
-  Assessment as AssessmentIcon, Newspaper as NewspaperIcon, Edit as EditIcon
-} from '@mui/icons-material';
+  CloudUpload, FileText, Users, LogOut, 
+  Lock, UserPlus, Trash2, LogIn, 
+  Sparkles, Mail, CheckCircle, History, Clock, 
+  FileBarChart, Newspaper, Edit 
+} from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import RichTextEditor from '../components/RichTextEditor';
 
@@ -368,10 +365,10 @@ export default function Admin() {
     return (
       <Container maxWidth="xs" sx={{ mt: 8 }}>
         <Paper elevation={4} sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
-          <LockIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+          <Lock size={40} style={{ color: '#081A3D', marginBottom: '8px' }} />
           <Typography variant="h5" fontWeight="bold">Administración</Typography>
           {loginError && <Alert severity="error" sx={{ mb: 2, fontSize: '0.8rem' }}>{loginError}</Alert>}
-          <Button fullWidth variant="contained" startIcon={<GoogleIcon />} onClick={handleLoginGoogle} sx={{ mb: 3, py: 1.2, fontWeight: 'bold' }}>Entrar con Google</Button>
+          <Button fullWidth variant="contained" startIcon={<LogIn size={20} />} onClick={handleLoginGoogle} sx={{ mb: 3, py: 1.2, fontWeight: 'bold' }}>Entrar con Google</Button>
           <Divider sx={{ mb: 3 }}><Typography variant="caption" color="text.disabled">O CORREO EXTERNO</Typography></Divider>
           <Box component="form" onSubmit={handleLoginManual}>
             <TextField fullWidth size="small" label="Email" margin="dense" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -390,17 +387,17 @@ export default function Admin() {
           <Typography variant="h4" color="primary" fontWeight="bold">{isAdmin ? 'Panel Administrativo' : 'Panel de Redacción'}</Typography>
           <Typography variant="body2" color="text.secondary">Sesión: <strong>{user.email}</strong> {isAuthor && !isAdmin && '(Redactor)'}</Typography>
         </Box>
-        <Button variant="outlined" color="error" startIcon={<LogoutIcon />} onClick={handleLogout}>Cerrar Sesión</Button>
+        <Button variant="outlined" color="error" startIcon={<LogOut size={20} />} onClick={handleLogout}>Cerrar Sesión</Button>
       </Box>
 
       <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f4f6f8' }}>
           <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} indicatorColor="secondary" textColor="primary" variant="scrollable" scrollButtons="auto">
-            {isAdmin && <Tab value="informes" icon={<AssessmentIcon />} label="Informes y Gráficos" />}
-            {isAdmin && <Tab value="carga" icon={<CloudUploadIcon />} label="Carga Manual" />}
-            {isAdmin && <Tab value="asesorias" icon={<EmailIcon />} label="Asesorías" />}
-            {isAdmin && <Tab value="admins" icon={<GroupIcon />} label="Administradores" />}
-            {(isAdmin || isAuthor) && <Tab value="blog" icon={<NewspaperIcon />} label="Redacción Blog" />}
+            {isAdmin && <Tab value="informes" icon={<FileBarChart size={20} />} label="Informes y Gráficos" />}
+            {isAdmin && <Tab value="carga" icon={<CloudUpload size={20} />} label="Carga Manual" />}
+            {isAdmin && <Tab value="asesorias" icon={<Mail size={20} />} label="Asesorías" />}
+            {isAdmin && <Tab value="admins" icon={<Users size={20} />} label="Administradores" />}
+            {(isAdmin || isAuthor) && <Tab value="blog" icon={<Newspaper size={20} />} label="Redacción Blog" />}
           </Tabs>
         </Box>
 
@@ -440,7 +437,7 @@ export default function Admin() {
             <Box sx={{ mt: 6, p: 4, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: 'white' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Box>
-                  <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><AutoAwesomeIcon color="secondary" /> Informe Ejecutivo</Typography>
+                  <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Sparkles size={24} color="#FFCC00" /> Informe Ejecutivo</Typography>
                   <Typography variant="body2" color="text.secondary">Utiliza PIDA para analizar los datos mostrados arriba y sugerir estrategias.</Typography>
                 </Box>
                 <Button variant="contained" color="secondary" onClick={handleGeneratePidaReport} disabled={generatingReport || totalDenuncias === 0} sx={{ color: '#000', fontWeight: 'bold' }}>
@@ -465,7 +462,7 @@ export default function Admin() {
               {loadingAI ? (
                 <Stack alignItems="center" spacing={2}><CircularProgress size={40} color="secondary" /><Typography variant="h6" color="secondary.main" fontWeight="bold">IA analizando documento...</Typography></Stack>
               ) : (
-                <Stack alignItems="center" spacing={2}><AutoAwesomeIcon color="secondary" sx={{ fontSize: 40 }} /><Typography variant="h6" color="text.primary">{archivo ? `Archivo: ${archivo.name}` : 'Sube un PDF para autocompletar'}</Typography><Button variant="contained" component="label" size="large" startIcon={<PictureAsPdfIcon />}>Elegir Archivo PDF<input type="file" hidden accept="application/pdf" onChange={handleFileChange} /></Button></Stack>
+                <Stack alignItems="center" spacing={2}><Sparkles size={40} color="#FFCC00" /><Typography variant="h6" color="text.primary">{archivo ? `Archivo: ${archivo.name}` : 'Sube un PDF para autocompletar'}</Typography><Button variant="contained" component="label" size="large" startIcon={<FileText size={20} />}>Elegir Archivo PDF<input type="file" hidden accept="application/pdf" onChange={handleFileChange} /></Button></Stack>
               )}
             </Box>
             <Stack spacing={3}>
@@ -488,8 +485,8 @@ export default function Admin() {
                 <Typography variant="body2" color="text.secondary">Revisa los borradores, envía respuestas o consulta el historial.</Typography>
               </Box>
               <ToggleButtonGroup value={subTabDenuncias} exclusive onChange={(e, v) => v && setSubTabDenuncias(v)} color="primary" size="small" sx={{ bgcolor: 'white' }}>
-                <ToggleButton value="pendiente" sx={{ px: 3 }}><PendingActionsIcon sx={{ mr: 1, fontSize: 20 }} /> Pendientes</ToggleButton>
-                <ToggleButton value="completada" sx={{ px: 3 }}><HistoryIcon sx={{ mr: 1, fontSize: 20 }} /> Historial</ToggleButton>
+                <ToggleButton value="pendiente" sx={{ px: 3 }}><Clock size={20} style={{ marginRight: '8px' }} /> Pendientes</ToggleButton>
+                <ToggleButton value="completada" sx={{ px: 3 }}><History size={20} style={{ marginRight: '8px' }} /> Historial</ToggleButton>
               </ToggleButtonGroup>
             </Stack>
 
@@ -501,7 +498,7 @@ export default function Admin() {
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <Box><Typography variant="subtitle1" fontWeight="bold">{denuncia.nombres} {denuncia.apellidos}</Typography><Typography variant="body2" color="text.secondary" gutterBottom>{denuncia.email}</Typography></Box>
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                          {user?.email === SUPER_ADMIN_EMAIL && (<IconButton size="small" color="error" onClick={() => handleDeleteDenuncia(denuncia.id)} title="Eliminar definitivamente"><DeleteIcon fontSize="small" /></IconButton>)}
+                          {user?.email === SUPER_ADMIN_EMAIL && (<IconButton size="small" color="error" onClick={() => handleDeleteDenuncia(denuncia.id)} title="Eliminar definitivamente"><Trash2 size={18} /></IconButton>)}
                           <Chip label={subTabDenuncias === 'pendiente' ? 'Pendiente' : 'Completada'} size="small" color={subTabDenuncias === 'pendiente' ? 'error' : 'success'} />
                         </Box>
                       </Box>
@@ -527,7 +524,7 @@ export default function Admin() {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
               <TextField label="Nombre Completo" size="small" sx={{ flexGrow: 1 }} value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} disabled={isCreatingUser} />
               <TextField label="Correo Electrónico" size="small" sx={{ flexGrow: 1 }} value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} disabled={isCreatingUser} />
-              <Button variant="contained" startIcon={isCreatingUser ? <CircularProgress size={20} color="inherit" /> : <PersonAddIcon />} onClick={handleAddAdmin} sx={{ minWidth: '150px' }} disabled={isCreatingUser}>
+              <Button variant="contained" startIcon={isCreatingUser ? <CircularProgress size={20} color="inherit" /> : <UserPlus size={20} />} onClick={handleAddAdmin} sx={{ minWidth: '150px' }} disabled={isCreatingUser}>
                 {isCreatingUser ? 'Procesando...' : 'Autorizar Admin'}
               </Button>
             </Stack>
@@ -536,7 +533,7 @@ export default function Admin() {
                 <ListItemText primary={<Typography variant="body1"><strong>Super Administrador</strong> ({SUPER_ADMIN_EMAIL})</Typography>} secondary="Acceso total al sistema (Predeterminado)" />
               </ListItem>
               {adminList.map((admin) => (
-                <ListItem key={admin.id} divider secondaryAction={<IconButton edge="end" color="error" onClick={() => handleRemoveAdmin(admin.id)}><DeleteIcon /></IconButton>}>
+                <ListItem key={admin.id} divider secondaryAction={<IconButton edge="end" color="error" onClick={() => handleRemoveAdmin(admin.id)}><Trash2 size={20} /></IconButton>}>
                   <ListItemText primary={<Typography variant="body1">{admin.nombre ? <strong>{admin.nombre}</strong> : <strong>{admin.email}</strong>}{admin.nombre && ` (${admin.email})`}</Typography>} secondary={`Autorizado por: ${admin.addedBy}`} />
                 </ListItem>
               ))}
@@ -549,14 +546,14 @@ export default function Admin() {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
               <TextField label="Nombre del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorName} onChange={(e) => setNewAutorName(e.target.value)} disabled={isCreatingUser} />
               <TextField label="Correo del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorEmail} onChange={(e) => setNewAutorEmail(e.target.value)} disabled={isCreatingUser} />
-              <Button variant="contained" color="secondary" startIcon={isCreatingUser ? <CircularProgress size={20} color="inherit" /> : <EditIcon />} onClick={handleAddAutor} sx={{ minWidth: '150px', color: 'black' }} disabled={isCreatingUser}>
+              <Button variant="contained" color="secondary" startIcon={isCreatingUser ? <CircularProgress size={20} color="inherit" /> : <Edit size={20} />} onClick={handleAddAutor} sx={{ minWidth: '150px', color: 'black' }} disabled={isCreatingUser}>
                 {isCreatingUser ? 'Procesando...' : 'Autorizar Autor'}
               </Button>
             </Stack>
             <List sx={{ bgcolor: '#fffde7', borderRadius: 1 }}>
               {autorList.length === 0 && <Typography variant="body2" sx={{ p: 2, color: 'text.secondary' }}>No hay redactores autorizados aún.</Typography>}
               {autorList.map((autor) => (
-                <ListItem key={autor.id} divider secondaryAction={<IconButton edge="end" color="error" onClick={() => handleRemoveAutor(autor.id)}><DeleteIcon /></IconButton>}>
+                <ListItem key={autor.id} divider secondaryAction={<IconButton edge="end" color="error" onClick={() => handleRemoveAutor(autor.id)}><Trash2 size={20} /></IconButton>}>
                   <ListItemText primary={<Typography variant="body1"><strong>{autor.nombre}</strong> ({autor.email})</Typography>} secondary={`Autorizado por: ${autor.addedBy}`} />
                 </ListItem>
               ))}
@@ -605,7 +602,7 @@ export default function Admin() {
                 <Typography sx={{ p: 2, color: 'text.secondary' }}>No tienes artículos publicados aún.</Typography>
               )}
               {blogPosts.filter(p => isAdmin || p.autorEmail === user.email).map(post => (
-                <ListItem key={post.id} divider secondaryAction={<IconButton color="error" onClick={() => handleDeletePost(post.id)}><DeleteIcon /></IconButton>}>
+                <ListItem key={post.id} divider secondaryAction={<IconButton color="error" onClick={() => handleDeletePost(post.id)}><Trash2 size={20} /></IconButton>}>
                   <ListItemText 
                     primary={<Typography fontWeight="bold">{post.titulo}</Typography>}
                     secondary={`Publicado por ${post.autorNombre} el ${post.fechaCreacion?.toDate().toLocaleDateString() || 'recientemente'}`}
@@ -623,7 +620,7 @@ export default function Admin() {
         {selectedDenuncia && (
           <>
             <DialogTitle sx={{ bgcolor: '#003399', color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <EmailIcon /> {subTabDenuncias === 'pendiente' ? 'Revisión de Asesoría Legal' : 'Detalle de Asesoría Enviada'}
+              <Mail size={24} /> {subTabDenuncias === 'pendiente' ? 'Revisión de Asesoría Legal' : 'Detalle de Asesoría Enviada'}
             </DialogTitle>
             <DialogContent dividers sx={{ bgcolor: '#f4f6f8' }}>
               <Grid container spacing={3} alignItems="stretch">
@@ -662,7 +659,7 @@ export default function Admin() {
             <DialogActions sx={{ p: 2 }}>
               <Button onClick={() => setSelectedDenuncia(null)} color="inherit" disabled={isSendingEmail}>Cerrar</Button>
               {subTabDenuncias === 'pendiente' && (
-                <Button onClick={handleSendAdvice} variant="contained" color="secondary" sx={{ color: '#000', fontWeight: 'bold' }} disabled={isSendingEmail} startIcon={isSendingEmail ? <CircularProgress size={20} color="inherit" /> : <CheckCircleIcon />}>
+                <Button onClick={handleSendAdvice} variant="contained" color="secondary" sx={{ color: '#000', fontWeight: 'bold' }} disabled={isSendingEmail} startIcon={isSendingEmail ? <CircularProgress size={20} color="inherit" /> : <CheckCircle size={20} />}>
                   {isSendingEmail ? 'Enviando...' : 'Aprobar y Enviar Correo'}
                 </Button>
               )}
