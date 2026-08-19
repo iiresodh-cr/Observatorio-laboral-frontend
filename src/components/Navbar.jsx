@@ -1,6 +1,6 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import balanzaImg from '../assets/balanza.png';
+import logoBlanco from '../assets/logo-blanco.png';
 
 export default function Navbar() {
   return (
@@ -17,10 +17,12 @@ export default function Navbar() {
             flexGrow: 1 
           }}
         >
-          <Box component="img" src={balanzaImg} alt="Logo Balanza" sx={{ width: 28, height: 28, mr: 2, objectFit: 'contain' }} />
-          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-            Observatorio Laboral CR
-          </Typography>
+          <Box 
+            component="img" 
+            src={logoBlanco} 
+            alt="Logo Observatorio Laboral CR" 
+            sx={{ height: 48, objectFit: 'contain' }} 
+          />
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
