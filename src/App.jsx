@@ -16,7 +16,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#081a3d', // Azul oscuro (Hero/Navbar)
+      main: '#1d3557', // Azul oscuro (Hero/Navbar)
     },
     secondary: {
       main: '#FFCC00', // Amarillo/Dorado de las estrellas de la UE

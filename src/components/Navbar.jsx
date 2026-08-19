@@ -4,7 +4,7 @@ import logoBlanco from '../assets/logo-blanco.png';
 
 export default function Navbar() {
   return (
-    <AppBar position="static" elevation={2} sx={{ bgcolor: '#081a3d' }}>
+    <AppBar position="static" elevation={2} sx={{ bgcolor: '#081A3D' }}>
       <Toolbar>
         <Box 
           component={RouterLink} 
