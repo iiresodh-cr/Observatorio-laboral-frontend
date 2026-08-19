@@ -568,7 +568,11 @@ export default function Admin() {
                       <Divider sx={{ my: 1 }} />
                       <Typography variant="body2"><strong>Caso:</strong> {denuncia.tipoDenuncia}</Typography>
                       <Typography variant="body2" sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', mt: 1 }}>{denuncia.descripcion}</Typography>
-                      <Button variant="outlined" sx={{ mt: 2 }} onClick={() => handleOpenReview(denuncia)}>{subTabDenuncias === 'pendiente' ? 'Revisar y Enviar Respuesta' : 'Ver Respuesta Enviada'}</Button>
+                      <Button variant="outlined" sx={{ mt: 2 }} onClick={() => handleOpenReview(denuncia)}>
+                        {subTabDenuncias === 'pendiente' 
+                          ? (denuncia.email && denuncia.email.trim() !== '' ? 'Revisar y Enviar Respuesta' : 'Revisar Caso') 
+                          : (denuncia.email && denuncia.email.trim() !== '' ? 'Ver Respuesta Registrada' : 'Ver Detalle')}
+                      </Button>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -698,8 +702,8 @@ export default function Admin() {
       <Dialog open={Boolean(selectedDenuncia)} onClose={() => setSelectedDenuncia(null)} maxWidth="md" fullWidth>
         {selectedDenuncia && (
           <>
-            <DialogTitle sx={{ bgcolor: '#003399', color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Mail size={24} /> {subTabDenuncias === 'pendiente' ? 'Revisión de Asesoría Legal' : 'Detalle de Asesoría Enviada'}
+            <DialogTitle sx={{ bgcolor: '#081A3D', color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Mail size={24} /> {subTabDenuncias === 'pendiente' ? (selectedDenuncia?.email && selectedDenuncia.email.trim() !== '' ? 'Revisión de Asesoría Legal' : 'Revisión de Caso Anónimo') : (selectedDenuncia?.email && selectedDenuncia.email.trim() !== '' ? 'Detalle de Asesoría Enviada' : 'Detalle de Caso Anónimo')}
             </DialogTitle>
             <DialogContent dividers sx={{ bgcolor: '#f4f6f8' }}>
               <Grid container spacing={3} alignItems="stretch">
@@ -725,7 +729,11 @@ export default function Admin() {
                   {subTabDenuncias === 'pendiente' ? (
                     <>
                       <TextField fullWidth multiline minRows={12} maxRows={16} value={draftReview} onChange={(e) => setDraftReview(e.target.value)} variant="outlined" sx={{ bgcolor: 'white', flexGrow: 1 }} />
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Modifique el texto si es necesario. Al aprobar, este mensaje exacto se enviará por correo.</Typography>
+                      {selectedDenuncia?.email && selectedDenuncia.email.trim() !== '' ? (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Modifique el texto si es necesario. Al aprobar, este mensaje exacto se enviará por correo.</Typography>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Caso anónimo: no se enviará notificación por correo electrónico.</Typography>
+                      )}
                     </>
                   ) : (
                     <Paper variant="outlined" sx={{ p: 2, bgcolor: 'white', flexGrow: 1, overflowY: 'auto', maxHeight: { xs: 200, md: 400 } }}>
