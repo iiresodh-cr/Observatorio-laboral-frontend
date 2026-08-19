@@ -1,5 +1,6 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { Home, Library, ShieldAlert, Newspaper } from 'lucide-react';
 import logoBlanco from '../assets/logo-blanco.png';
 
 export default function Navbar() {
@@ -26,10 +27,38 @@ export default function Navbar() {
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button color="inherit" component={RouterLink} to="/">Inicio</Button>
-          <Button color="inherit" component={RouterLink} to="/repositorio">Repositorio</Button>
-          <Button color="inherit" component={RouterLink} to="/denuncia">Denuncias</Button>
-          <Button color="inherit" component={RouterLink} to="/blog">Blog</Button>
+          <Button 
+            color="inherit" 
+            component={RouterLink} 
+            to="/" 
+            startIcon={<Home size={18} />}
+          >
+            Inicio
+          </Button>
+          <Button 
+            color="inherit" 
+            component={RouterLink} 
+            to="/repositorio" 
+            startIcon={<Library size={18} />}
+          >
+            Repositorio
+          </Button>
+          <Button 
+            color="inherit" 
+            component={RouterLink} 
+            to="/denuncia" 
+            startIcon={<ShieldAlert size={18} />}
+          >
+            Denuncias
+          </Button>
+          <Button 
+            color="inherit" 
+            component={RouterLink} 
+            to="/blog" 
+            startIcon={<Newspaper size={18} />}
+          >
+            Blog
+          </Button>
           {/* El botón de Admin ha sido eliminado de aquí para ocultarlo al público */}
         </Box>
       </Toolbar>

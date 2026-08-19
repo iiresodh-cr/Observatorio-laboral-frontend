@@ -5,7 +5,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import { Box, ToggleButton, ToggleButtonGroup, Divider } from '@mui/material';
 import {
   Bold, Italic, Quote, List,
-  AlignLeft, AlignCenter, AlignJustify, Heading
+  AlignLeft, AlignCenter, AlignJustify, Heading2, Heading3
 } from 'lucide-react';
 
 const MenuBar = ({ editor }) => {
@@ -39,7 +39,7 @@ const MenuBar = ({ editor }) => {
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           title="Subtítulo Principal"
         >
-          <Heading size={20} /> <span style={{fontSize: '0.8rem', marginLeft: '4px', fontWeight: 'bold'}}>H2</span>
+          <Heading2 size={20} />
         </ToggleButton>
         <ToggleButton 
           value="h3" 
@@ -47,7 +47,7 @@ const MenuBar = ({ editor }) => {
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           title="Subtítulo Secundario"
         >
-          <Heading size={18} /> <span style={{fontSize: '0.8rem', marginLeft: '4px', fontWeight: 'bold'}}>H3</span>
+          <Heading3 size={20} />
         </ToggleButton>
       </ToggleButtonGroup>
       
