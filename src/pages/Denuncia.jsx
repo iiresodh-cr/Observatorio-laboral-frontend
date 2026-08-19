@@ -284,7 +284,7 @@ export default function Denuncia() {
             {/* CONSENTIMIENTO INFORMADO */}
             <Box sx={{ bgcolor: '#f9f9f9', p: 2, borderRadius: 1, border: '1px solid #e5e5e5' }}>
               <FormControlLabel 
-                control={<Checkbox checked={aceptaTerminos} onChange={(e) => setAceptaTerminos(e.target.checked)} color="primary" required />} 
+                control={<Checkbox checked={aceptaTerminos} onChange={(e) => setAceptaTerminos(e.target.checked)} color="primary" />} 
                 label={
                   <Typography variant="caption" color="text.secondary">
                     Declaro que la información proporcionada es verídica y autorizo su tratamiento confidencial con fines de orientación e investigación estadística disociada (Ley N° 8968). Entiendo que este canal no sustituye una denuncia formal ante el MTSS ni tribunales judiciales.
