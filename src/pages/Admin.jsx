@@ -37,6 +37,18 @@ const categorias = [
 const COLORS = ['#003399', '#FFCC00', '#1565c0', '#ffd54f', '#001f5c', '#ffb300', '#90caf9'];
 const BACKEND_URL = 'https://observatorio-backend-86857815411.us-central1.run.app';
 
+// Función auxiliar para realizar fetch con el token de Firebase Auth
+const authFetch = async (url, options = {}) => {
+  const token = await auth.currentUser?.getIdToken();
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+};
+
 export default function Admin() {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -201,7 +213,7 @@ export default function Admin() {
     }
     setIsCreatingUser(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/create-user`, {
+      const response = await authFetch(`${BACKEND_URL}/create-user`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newAdminEmail, nombre: newAdminName, rol: 'admin', addedBy: user.email })
       });
@@ -225,7 +237,7 @@ export default function Admin() {
     }
     setIsCreatingUser(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/create-user`, {
+      const response = await authFetch(`${BACKEND_URL}/create-user`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newAutorEmail, nombre: newAutorName, rol: 'autor', addedBy: user.email })
       });
@@ -260,7 +272,7 @@ export default function Admin() {
       setArchivo(selectedFile); setLoadingAI(true);
       const formData = new FormData(); formData.append('file', selectedFile);
       try {
-        const response = await fetch(`${BACKEND_URL}/extract-metadata`, { method: 'POST', body: formData });
+        const response = await authFetch(`${BACKEND_URL}/extract-metadata`, { method: 'POST', body: formData });
         if (response.ok) {
           const data = await response.json();
           setDocData(prevData => ({ titulo: data.titulo || prevData.titulo, categoria: data.categoria || prevData.categoria, anio: data.anio || prevData.anio, descripcion: data.descripcion || prevData.descripcion }));
@@ -306,7 +318,7 @@ export default function Admin() {
     if (!selectedDenuncia) return; setIsSendingEmail(true);
     try {
       // 1. Enviar el correo
-      const responseMail = await fetch(`${BACKEND_URL}/send-email`, {
+      const responseMail = await authFetch(`${BACKEND_URL}/send-email`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to_email: selectedDenuncia.email, subject: "Observatorio Laboral: Orientación sobre su caso", body: draftReview })
       });
@@ -318,7 +330,7 @@ export default function Admin() {
       });
 
       // 3. Ordenar al backend que sume la estadística
-      const resIncrement = await fetch(`${BACKEND_URL}/incrementar-completadas`, {
+      const resIncrement = await authFetch(`${BACKEND_URL}/incrementar-completadas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tipoDenuncia: selectedDenuncia.tipoDenuncia || 'Otro' })
@@ -382,7 +394,7 @@ export default function Admin() {
   const handleGeneratePidaReport = async () => {
     setGeneratingReport(true); setAiReport('');
     try {
-      const response = await fetch(`${BACKEND_URL}/generate-report`, {
+      const response = await authFetch(`${BACKEND_URL}/generate-report`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ total_denuncias: totalDenuncias, pendientes: pendientes, completadas: completadas, desglose_tipos: tipoCounts })
       });
