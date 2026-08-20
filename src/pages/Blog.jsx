@@ -1,11 +1,124 @@
 import { useState, useEffect } from 'react';
-import { Container, Typography, Box, Card, CardContent, CircularProgress, Divider, Avatar, TextField, InputAdornment } from '@mui/material';
+import { 
+  Container, Typography, Box, Card, CardContent, CircularProgress, 
+  Divider, Avatar, TextField, InputAdornment, Button 
+} from '@mui/material';
 import DOMPurify from 'dompurify';
 import { Newspaper, Search } from 'lucide-react';
 
 // Firebase
 import { db } from '../services/firebaseConfig';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+
+function BlogPostCard({ post }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Función para convertir HTML a texto plano y extraer un fragmento limpio
+  const getSnippet = (html, maxLength = 250) => {
+    if (!html) return '';
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const plainText = doc.body.textContent || '';
+    if (plainText.length <= maxLength) return plainText;
+    return plainText.substring(0, maxLength).trim() + '...';
+  };
+
+  const snippet = getSnippet(post.contenido);
+  const isLong = post.contenido && (new DOMParser().parseFromString(post.contenido, 'text/html').body.textContent || '').length > 250;
+
+  return (
+    <Card elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+      <CardContent sx={{ p: { xs: 3, md: 5 } }}>
+        
+        {/* Título y Subtítulo */}
+        <Typography variant="h4" fontWeight="bold" color="primary.main" gutterBottom>
+          {post.titulo}
+        </Typography>
+        {post.subtitulo && (
+          <Typography variant="h6" color="text.secondary" sx={{ mb: 2, fontStyle: 'italic', fontWeight: 400 }}>
+            {post.subtitulo}
+          </Typography>
+        )}
+        
+        {/* Información del Autor */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, mt: 2 }}>
+          <Avatar sx={{ bgcolor: 'secondary.main', color: '#000', fontWeight: 'bold' }}>
+            {post.autorNombre ? post.autorNombre.charAt(0).toUpperCase() : 'O'}
+          </Avatar>
+          <Box>
+            <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
+              Por: {post.autorNombre || 'Redactor Especializado'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {post.fechaCreacion ? post.fechaCreacion.toDate().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Publicación reciente'}
+            </Typography>
+          </Box>
+        </Box>
+        
+        <Divider sx={{ mb: 4 }} />
+
+        {/* Contenido Renderizado */}
+        {isExpanded ? (
+          <Box sx={{ 
+            fontFamily: 'inherit',
+            '& h1, & h2, & h3': { color: '#081A3D', mt: 4, mb: 2, fontWeight: 'bold' }, 
+            '& h1': { fontSize: '1.8rem', borderBottom: '1px solid #e0e0e0', pb: 1 },
+            '& h2': { fontSize: '1.5rem' },
+            '& h3': { fontSize: '1.25rem' },
+            '& p': { lineHeight: 1.8, mb: 2, color: '#333', fontSize: '1.05rem' },
+            '& strong': { color: '#000' },
+            '& em, & i': { fontStyle: 'italic', color: '#555' },
+            '& blockquote': { borderLeft: '4px solid #FFCC00', bgcolor: '#f9f9f9', m: 0, p: 2, fontStyle: 'italic', color: '#555' },
+            '& ul, & ol': { pl: 4, mb: 2, color: '#333', fontSize: '1.05rem' },
+            '& li': { mb: 1, lineHeight: 1.6 },
+            '& a': { color: '#081A3D', textDecoration: 'none', fontWeight: 'bold' },
+            '& code': {
+              fontFamily: 'monospace',
+              bgcolor: '#f4f6f8',
+              px: 1,
+              py: 0.5,
+              borderRadius: 1,
+              color: '#d32f2f',
+              fontSize: '0.95rem'
+            },
+            '& pre': {
+              bgcolor: '#f4f6f8',
+              p: 2,
+              borderRadius: 2,
+              overflowX: 'auto',
+              border: '1px solid #e0e0e0',
+              '& code': {
+                bgcolor: 'transparent',
+                color: 'inherit',
+                p: 0,
+                fontSize: '0.9rem'
+              }
+            }
+          }}>
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.contenido) }} />
+          </Box>
+        ) : (
+          <Typography variant="body1" sx={{ lineHeight: 1.8, color: '#333', fontSize: '1.05rem' }}>
+            {snippet}
+          </Typography>
+        )}
+
+        {isLong && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+            <Button 
+              variant="text" 
+              color="primary" 
+              onClick={() => setIsExpanded(!isExpanded)}
+              sx={{ fontWeight: 'bold' }}
+            >
+              {isExpanded ? 'Leer menos' : 'Leer más'}
+            </Button>
+          </Box>
+        )}
+
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Blog() {
   const [posts, setPosts] = useState([]);
@@ -85,78 +198,7 @@ export default function Blog() {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {filteredPosts.map((post) => (
-            <Card key={post.id} elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
-              <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-                
-                {/* Título y Subtítulo */}
-                <Typography variant="h4" fontWeight="bold" color="primary.main" gutterBottom>
-                  {post.titulo}
-                </Typography>
-                {post.subtitulo && (
-                  <Typography variant="h6" color="text.secondary" sx={{ mb: 2, fontStyle: 'italic', fontWeight: 400 }}>
-                    {post.subtitulo}
-                  </Typography>
-                )}
-                
-                {/* Información del Autor */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, mt: 2 }}>
-                  <Avatar sx={{ bgcolor: 'secondary.main', color: '#000', fontWeight: 'bold' }}>
-                    {post.autorNombre ? post.autorNombre.charAt(0).toUpperCase() : 'O'}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
-                      Por: {post.autorNombre || 'Redactor Especializado'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {post.fechaCreacion ? post.fechaCreacion.toDate().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Publicación reciente'}
-                    </Typography>
-                  </Box>
-                </Box>
-                
-                <Divider sx={{ mb: 4 }} />
-
-                {/* Contenido Renderizado con Markdown */}
-                <Box sx={{ 
-                  fontFamily: 'inherit',
-                  '& h1, & h2, & h3': { color: '#081A3D', mt: 4, mb: 2, fontWeight: 'bold' }, 
-                  '& h1': { fontSize: '1.8rem', borderBottom: '1px solid #e0e0e0', pb: 1 },
-                  '& h2': { fontSize: '1.5rem' },
-                  '& h3': { fontSize: '1.25rem' },
-                  '& p': { lineHeight: 1.8, mb: 2, color: '#333', fontSize: '1.05rem' },
-                  '& strong': { color: '#000' },
-                  '& em, & i': { fontStyle: 'italic', color: '#555' },
-                  '& blockquote': { borderLeft: '4px solid #FFCC00', bgcolor: '#f9f9f9', m: 0, p: 2, fontStyle: 'italic', color: '#555' },
-                  '& ul, & ol': { pl: 4, mb: 2, color: '#333', fontSize: '1.05rem' },
-                  '& li': { mb: 1, lineHeight: 1.6 },
-                  '& a': { color: '#081A3D', textDecoration: 'none', fontWeight: 'bold' },
-                  '& code': {
-                    fontFamily: 'monospace',
-                    bgcolor: '#f4f6f8',
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 1,
-                    color: '#d32f2f',
-                    fontSize: '0.95rem'
-                  },
-                  '& pre': {
-                    bgcolor: '#f4f6f8',
-                    p: 2,
-                    borderRadius: 2,
-                    overflowX: 'auto',
-                    border: '1px solid #e0e0e0',
-                    '& code': {
-                      bgcolor: 'transparent',
-                      color: 'inherit',
-                      p: 0,
-                      fontSize: '0.9rem'
-                    }
-                  }
-                }}>
-                  <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.contenido) }} />
-                </Box>
-
-              </CardContent>
-            </Card>
+            <BlogPostCard key={post.id} post={post} />
           ))}
         </Box>
       )}
