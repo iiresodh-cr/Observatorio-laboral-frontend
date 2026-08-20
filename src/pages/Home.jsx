@@ -4,11 +4,12 @@ import {
   Card, CardContent, CardActions, CircularProgress, Link as MuiLink, Chip
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { MessageSquare, Headset, Sparkles, Newspaper } from 'lucide-react';
+import { MessageSquare, Headset, Newspaper } from 'lucide-react';
 
 // Local Assets
 import fondoManos from '../assets/fondo-manos.webp';
 import balanzaImg from '../assets/balanza.png';
+import pidaMascota from '../assets/PIDA-MASCOTA-Observatorio.png';
 
 // Firebase Services
 import { db } from '../services/firebaseConfig';
@@ -280,8 +281,8 @@ export default function Home() {
 
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
-                <Sparkles size={28} />
+              <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Box component="img" src={pidaMascota} alt="PIDA Mascota" sx={{ width: 28, height: 28 }} />
               </Box>
               <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                 INTELIGENCIA ARTIFICIAL
