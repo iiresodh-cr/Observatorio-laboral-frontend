@@ -100,6 +100,7 @@ export default function Admin() {
   const [blogData, setBlogData] = useState({ titulo: '', subtitulo: '', autor: '', contenido: '' });
   const [blogPosts, setBlogPosts] = useState([]);
   const [publishing, setPublishing] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
 
   // Recuperación de Contraseña
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
@@ -432,6 +433,22 @@ export default function Admin() {
     }
   };
 
+  const handleEditPost = (post) => {
+    setEditingPost(post);
+    setBlogData({
+      titulo: post.titulo,
+      subtitulo: post.subtitulo || '',
+      autor: post.autorNombre || '',
+      contenido: post.contenido
+    });
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPost(null);
+    setBlogData({ titulo: '', subtitulo: '', autor: '', contenido: '' });
+  };
+
   const handlePublishBlog = async (e) => {
     e.preventDefault();
     if (!blogData.titulo || !blogData.contenido) return;
@@ -441,19 +458,32 @@ export default function Admin() {
     const nombreAutor = currentAutor ? currentAutor.nombre : user.email;
 
     try {
-      await addDoc(collection(db, "blog"), {
-        titulo: blogData.titulo,
-        subtitulo: blogData.subtitulo || '',
-        contenido: blogData.contenido,
-        autorEmail: user.email,
-        autorNombre: blogData.autor || nombreAutor,
-        fechaCreacion: serverTimestamp()
-      });
-      if (analytics) logEvent(analytics, 'publish_blog_post', { title: blogData.titulo });
+      if (editingPost) {
+        await updateDoc(doc(db, "blog", editingPost.id), {
+          titulo: blogData.titulo,
+          subtitulo: blogData.subtitulo || '',
+          contenido: blogData.contenido,
+          autorNombre: blogData.autor || nombreAutor,
+          fechaUltimaEdicion: serverTimestamp()
+        });
+        if (analytics) logEvent(analytics, 'edit_blog_post', { title: blogData.titulo });
+        setEditingPost(null);
+        setActionModal({ open: true, title: 'Artículo Actualizado', message: 'El artículo ha sido modificado con éxito.' });
+      } else {
+        await addDoc(collection(db, "blog"), {
+          titulo: blogData.titulo,
+          subtitulo: blogData.subtitulo || '',
+          contenido: blogData.contenido,
+          autorEmail: user.email,
+          autorNombre: blogData.autor || nombreAutor,
+          fechaCreacion: serverTimestamp()
+        });
+        if (analytics) logEvent(analytics, 'publish_blog_post', { title: blogData.titulo });
+        setActionModal({ open: true, title: 'Publicado', message: 'El artículo se ha publicado en el blog exitosamente.' });
+      }
       setBlogData({ titulo: '', subtitulo: '', autor: '', contenido: '' });
-      setActionModal({ open: true, title: 'Publicado', message: 'El artículo se ha publicado en el blog exitosamente.' });
     } catch (error) {
-      setActionModal({ open: true, title: 'Error', message: 'No se pudo publicar el artículo.' });
+      setActionModal({ open: true, title: 'Error', message: editingPost ? 'No se pudo actualizar el artículo.' : 'No se pudo publicar el artículo.' });
     } finally {
       setPublishing(false);
     }
@@ -730,7 +760,7 @@ export default function Admin() {
 
         {tabValue === 'blog' && (isAdmin || isAuthor) && (
           <Box sx={{ p: 4, bgcolor: '#fafafa' }}>
-            <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>Redactar Nuevo Artículo</Typography>
+            <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>{editingPost ? 'Editar Artículo' : 'Redactar Nuevo Artículo'}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
               Puede utilizar el editor para redactar su contenido, añadir negritas, títulos, citas y enlaces de forma visual.
             </Typography>
@@ -757,9 +787,16 @@ export default function Admin() {
                     onChange={(html) => setBlogData({...blogData, contenido: html}) } 
                   />
                 </Box>
-                <Button type="submit" variant="contained" disabled={publishing} size="large" sx={{ mt: 2 }}>
-                  {publishing ? 'Publicando...' : 'Publicar Artículo'}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button type="submit" variant="contained" disabled={publishing} size="large" sx={{ mt: 2, flexGrow: 1 }}>
+                    {publishing ? 'Procesando...' : (editingPost ? 'Guardar Cambios' : 'Publicar Artículo')}
+                  </Button>
+                  {editingPost && (
+                    <Button variant="outlined" color="inherit" onClick={handleCancelEdit} size="large" sx={{ mt: 2 }}>
+                      Cancelar Edición
+                    </Button>
+                  )}
+                </Box>
               </Stack>
             </Paper>
 
@@ -769,7 +806,16 @@ export default function Admin() {
                 <Typography sx={{ p: 2, color: 'text.secondary' }}>No tienes artículos publicados aún.</Typography>
               )}
               {blogPosts.filter(p => isAdmin || p.autorEmail === user.email).map(post => (
-                <ListItem key={post.id} divider secondaryAction={<IconButton color="error" onClick={() => handleDeletePost(post.id)}><Trash2 size={20} /></IconButton>}>
+                <ListItem key={post.id} divider secondaryAction={
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <IconButton color="primary" onClick={() => handleEditPost(post)} title="Editar artículo">
+                      <Edit size={20} />
+                    </IconButton>
+                    <IconButton color="error" onClick={() => handleDeletePost(post.id)} title="Eliminar artículo">
+                      <Trash2 size={20} />
+                    </IconButton>
+                  </Box>
+                }>
                   <ListItemText 
                     primary={<Typography fontWeight="bold">{post.titulo}</Typography>}
                     secondary={`Publicado por ${post.autorNombre} el ${post.fechaCreacion?.toDate().toLocaleDateString() || 'recientemente'}`}
