@@ -24,7 +24,7 @@ import { analytics, db, storage, auth, googleProvider } from '../services/fireba
 import { logEvent } from 'firebase/analytics';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, serverTimestamp, getDocs, query, where, deleteDoc, doc, setDoc, onSnapshot, orderBy, updateDoc } from 'firebase/firestore';
-import { signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 
 const SUPER_ADMIN_EMAIL = 'webmaster@iiresodh.org';
 
@@ -100,6 +100,19 @@ export default function Admin() {
   const [blogData, setBlogData] = useState({ titulo: '', subtitulo: '', autor: '', contenido: '' });
   const [blogPosts, setBlogPosts] = useState([]);
   const [publishing, setPublishing] = useState(false);
+
+  // Recuperación de Contraseña
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [resetPasswordEmail, setResetPasswordEmail] = useState('');
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+
+  // Cambio de Contraseña Autenticado
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [changePasswordError, setChangePasswordError] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -200,6 +213,57 @@ export default function Admin() {
   };
 
   const handleLogout = () => signOut(auth);
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!resetPasswordEmail) return;
+    setIsResettingPassword(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/request-password-reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetPasswordEmail })
+      });
+      if (!response.ok) throw new Error('Error al solicitar restablecimiento.');
+      setResetPasswordOpen(false);
+      setActionModal({ open: true, title: 'Enlace enviado', message: `Se ha enviado un enlace para restablecer la contraseña a ${resetPasswordEmail}.` });
+    } catch (error) {
+      setActionModal({ open: true, title: 'Error', message: 'No se pudo enviar el enlace de recuperación. Verifica que el correo sea correcto.' });
+    } finally {
+      setIsResettingPassword(false);
+      setResetPasswordEmail('');
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setChangePasswordError('');
+    if (newPassword !== confirmNewPassword) {
+      setChangePasswordError('Las contraseñas no coinciden.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setChangePasswordError('La nueva contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      // Reautenticar al usuario
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+      // Actualizar contraseña
+      await updatePassword(user, newPassword);
+      setChangePasswordOpen(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setActionModal({ open: true, title: 'Contraseña actualizada', message: 'Tu contraseña se ha cambiado exitosamente.' });
+    } catch (error) {
+      setChangePasswordError('La contraseña actual es incorrecta o hubo un error en la autenticación.');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   // NUEVO: Funciones que llaman al backend para crear usuario, verificar y notificar
   const handleAddAdmin = async () => {
@@ -436,9 +500,24 @@ export default function Admin() {
           <Box component="form" onSubmit={handleLoginManual}>
             <TextField fullWidth size="small" label="Email" margin="dense" value={email} onChange={(e) => setEmail(e.target.value)} required />
             <TextField fullWidth size="small" label="Contraseña" type="password" margin="dense" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            <Button fullWidth type="submit" variant="outlined" sx={{ mt: 2, fontWeight: 'bold' }}>Acceder</Button>
+            <Button fullWidth type="submit" variant="outlined" sx={{ mt: 2, mb: 2, fontWeight: 'bold' }}>Acceder</Button>
+            <Button onClick={() => setResetPasswordOpen(true)} size="small" sx={{ textTransform: 'none' }}>¿Olvidó su contraseña?</Button>
           </Box>
         </Paper>
+
+        <Dialog open={resetPasswordOpen} onClose={() => setResetPasswordOpen(false)}>
+          <DialogTitle>Recuperar Contraseña</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" sx={{ mb: 2 }}>Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</Typography>
+            <TextField fullWidth autoFocus label="Correo Electrónico" type="email" value={resetPasswordEmail} onChange={(e) => setResetPasswordEmail(e.target.value)} disabled={isResettingPassword} />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setResetPasswordOpen(false)} disabled={isResettingPassword}>Cancelar</Button>
+            <Button onClick={handleForgotPassword} variant="contained" disabled={isResettingPassword || !resetPasswordEmail}>
+              {isResettingPassword ? 'Enviando...' : 'Enviar Enlace'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     );
   }
@@ -450,7 +529,10 @@ export default function Admin() {
           <Typography variant="h4" color="primary" fontWeight="bold">{isAdmin ? 'Panel Administrativo' : 'Panel de Redacción'}</Typography>
           <Typography variant="body2" color="text.secondary">Sesión: <strong>{user.email}</strong> {isAuthor && !isAdmin && '(Redactor)'}</Typography>
         </Box>
-        <Button variant="outlined" color="error" startIcon={<LogOut size={20} />} onClick={handleLogout}>Cerrar Sesión</Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button variant="outlined" color="primary" onClick={() => setChangePasswordOpen(true)}>Cambiar Contraseña</Button>
+          <Button variant="outlined" color="error" startIcon={<LogOut size={20} />} onClick={handleLogout}>Cerrar Sesión</Button>
+        </Box>
       </Box>
 
       <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
@@ -768,6 +850,25 @@ export default function Admin() {
         <DialogTitle sx={{ fontWeight: 'bold' }}>{actionModal.title}</DialogTitle>
         <DialogContent><Typography>{actionModal.message}</Typography></DialogContent>
         <DialogActions sx={{ p: 2 }}><Button onClick={() => setActionModal({...actionModal, open: false})} variant="contained">Cerrar</Button></DialogActions>
+      </Dialog>
+
+      {/* MODAL PARA CAMBIO DE CONTRASEÑA */}
+      <Dialog open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)}>
+        <DialogTitle>Cambiar Contraseña</DialogTitle>
+        <DialogContent>
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            {changePasswordError && <Alert severity="error">{changePasswordError}</Alert>}
+            <TextField label="Contraseña Actual" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required disabled={isChangingPassword} />
+            <TextField label="Nueva Contraseña" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required disabled={isChangingPassword} />
+            <TextField label="Confirmar Nueva Contraseña" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} required disabled={isChangingPassword} />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setChangePasswordOpen(false)} disabled={isChangingPassword}>Cancelar</Button>
+          <Button onClick={handleChangePassword} variant="contained" color="primary" disabled={isChangingPassword || !currentPassword || !newPassword || !confirmNewPassword}>
+            {isChangingPassword ? 'Actualizando...' : 'Actualizar'}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Container>
   );

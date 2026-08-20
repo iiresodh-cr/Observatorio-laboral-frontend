@@ -1,20 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link as RouterLink } from 'react-router-dom';
-import { Container, Paper, Typography, Box, CircularProgress, Button } from '@mui/material';
+import { Container, Paper, Typography, Box, CircularProgress, Button, TextField } from '@mui/material';
 
 import { 
   CheckCircle as CheckCircleIcon, 
-  AlertCircle as ErrorIcon 
+  AlertCircle as ErrorIcon,
+  Key as KeyIcon
 } from 'lucide-react';
 
 // Firebase
 import { auth } from '../services/firebaseConfig';
-import { applyActionCode } from 'firebase/auth';
+import { applyActionCode, verifyPasswordResetCode, confirmPasswordReset } from 'firebase/auth';
 
 export default function AuthAction() {
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState('loading'); // 'loading', 'success', 'error'
-  const [message, setMessage] = useState('Verificando tu cuenta de correo...');
+  const [status, setStatus] = useState('loading'); // 'loading', 'success', 'error', 'resetForm'
+  const [message, setMessage] = useState('Procesando solicitud...');
+
+  // Campos para reset password
+  const [resetEmail, setResetEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   const mode = searchParams.get('mode');
   const oobCode = searchParams.get('oobCode');
@@ -27,10 +35,11 @@ export default function AuthAction() {
     }
 
     if (mode === 'verifyEmail') {
+      setMessage('Verificando tu cuenta de correo...');
       applyActionCode(auth, oobCode)
         .then(() => {
           setStatus('success');
-          setMessage('¡Tu cuenta ha sido verificada exitosamente!');
+          setMessage('¡Tu cuenta ha sido verificada exitosamente! Ya puedes acceder al panel.');
         })
         .catch((error) => {
           setStatus('error');
@@ -40,11 +49,50 @@ export default function AuthAction() {
             setMessage('Ocurrió un error al verificar tu cuenta. Inténtalo de nuevo.');
           }
         });
+    } else if (mode === 'resetPassword') {
+      setMessage('Verificando enlace de recuperación...');
+      verifyPasswordResetCode(auth, oobCode)
+        .then((email) => {
+          setResetEmail(email);
+          setStatus('resetForm');
+        })
+        .catch((error) => {
+          setStatus('error');
+          if (error.code === 'auth/invalid-action-code') {
+            setMessage('El enlace de recuperación es inválido o ha expirado. Solicita uno nuevo.');
+          } else {
+            setMessage('Error verificando el enlace. Inténtalo de nuevo.');
+          }
+        });
     } else {
       setStatus('error');
       setMessage('Acción no reconocida.');
     }
   }, [mode, oobCode]);
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    setResetError('');
+    if (newPassword !== confirmPassword) {
+      setResetError('Las contraseñas no coinciden.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setResetError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      await confirmPasswordReset(auth, oobCode, newPassword);
+      setStatus('success');
+      setMessage('¡Tu contraseña ha sido actualizada correctamente! Ya puedes iniciar sesión con tu nueva contraseña.');
+    } catch (error) {
+      setResetError(error.message || 'Error al restablecer la contraseña.');
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   return (
     <Container maxWidth="sm" sx={{ mt: 10, mb: 10 }}>
@@ -60,17 +108,37 @@ export default function AuthAction() {
           </Box>
         )}
 
+        {status === 'resetForm' && (
+          <Box component="form" onSubmit={handlePasswordReset} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ mb: 1 }}><KeyIcon size={60} color="#081A3D" /></Box>
+            <Typography variant="h5" fontWeight="bold" color="text.primary">
+              Restablecer Contraseña
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Ingresa una nueva contraseña para la cuenta <strong>{resetEmail}</strong>
+            </Typography>
+            
+            <TextField fullWidth label="Nueva Contraseña" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required margin="normal" />
+            <TextField fullWidth label="Confirmar Nueva Contraseña" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required margin="normal" />
+            
+            {resetError && (
+              <Typography color="error" variant="body2" sx={{ mt: 1 }}>{resetError}</Typography>
+            )}
+
+            <Button type="submit" variant="contained" color="primary" size="large" fullWidth sx={{ mt: 3, fontWeight: 'bold' }} disabled={isResetting}>
+              {isResetting ? 'Actualizando...' : 'Actualizar Contraseña'}
+            </Button>
+          </Box>
+        )}
+
         {status === 'success' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <Box sx={{ mb: 1 }}><CheckCircleIcon size={80} color="#4caf50" /></Box>
             <Typography variant="h4" fontWeight="bold" color="text.primary">
-              ¡Correo Verificado!
+              ¡Operación Exitosa!
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               {message}
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 4, p: 2, bgcolor: '#f4f6f8', borderRadius: 2 }}>
-              Ya puedes acceder al panel de administración utilizando tu correo y la contraseña temporal que te fue asignada.
             </Typography>
             <Button component={RouterLink} to="/admin" variant="contained" color="primary" size="large" sx={{ fontWeight: 'bold', px: 5 }}>
               Ir al Inicio de Sesión
@@ -82,7 +150,7 @@ export default function AuthAction() {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <Box sx={{ mb: 1 }}><ErrorIcon size={80} color="#f44336" /></Box>
             <Typography variant="h4" fontWeight="bold" color="text.primary">
-              Error de Verificación
+              Ocurrió un Problema
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
               {message}
