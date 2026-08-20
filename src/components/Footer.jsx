@@ -4,11 +4,11 @@ import { Link as RouterLink } from 'react-router-dom';
 
 export default function Footer() {
   return (
-    <Box component="footer" sx={{ bgcolor: '#081A3D', color: 'white', py: 4, mt: 'auto' }}>
+    <Box component="footer" sx={{ bgcolor: '#081A3D', color: 'white', py: 2, mt: 'auto' }}>
       <Container maxWidth="lg" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         
         {/* Enlaces Legales */}
-        <Box sx={{ mb: 2, display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <Box sx={{ mb: 1, display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
           <MuiLink component={RouterLink} to="/privacidad" color="inherit" sx={{ textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
             Política de Privacidad
           </MuiLink>
@@ -18,7 +18,7 @@ export default function Footer() {
         </Box>
         
         {/* Copyright */}
-        <Typography variant="body2" sx={{ mb: 2 }}>
+        <Typography variant="body2" sx={{ mb: 1 }}>
           © {new Date().getFullYear()} Instituto Internacional de Responsabilidad Social y Derechos Humanos (IIRESODH).
         </Typography>
         
