@@ -563,17 +563,19 @@ export default function Admin() {
             <Typography variant="h6" color="primary" fontWeight="bold" sx={{ mb: 2 }}>Gráfico: Casos por tipo de vulneración</Typography>
             <Paper elevation={1} sx={{ p: 3, mb: 4, height: 350, bgcolor: 'white' }}>
               {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="nombre" angle={-15} textAnchor="end" height={80} interval={0} tick={{ fontSize: 12 }} />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip cursor={{ fill: '#f5f5f5' }} />
-                    <Bar dataKey="casos" radius={[4, 4, 0, 0]}>
-                      {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <Box sx={{ width: '100%', height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="nombre" angle={-15} textAnchor="end" height={80} interval={0} tick={{ fontSize: 12 }} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip cursor={{ fill: '#f5f5f5' }} />
+                      <Bar dataKey="casos" radius={[4, 4, 0, 0]}>
+                        {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Box>
               ) : (
                 <Box display="flex" justifyContent="center" alignItems="center" height="100%"><Typography color="text.secondary">No hay datos suficientes para graficar.</Typography></Box>
               )}
