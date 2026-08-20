@@ -27,6 +27,11 @@ export default function AuthAction() {
   const mode = searchParams.get('mode');
   const oobCode = searchParams.get('oobCode');
 
+  // Redirección dinámica para asegurar el dominio principal en producción
+  const adminUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? '/admin'
+    : 'https://observatoriolaboralcr.org/admin';
+
   useEffect(() => {
     if (!mode || !oobCode) {
       setStatus('error');
@@ -140,7 +145,15 @@ export default function AuthAction() {
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               {message}
             </Typography>
-            <Button component={RouterLink} to="/admin" variant="contained" color="primary" size="large" sx={{ fontWeight: 'bold', px: 5 }}>
+            <Button 
+              component={adminUrl.startsWith('http') ? 'a' : RouterLink} 
+              to={adminUrl.startsWith('http') ? undefined : adminUrl}
+              href={adminUrl.startsWith('http') ? adminUrl : undefined}
+              variant="contained" 
+              color="primary" 
+              size="large" 
+              sx={{ fontWeight: 'bold', px: 5 }}
+            >
               Ir al Inicio de Sesión
             </Button>
           </Box>
@@ -155,7 +168,15 @@ export default function AuthAction() {
             <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
               {message}
             </Typography>
-            <Button component={RouterLink} to="/admin" variant="outlined" color="primary" size="large" sx={{ fontWeight: 'bold' }}>
+            <Button 
+              component={adminUrl.startsWith('http') ? 'a' : RouterLink} 
+              to={adminUrl.startsWith('http') ? undefined : adminUrl}
+              href={adminUrl.startsWith('http') ? adminUrl : undefined}
+              variant="outlined" 
+              color="primary" 
+              size="large" 
+              sx={{ fontWeight: 'bold' }}
+            >
               Volver al Panel
             </Button>
           </Box>
