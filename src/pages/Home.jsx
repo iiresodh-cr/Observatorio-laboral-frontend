@@ -282,7 +282,7 @@ export default function Home() {
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ width: 56, height: 56, mb: 3, bgcolor: '#fffbeb', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Box component="img" src={pidaMascota} alt="PIDA Mascota" sx={{ width: 28, height: 28 }} />
+                <Box component="img" src={pidaMascota} alt="PIDA Mascota" sx={{ width: 40, height: 40 }} />
               </Box>
               <Typography variant="caption" sx={{ color: '#2563eb', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                 INTELIGENCIA ARTIFICIAL

@@ -615,7 +615,7 @@ export default function Admin() {
             <Box sx={{ mt: 6, p: 4, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: 'white' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Box>
-                  <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box component="img" src={pidaMascota} alt="PIDA Mascota" sx={{ width: 24, height: 24 }} /> Informe Ejecutivo</Typography>
+                  <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box component="img" src={pidaMascota} alt="PIDA Mascota" sx={{ width: 32, height: 32 }} /> Informe Ejecutivo</Typography>
                   <Typography variant="body2" color="text.secondary">Utiliza PIDA para analizar los datos mostrados arriba y sugerir estrategias.</Typography>
                 </Box>
                 <Button variant="contained" color="secondary" onClick={handleGeneratePidaReport} disabled={generatingReport || totalDenuncias === 0} sx={{ color: '#000', fontWeight: 'bold' }}>
@@ -640,7 +640,7 @@ export default function Admin() {
               {loadingAI ? (
                 <Stack alignItems="center" spacing={2}><CircularProgress size={40} color="secondary" /><Typography variant="h6" color="secondary.main" fontWeight="bold">IA analizando documento...</Typography></Stack>
               ) : (
-                <Stack alignItems="center" spacing={2}><Box component="img" src={pidaMascota} alt="PIDA Mascota" sx={{ width: 40, height: 40 }} /><Typography variant="h6" color="text.primary">{archivo ? `Archivo: ${archivo.name}` : 'Sube un PDF para autocompletar'}</Typography><Button variant="contained" component="label" size="large" startIcon={<FileText size={20} />}>Elegir Archivo PDF<input type="file" hidden accept="application/pdf" onChange={handleFileChange} /></Button></Stack>
+                <Stack alignItems="center" spacing={2}><Box component="img" src={pidaMascota} alt="PIDA Mascota" sx={{ width: 56, height: 56 }} /><Typography variant="h6" color="text.primary">{archivo ? `Archivo: ${archivo.name}` : 'Sube un PDF para autocompletar'}</Typography><Button variant="contained" component="label" size="large" startIcon={<FileText size={20} />}>Elegir Archivo PDF<input type="file" hidden accept="application/pdf" onChange={handleFileChange} /></Button></Stack>
               )}
             </Box>
             <Stack spacing={3}>
