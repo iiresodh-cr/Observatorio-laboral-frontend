@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import RichTextEditor from '../components/RichTextEditor';
-import pidaMascota from '../assets/PIDA-MASCOTA-Observatorio.png';
+import pidaMascota from '../assets/PIDA-MASCOTA-b.png';
 
 // Firebase Services
 import { analytics, db, storage, auth, googleProvider } from '../services/firebaseConfig';

@@ -9,7 +9,7 @@ import { MessageSquare, Headset, Newspaper } from 'lucide-react';
 // Local Assets
 import fondoManos from '../assets/fondo-manos.webp';
 import balanzaImg from '../assets/balanza.png';
-import pidaMascota from '../assets/PIDA-MASCOTA-Observatorio.png';
+import pidaMascota from '../assets/PIDA-MASCOTA-b.png';
 
 // Firebase Services
 import { db } from '../services/firebaseConfig';
