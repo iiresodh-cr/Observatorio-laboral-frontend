@@ -19,7 +19,7 @@ export default function Footer() {
         
         {/* Copyright */}
         <Typography variant="body2" sx={{ mb: 1 }}>
-          © {new Date().getFullYear()} Observatorio Laboral Costa Rica.
+          © {new Date().getFullYear()} Observatorio Laboral Costa Rica
         </Typography>
         
         {/* Creative Commons License */}

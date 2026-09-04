@@ -154,7 +154,7 @@ export default function Home() {
                 '&:hover': { bgcolor: '#ca8a04', boxShadow: 'none' } 
               }}
             >
-              Solicitar Asesoría Legal
+              Asesoría Laboral
             </Button>
             <Button 
               component={RouterLink} 
