@@ -154,7 +154,7 @@ export default function Home() {
                 '&:hover': { bgcolor: '#ca8a04', boxShadow: 'none' } 
               }}
             >
-              Asesoría Laboral
+              Orientación Laboral
             </Button>
             <Button 
               component={RouterLink} 
