@@ -39,7 +39,7 @@ export default function Home() {
       const [docsRes, statsDocRes, blogsRes] = await Promise.allSettled([
         getCountFromServer(collection(db, "documentos")),
         getDoc(doc(db, "stats", "global_counters")),
-        getCountFromServer(collection(db, "blog"))
+        getCountFromServer(collection(db, "foro"))
       ]);
 
       const docsCount = docsRes.status === 'fulfilled' ? docsRes.value.data().count : null;
@@ -159,21 +159,40 @@ export default function Home() {
             <Button 
               component={RouterLink} 
               to="/repositorio" 
-              variant="outlined" 
+              variant="contained" 
               sx={{ 
-                color: 'white', 
-                borderColor: 'rgba(255, 255, 255, 0.4)', 
-                fontWeight: 700, 
+                bgcolor: '#eab308', 
+                color: '#1e293b', 
+                fontWeight: 800, 
                 px: 3.5, 
                 py: 1.4, 
                 fontSize: '0.9rem',
                 borderRadius: 2,
+                boxShadow: 'none',
                 textTransform: 'uppercase',
-                backdropFilter: 'blur(2px)',
-                '&:hover': { borderColor: 'white', bgcolor: 'rgba(255, 255, 255, 0.08)' } 
+                '&:hover': { bgcolor: '#ca8a04', boxShadow: 'none' } 
               }}
             >
               Consultar Normativa
+            </Button>
+            <Button 
+              component={RouterLink} 
+              to="/foro" 
+              variant="contained" 
+              sx={{ 
+                bgcolor: '#eab308', 
+                color: '#1e293b', 
+                fontWeight: 800, 
+                px: 3.5, 
+                py: 1.4, 
+                fontSize: '0.9rem',
+                borderRadius: 2,
+                boxShadow: 'none',
+                textTransform: 'uppercase',
+                '&:hover': { bgcolor: '#ca8a04', boxShadow: 'none' } 
+              }}
+            >
+              Foro
             </Button>
           </Box>
 
@@ -400,7 +419,7 @@ export default function Home() {
             </Card>
           </Box>
 
-          {/* Card 3: Blog */}
+          {/* Card 3: Foro */}
           <Box>
             <Card elevation={0} sx={{ p: 4, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -411,7 +430,7 @@ export default function Home() {
                   CONTENIDO
                 </Typography>
                 <Typography variant="h6" fontWeight="800" sx={{ color: '#0f172a', mb: 1.5 }}>
-                  Blog Oficial
+                  Foro Oficial
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#64748b', lineHeight: 1.6, fontSize: '0.88rem' }}>
                   Manténgase informado con análisis profundos, artículos de opinión y actualizaciones redactadas por nuestros expertos legales.
@@ -420,7 +439,7 @@ export default function Home() {
               <Box sx={{ width: '100%', mt: 3 }}>
                 <Button 
                   component={RouterLink} 
-                  to="/blog" 
+                  to="/foro" 
                   variant="outlined" 
                   fullWidth
                   sx={{ 
@@ -434,7 +453,7 @@ export default function Home() {
                     '&:hover': { borderColor: 'primary.main', bgcolor: 'transparent' }
                   }}
                 >
-                  Leer Artículos
+                  Ir al Foro
                 </Button>
               </Box>
             </Card>

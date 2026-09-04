@@ -120,13 +120,13 @@ function BlogPostCard({ post }) {
   );
 }
 
-export default function Blog() {
+export default function Foro() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const q = query(collection(db, "blog"), orderBy("fechaCreacion", "desc"));
+    const q = query(collection(db, "foro"), orderBy("fechaCreacion", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const articulos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setPosts(articulos);
@@ -156,10 +156,10 @@ export default function Blog() {
           <Newspaper size={60} strokeWidth={1.5} />
         </Box>
         <Typography variant="h3" color="primary" fontWeight="900" gutterBottom>
-          Blog Oficial
+          Foro Oficial
         </Typography>
         <Typography variant="h6" color="text.secondary">
-          Análisis, opiniones y artículos de interés sobre derechos laborales redactados por nuestros especialistas.
+          Temas, debates y análisis sobre derechos laborales redactados por nuestros especialistas.
         </Typography>
       </Box>
 
@@ -189,11 +189,11 @@ export default function Blog() {
         </Box>
       ) : posts.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10, bgcolor: 'white', borderRadius: 2, border: '1px dashed #ccc' }}>
-          <Typography color="text.secondary">Aún no hay artículos publicados en el blog.</Typography>
+          <Typography color="text.secondary">Aún no hay temas publicados en el foro.</Typography>
         </Box>
       ) : filteredPosts.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10, bgcolor: 'white', borderRadius: 2, border: '1px dashed #ccc' }}>
-          <Typography color="text.secondary">No se encontraron artículos que coincidan con su búsqueda.</Typography>
+          <Typography color="text.secondary">No se encontraron temas que coincidan con su búsqueda.</Typography>
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>

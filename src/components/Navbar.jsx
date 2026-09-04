@@ -67,10 +67,10 @@ export default function Navbar() {
           <Button 
             color="inherit" 
             component={RouterLink} 
-            to="/blog" 
+            to="/foro" 
             startIcon={<Newspaper size={18} />}
           >
-            Blog
+            Foro
           </Button>
         </Box>
 
@@ -115,11 +115,11 @@ export default function Navbar() {
               </ListItemIcon>
               <ListItemText>Denuncias</ListItemText>
             </MenuItem>
-            <MenuItem component={RouterLink} to="/blog" onClick={handleMenuClose}>
+            <MenuItem component={RouterLink} to="/foro" onClick={handleMenuClose}>
               <ListItemIcon>
                 <Newspaper size={18} />
               </ListItemIcon>
-              <ListItemText>Blog</ListItemText>
+              <ListItemText>Foro</ListItemText>
             </MenuItem>
           </Menu>
         </Box>

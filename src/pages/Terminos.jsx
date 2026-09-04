@@ -70,7 +70,7 @@ export default function Terminos() {
             </li>
             <li>
               <Typography variant="body1" paragraph>
-                Los análisis analíticos, informes ejecutivos, artículos del blog y la estructura visual de la plataforma son propiedad del Observatorio y del IIRESODH, protegidos por la Ley N° 6683 sobre Derechos de Autor y Conexos. Se autoriza su cita y reproducción con fines académicos y de divulgación citando la fuente.
+                Los análisis analíticos, informes ejecutivos, temas del foro y la estructura visual de la plataforma son propiedad del Observatorio y del IIRESODH, protegidos por la Ley N° 6683 sobre Derechos de Autor y Conexos. Se autoriza su cita y reproducción con fines académicos y de divulgación citando la fuente.
               </Typography>
             </li>
           </ul>

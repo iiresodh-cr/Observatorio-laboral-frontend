@@ -97,9 +97,9 @@ export default function Admin() {
   const [aiReport, setAiReport] = useState('');
   const [generatingReport, setGeneratingReport] = useState(false);
 
-  // Artículos de Blog
-  const [blogData, setBlogData] = useState({ titulo: '', subtitulo: '', autor: '', contenido: '' });
-  const [blogPosts, setBlogPosts] = useState([]);
+  // Artículos de Foro
+  const [foroData, setForoData] = useState({ titulo: '', subtitulo: '', autor: '', contenido: '' });
+  const [foroPosts, setForoPosts] = useState([]);
   const [publishing, setPublishing] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
 
@@ -148,7 +148,7 @@ export default function Admin() {
           setIsAuthor(authorAcc);
           setUser(currentUser);
           if (!adminAcc && authorAcc) {
-            setTabValue('blog');
+            setTabValue('foro');
           } else {
             setTabValue('informes');
           }
@@ -186,10 +186,10 @@ export default function Admin() {
 
   useEffect(() => {
     if (isAdmin || isAuthor) {
-      const unsubBlog = onSnapshot(query(collection(db, "blog"), orderBy("fechaCreacion", "desc")), (snapshot) => {
-        setBlogPosts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      const unsubForo = onSnapshot(query(collection(db, "foro"), orderBy("fechaCreacion", "desc")), (snapshot) => {
+        setForoPosts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       });
-      return () => unsubBlog();
+      return () => unsubForo();
     }
   }, [isAdmin, isAuthor]);
 
@@ -436,7 +436,7 @@ export default function Admin() {
 
   const handleEditPost = (post) => {
     setEditingPost(post);
-    setBlogData({
+    setForoData({
       titulo: post.titulo,
       subtitulo: post.subtitulo || '',
       autor: post.autorNombre || '',
@@ -447,12 +447,12 @@ export default function Admin() {
 
   const handleCancelEdit = () => {
     setEditingPost(null);
-    setBlogData({ titulo: '', subtitulo: '', autor: '', contenido: '' });
+    setForoData({ titulo: '', subtitulo: '', autor: '', contenido: '' });
   };
 
-  const handlePublishBlog = async (e) => {
+  const handlePublishForo = async (e) => {
     e.preventDefault();
-    if (!blogData.titulo || !blogData.contenido) return;
+    if (!foroData.titulo || !foroData.contenido) return;
     setPublishing(true);
     
     const currentAutor = autorList.find(a => a.email === user.email) || adminList.find(a => a.email === user.email);
@@ -460,29 +460,29 @@ export default function Admin() {
 
     try {
       if (editingPost) {
-        await updateDoc(doc(db, "blog", editingPost.id), {
-          titulo: blogData.titulo,
-          subtitulo: blogData.subtitulo || '',
-          contenido: blogData.contenido,
-          autorNombre: blogData.autor || nombreAutor,
+        await updateDoc(doc(db, "foro", editingPost.id), {
+          titulo: foroData.titulo,
+          subtitulo: foroData.subtitulo || '',
+          contenido: foroData.contenido,
+          autorNombre: foroData.autor || nombreAutor,
           fechaUltimaEdicion: serverTimestamp()
         });
-        if (analytics) logEvent(analytics, 'edit_blog_post', { title: blogData.titulo });
+        if (analytics) logEvent(analytics, 'edit_foro_post', { title: foroData.titulo });
         setEditingPost(null);
         setActionModal({ open: true, title: 'Artículo Actualizado', message: 'El artículo ha sido modificado con éxito.' });
       } else {
-        await addDoc(collection(db, "blog"), {
-          titulo: blogData.titulo,
-          subtitulo: blogData.subtitulo || '',
-          contenido: blogData.contenido,
+        await addDoc(collection(db, "foro"), {
+          titulo: foroData.titulo,
+          subtitulo: foroData.subtitulo || '',
+          contenido: foroData.contenido,
           autorEmail: user.email,
-          autorNombre: blogData.autor || nombreAutor,
+          autorNombre: foroData.autor || nombreAutor,
           fechaCreacion: serverTimestamp()
         });
-        if (analytics) logEvent(analytics, 'publish_blog_post', { title: blogData.titulo });
-        setActionModal({ open: true, title: 'Publicado', message: 'El artículo se ha publicado en el blog exitosamente.' });
+        if (analytics) logEvent(analytics, 'publish_foro_post', { title: foroData.titulo });
+        setActionModal({ open: true, title: 'Publicado', message: 'El artículo se ha publicado en el foro exitosamente.' });
       }
-      setBlogData({ titulo: '', subtitulo: '', autor: '', contenido: '' });
+      setForoData({ titulo: '', subtitulo: '', autor: '', contenido: '' });
     } catch (error) {
       setActionModal({ open: true, title: 'Error', message: editingPost ? 'No se pudo actualizar el artículo.' : 'No se pudo publicar el artículo.' });
     } finally {
@@ -491,8 +491,8 @@ export default function Admin() {
   };
 
   const handleDeletePost = async (id) => {
-    if(window.confirm("¿Borrar este artículo del blog?")) {
-      try { await deleteDoc(doc(db, "blog", id)); } catch(e) {}
+    if(window.confirm("¿Borrar este artículo del foro?")) {
+      try { await deleteDoc(doc(db, "foro", id)); } catch(e) {}
     }
   };
 
@@ -573,7 +573,7 @@ export default function Admin() {
             {isAdmin && <Tab value="carga" icon={<CloudUpload size={20} />} label="Carga Manual" />}
             {isAdmin && <Tab value="asesorias" icon={<Mail size={20} />} label="Asesorías" />}
             {isAdmin && <Tab value="admins" icon={<Users size={20} />} label="Administradores" />}
-            {(isAdmin || isAuthor) && <Tab value="blog" icon={<Newspaper size={20} />} label="Redacción Blog" />}
+            {(isAdmin || isAuthor) && <Tab value="foro" icon={<Newspaper size={20} />} label="Redacción Foro" />}
           </Tabs>
         </Box>
 
@@ -731,8 +731,8 @@ export default function Admin() {
 
             <Divider sx={{ my: 4 }} />
 
-            <Typography variant="h6" color="secondary.main" fontWeight="bold" gutterBottom>Redactores Autorizados (Blog)</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Solo tendrán acceso a la pestaña de "Redacción Blog" para escribir y publicar artículos.</Typography>
+            <Typography variant="h6" color="secondary.main" fontWeight="bold" gutterBottom>Redactores Autorizados (Foro)</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Solo tendrán acceso a la pestaña de "Redacción Foro" para escribir y publicar artículos.</Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
               <TextField label="Nombre del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorName} onChange={(e) => setNewAutorName(e.target.value)} disabled={isCreatingUser} />
               <TextField label="Correo del Autor" size="small" sx={{ flexGrow: 1 }} value={newAutorEmail} onChange={(e) => setNewAutorEmail(e.target.value)} disabled={isCreatingUser} />
@@ -759,7 +759,7 @@ export default function Admin() {
           </Box>
         )}
 
-        {tabValue === 'blog' && (isAdmin || isAuthor) && (
+        {tabValue === 'foro' && (isAdmin || isAuthor) && (
           <Box sx={{ p: 4, bgcolor: '#fafafa' }}>
             <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>{editingPost ? 'Editar Artículo' : 'Redactar Nuevo Artículo'}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
@@ -767,25 +767,25 @@ export default function Admin() {
             </Typography>
             
             <Paper elevation={2} sx={{ p: 3, mb: 6 }}>
-              <Stack spacing={3} component="form" onSubmit={handlePublishBlog}>
+              <Stack spacing={3} component="form" onSubmit={handlePublishForo}>
                 <TextField 
-                  fullWidth label="Título del Artículo" value={blogData.titulo} 
-                  onChange={(e) => setBlogData({...blogData, titulo: e.target.value})} required 
+                  fullWidth label="Título del Artículo" value={foroData.titulo} 
+                  onChange={(e) => setForoData({...foroData, titulo: e.target.value})} required 
                 />
                 <TextField 
-                  fullWidth label="Subtítulo del Artículo (Opcional)" value={blogData.subtitulo} 
-                  onChange={(e) => setBlogData({...blogData, subtitulo: e.target.value})} 
+                  fullWidth label="Subtítulo del Artículo (Opcional)" value={foroData.subtitulo} 
+                  onChange={(e) => setForoData({...foroData, subtitulo: e.target.value})} 
                 />
                 <TextField 
-                  fullWidth label="Autor del Artículo (Opcional)" value={blogData.autor} 
-                  onChange={(e) => setBlogData({...blogData, autor: e.target.value})} 
+                  fullWidth label="Autor del Artículo (Opcional)" value={foroData.autor} 
+                  onChange={(e) => setForoData({...foroData, autor: e.target.value})} 
                   helperText="Si se deja en blanco, se usará el nombre de tu usuario."
                 />
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1, ml: 1, fontWeight: 'bold' }}>Contenido del Artículo</Typography>
                   <RichTextEditor 
-                    value={blogData.contenido} 
-                    onChange={(html) => setBlogData({...blogData, contenido: html}) } 
+                    value={foroData.contenido} 
+                    onChange={(html) => setForoData({...foroData, contenido: html}) } 
                   />
                 </Box>
                 <Box sx={{ display: 'flex', gap: 2 }}>
@@ -803,10 +803,10 @@ export default function Admin() {
 
             <Typography variant="h6" color="primary" fontWeight="bold" gutterBottom>Mis Artículos Publicados</Typography>
             <List sx={{ bgcolor: 'white', borderRadius: 1, border: '1px solid #e0e0e0' }}>
-              {blogPosts.filter(p => isAdmin || p.autorEmail === user.email).length === 0 && (
+              {foroPosts.filter(p => isAdmin || p.autorEmail === user.email).length === 0 && (
                 <Typography sx={{ p: 2, color: 'text.secondary' }}>No tienes artículos publicados aún.</Typography>
               )}
-              {blogPosts.filter(p => isAdmin || p.autorEmail === user.email).map(post => (
+              {foroPosts.filter(p => isAdmin || p.autorEmail === user.email).map(post => (
                 <ListItem key={post.id} divider secondaryAction={
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <IconButton color="primary" onClick={() => handleEditPost(post)} title="Editar artículo">
