@@ -443,14 +443,14 @@ export default function Home() {
         </Box>
       </Container>
 
-      {/* --- RESPALDO INSTITUCIONAL --- */}
-      <Container maxWidth="md" sx={{ mt: 10 }}>
-        <Box sx={{ textAlign: 'center', p: 3, bgcolor: '#f8fafc', borderRadius: 3, border: '1px solid #e2e8f0' }}>
-          <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600 }}>
-            Una iniciativa impulsada por el Instituto Internacional de Responsabilidad Social y Derechos Humanos (IIRESODH)
-          </Typography>
-        </Box>
-      </Container>
+      // {/* --- RESPALDO INSTITUCIONAL --- */}
+      // <Container maxWidth="md" sx={{ mt: 10 }}>
+      //  <Box sx={{ textAlign: 'center', p: 3, bgcolor: '#f8fafc', borderRadius: 3, border: '1px solid #e2e8f0' }}>
+      //    <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600 }}>
+      //      Una iniciativa impulsada por el Instituto Internacional de Responsabilidad Social y Derechos Humanos (IIRESODH)
+      //    </Typography>
+      //  </Box>
+      // </Container>
 
     </Box>
   );
