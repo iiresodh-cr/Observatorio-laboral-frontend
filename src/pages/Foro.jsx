@@ -126,7 +126,7 @@ export default function Foro() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const q = query(collection(db, "foro"), orderBy("fechaCreacion", "desc"));
+    const q = query(collection(db, "blog"), orderBy("fechaCreacion", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const articulos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setPosts(articulos);

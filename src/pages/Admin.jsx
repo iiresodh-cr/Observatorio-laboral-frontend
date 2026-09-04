@@ -186,7 +186,7 @@ export default function Admin() {
 
   useEffect(() => {
     if (isAdmin || isAuthor) {
-      const unsubForo = onSnapshot(query(collection(db, "foro"), orderBy("fechaCreacion", "desc")), (snapshot) => {
+      const unsubForo = onSnapshot(query(collection(db, "blog"), orderBy("fechaCreacion", "desc")), (snapshot) => {
         setForoPosts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       });
       return () => unsubForo();
@@ -471,7 +471,7 @@ export default function Admin() {
         setEditingPost(null);
         setActionModal({ open: true, title: 'Artículo Actualizado', message: 'El artículo ha sido modificado con éxito.' });
       } else {
-        await addDoc(collection(db, "foro"), {
+        await addDoc(collection(db, "blog"), {
           titulo: foroData.titulo,
           subtitulo: foroData.subtitulo || '',
           contenido: foroData.contenido,

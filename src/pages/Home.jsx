@@ -39,7 +39,7 @@ export default function Home() {
       const [docsRes, statsDocRes, blogsRes] = await Promise.allSettled([
         getCountFromServer(collection(db, "documentos")),
         getDoc(doc(db, "stats", "global_counters")),
-        getCountFromServer(collection(db, "foro"))
+        getCountFromServer(collection(db, "blog"))
       ]);
 
       const docsCount = docsRes.status === 'fulfilled' ? docsRes.value.data().count : null;
