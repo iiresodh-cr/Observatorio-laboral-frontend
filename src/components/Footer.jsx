@@ -19,12 +19,12 @@ export default function Footer() {
         
         {/* Copyright */}
         <Typography variant="body2" sx={{ mb: 1 }}>
-          © {new Date().getFullYear()} Instituto Internacional de Responsabilidad Social y Derechos Humanos (IIRESODH).
+          © {new Date().getFullYear()} Observatorio Laboral Costa Rica.
         </Typography>
         
         {/* Creative Commons License */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-          <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noreferrer">
+          <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="license noreferrer">
             <img alt="Licencia de Creative Commons" style={{ borderWidth: 0 }} src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" />
           </a>
           <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)', maxWidth: '400px' }}>
